@@ -127,8 +127,7 @@ def clean_search_query(text: str) -> str:
     # Normalize unicode curly apostrophes and quotes
     text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
 
-    # Weather intent detection & normalization
-    # e.g., "what's the weather supposed to be like today in Omaha Nebraska?" -> "Omaha Nebraska weather"
+    # 1. Weather intent: e.g. "what's the weather supposed to be like in Omaha?" -> "Omaha weather"
     weather_match = re.search(r"\bweather\b.*?\b(?:in|for|at)\s+([a-zA-Z\s,]+)", text, re.IGNORECASE)
     if weather_match:
         loc = weather_match.group(1).strip()
@@ -137,22 +136,45 @@ def clean_search_query(text: str) -> str:
         if loc:
             return f"{loc} weather".strip()
 
-    # Strip conversational prefixes
+    # 2. Events / Activities intent: e.g. "What big events are happening in Omaha in september?" -> "Omaha events september"
+    event_match = re.search(
+        r"\b(?:events?|things\s+to\s+do|festivals?|concerts?|activities)\b.*?\b(?:in|at|around)\s+([a-zA-Z\s,]+?)(?:\s+(?:in|during|for|this|next)\s+([a-zA-Z0-9\s]+))?$",
+        text,
+        re.IGNORECASE,
+    )
+    if event_match:
+        loc = re.sub(r"[?!.,;:\"]", "", event_match.group(1)).strip()
+        time_frame = re.sub(r"[?!.,;:\"]", "", event_match.group(2) or "").strip()
+        if loc:
+            parts = [loc, "events"]
+            if time_frame:
+                parts.append(time_frame)
+            return " ".join(parts)
+
+    # 3. Strip conversational prefixes
     prefixes = [
-        r"^(?:what(?:'s|\s+is|\s+are)?|tell\s+me\s+about|can\s+you\s+(?:tell\s+me|find|search)|how(?:\s+is|'s)|search\s+(?:for)?|find\s+(?:out)?|who\s+(?:is|was)|where\s+is|please\s+tell\s+me|give\s+me\s+(?:the)?)\s+(?:the\s+|a\s+|an\s+)?",
+        r"^(?:what(?:'s|\s+is|\s+are)?|which|tell\s+me\s+about|can\s+you\s+(?:tell\s+me|find|search|show\s+me)|how(?:\s+is|'s)|search\s+(?:for)?|find\s+(?:out)?|who\s+(?:is|was)|where\s+is|please\s+tell\s+me|give\s+me\s+(?:the)?|show\s+me)\s+(?:the\s+|a\s+|an\s+|some\s+)?",
     ]
     for p in prefixes:
         text = re.sub(p, "", text, flags=re.IGNORECASE).strip()
 
-    # Strip conversational filler phrases
+    # 4. Strip conversational filler verbs and phrases
     fillers = [
         r"\bsupposed\s+to\s+be\s+like\b",
         r"\bgoing\s+to\s+be\s+like\b",
         r"\blooks?\s+like\b",
         r"\blike\s+today\s+in\b",
+        r"\bare\s+happening\s+in\b",
+        r"\bhappening\s+in\b",
+        r"\bgoing\s+on\s+in\b",
+        r"\btaking\s+place\s+in\b",
+        r"\bare\s+there\s+in\b",
     ]
     for f in fillers:
         text = re.sub(f, "", text, flags=re.IGNORECASE).strip()
+
+    # 5. Strip leading filler adjectives before subject
+    text = re.sub(r"^(?:big|cool|fun|major|popular|best|top|upcoming|great)\s+", "", text, flags=re.IGNORECASE).strip()
 
     text = re.sub(r"[?!.,;:\"]+$", "", text).strip()
     text = re.sub(r"\s+", " ", text).strip()
@@ -162,9 +184,21 @@ def clean_search_query(text: str) -> str:
 async def generate_search_keywords(client: httpx.AsyncClient, raw_query: str, model: str = None) -> str:
     """Use Ollama to extract 2-4 optimal search keywords from conversational prompts in ~50ms."""
     target_model = model
+    # Priority: check /api/ps first for already-loaded VRAM model to avoid disk load delay
     if not target_model:
         try:
-            r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=1.5)
+            r = await client.get(f"{OLLAMA_BASE_URL}/api/ps", timeout=1.0)
+            if r.status_code == 200:
+                running = r.json().get("models", [])
+                if running:
+                    target_model = running[0].get("name")
+        except Exception:
+            pass
+
+    # If nothing loaded in VRAM, try tags
+    if not target_model:
+        try:
+            r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=1.0)
             if r.status_code == 200:
                 tags = r.json().get("models", [])
                 if tags:
