@@ -310,22 +310,6 @@ class VoiceController {
                     muted: "rgba(80, 32, 64, 0.3)"
                 }
             },
-            eightbit: {
-                is8Bit: true,
-                glowColor: "#00ff41",
-                colors: {
-                    listening: ["#00ff41", "#00cc33", "#ffb000"],
-                    speaking: ["#ffb000", "#ff8800", "#00ff41"],
-                    thinking: ["#ffff00", "#ffb000", "#00ff41"],
-                    muted: ["#005511", "#003308", "#001100"]
-                },
-                glow: {
-                    listening: "rgba(0, 255, 65, 0.5)",
-                    speaking: "rgba(255, 176, 0, 0.5)",
-                    thinking: "rgba(255, 255, 0, 0.5)",
-                    muted: "rgba(0, 85, 17, 0.2)"
-                }
-            },
             matrix: {
                 is8Bit: false,
                 glowColor: "#22c55e",
@@ -374,84 +358,84 @@ class VoiceController {
                     muted: "rgba(19, 78, 74, 0.25)"
                 }
             },
-            crimson: {
+            snowforest: {
                 is8Bit: false,
-                glowColor: "#f43f5e",
+                glowColor: "#34d399",
                 colors: {
-                    listening: ["#f43f5e", "#e11d48", "#be123c"],
-                    speaking: ["#fb7185", "#f43f5e", "#9f1239"],
-                    thinking: ["#fda4af", "#e11d48", "#881337"],
-                    muted: ["#881337", "#4c0519", "#20020a"]
+                    listening: ["#34d399", "#6ee7b7", "#a7f3d0"],
+                    speaking: ["#10b981", "#34d399", "#f0fdf4"],
+                    thinking: ["#a7f3d0", "#34d399", "#059669"],
+                    muted: ["#064e3b", "#065f46", "#022c22"]
                 },
                 glow: {
-                    listening: "rgba(244, 63, 94, 0.55)",
-                    speaking: "rgba(225, 29, 72, 0.5)",
-                    thinking: "rgba(253, 164, 175, 0.5)",
-                    muted: "rgba(136, 19, 55, 0.25)"
+                    listening: "rgba(52, 211, 153, 0.55)",
+                    speaking: "rgba(16, 185, 129, 0.5)",
+                    thinking: "rgba(167, 243, 208, 0.55)",
+                    muted: "rgba(6, 78, 59, 0.25)"
                 }
             },
-            sakura: {
+            nordic: {
                 is8Bit: false,
-                glowColor: "#f472b6",
+                glowColor: "#2563eb",
                 colors: {
-                    listening: ["#f472b6", "#e879f9", "#c084fc"],
-                    speaking: ["#c084fc", "#f472b6", "#fbcfe8"],
-                    thinking: ["#fbcfe8", "#e879f9", "#d946ef"],
-                    muted: ["#701a75", "#4a044e", "#250227"]
+                    listening: ["#2563eb", "#3b82f6", "#60a5fa"],
+                    speaking: ["#1d4ed8", "#2563eb", "#93c5fd"],
+                    thinking: ["#60a5fa", "#3b82f6", "#1e40af"],
+                    muted: ["#94a3b8", "#64748b", "#475569"]
                 },
                 glow: {
-                    listening: "rgba(244, 114, 182, 0.5)",
-                    speaking: "rgba(192, 132, 252, 0.5)",
-                    thinking: "rgba(232, 121, 249, 0.5)",
-                    muted: "rgba(112, 26, 117, 0.25)"
+                    listening: "rgba(37, 99, 235, 0.5)",
+                    speaking: "rgba(29, 78, 216, 0.45)",
+                    thinking: "rgba(96, 165, 250, 0.5)",
+                    muted: "rgba(148, 163, 184, 0.25)"
                 }
             },
-            solarized: {
+            paper: {
                 is8Bit: false,
-                glowColor: "#f59e0b",
+                glowColor: "#c2410c",
                 colors: {
-                    listening: ["#fbbf24", "#f59e0b", "#d97706"],
-                    speaking: ["#f59e0b", "#d97706", "#b45309"],
-                    thinking: ["#fde68a", "#f59e0b", "#92400e"],
-                    muted: ["#78350f", "#451a03", "#220d02"]
+                    listening: ["#c2410c", "#ea580c", "#f97316"],
+                    speaking: ["#9a3412", "#c2410c", "#fb923c"],
+                    thinking: ["#fb923c", "#f97316", "#7c2d12"],
+                    muted: ["#78716c", "#57534e", "#44403c"]
                 },
                 glow: {
-                    listening: "rgba(245, 158, 11, 0.55)",
-                    speaking: "rgba(217, 119, 6, 0.5)",
-                    thinking: "rgba(251, 191, 36, 0.55)",
-                    muted: "rgba(120, 53, 15, 0.25)"
+                    listening: "rgba(194, 65, 12, 0.5)",
+                    speaking: "rgba(154, 52, 18, 0.45)",
+                    thinking: "rgba(251, 146, 60, 0.5)",
+                    muted: "rgba(120, 113, 108, 0.25)"
                 }
             },
-            abyss: {
+            alpineday: {
                 is8Bit: false,
-                glowColor: "#06b6d4",
+                glowColor: "#2d6a4f",
                 colors: {
-                    listening: ["#22d3ee", "#06b6d4", "#0284c7"],
-                    speaking: ["#38bdf8", "#0284c7", "#1d4ed8"],
-                    thinking: ["#67e8f9", "#06b6d4", "#2563eb"],
-                    muted: ["#075985", "#0c4a6e", "#082f49"]
+                    listening: ["#2d6a4f", "#40916c", "#52b788"],
+                    speaking: ["#1b4332", "#2d6a4f", "#74c69d"],
+                    thinking: ["#52b788", "#40916c", "#081c15"],
+                    muted: ["#6b705c", "#588157", "#344e41"]
                 },
                 glow: {
-                    listening: "rgba(6, 182, 212, 0.55)",
-                    speaking: "rgba(14, 165, 233, 0.5)",
-                    thinking: "rgba(103, 232, 249, 0.55)",
-                    muted: "rgba(7, 89, 133, 0.25)"
+                    listening: "rgba(45, 106, 79, 0.5)",
+                    speaking: "rgba(27, 67, 50, 0.45)",
+                    thinking: "rgba(82, 183, 136, 0.5)",
+                    muted: "rgba(107, 112, 92, 0.25)"
                 }
             },
-            monochrome: {
+            pastel: {
                 is8Bit: false,
-                glowColor: "#fafafa",
+                glowColor: "#ec4899",
                 colors: {
-                    listening: ["#ffffff", "#e4e4e7", "#a1a1aa"],
-                    speaking: ["#e4e4e7", "#a1a1aa", "#71717a"],
-                    thinking: ["#f4f4f5", "#d4d4d8", "#52525b"],
-                    muted: ["#52525b", "#3f3f46", "#27272a"]
+                    listening: ["#ec4899", "#c084fc", "#818cf8"],
+                    speaking: ["#f472b6", "#a78bfa", "#67e8f9"],
+                    thinking: ["#c084fc", "#f472b6", "#fed7aa"],
+                    muted: ["#cbd5e1", "#e2e8f0", "#f1f5f9"]
                 },
                 glow: {
-                    listening: "rgba(255, 255, 255, 0.4)",
-                    speaking: "rgba(228, 228, 231, 0.35)",
-                    thinking: "rgba(244, 244, 245, 0.4)",
-                    muted: "rgba(82, 82, 91, 0.2)"
+                    listening: "rgba(236, 72, 153, 0.5)",
+                    speaking: "rgba(244, 114, 182, 0.45)",
+                    thinking: "rgba(192, 132, 252, 0.5)",
+                    muted: "rgba(203, 213, 225, 0.25)"
                 }
             }
         };
