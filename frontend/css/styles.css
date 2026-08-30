@@ -255,19 +255,54 @@ body[data-theme="pastel"] #ambient-layer {
     pointer-events: none;
 }
 
-/* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel) */
+/* 12. GLACIAL ICE (Frozen Arctic Tundra & Falling Snow - Light Mode) */
+body[data-theme="glacier"] {
+    --bg-main: #edf5fa;
+    --bg-header: rgba(240, 248, 255, 0.94);
+    --bg-sidebar: #e3eff7;
+    --bg-card: rgba(255, 255, 255, 0.9);
+    --bg-user-bubble: #0284c7;
+    --text-user-bubble: #ffffff;
+    --border-color: #bae6fd;
+    --border-radius: 1rem;
+    --text-main: #0c2340;
+    --text-muted: #547896;
+    --brand-primary: #0284c7;
+    --brand-hover: #0369a1;
+    --brand-glow: rgba(2, 132, 199, 0.25);
+    --input-bg: #ffffff;
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+}
+body[data-theme="glacier"] #ambient-layer {
+    background: radial-gradient(ellipse at 50% 0%, rgba(186, 230, 253, 0.35) 0%, transparent 60%),
+                radial-gradient(circle at 80% 90%, rgba(125, 211, 252, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+}
+/* Frost / Ice Caps on Top of Tiles in Glacial Ice Theme */
+body[data-theme="glacier"] .message-bubble-wrapper > div,
+body[data-theme="glacier"] .bg-slate-900\/70,
+body[data-theme="glacier"] .hud-card {
+    border-top: 2px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 -2px 10px rgba(56, 189, 248, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, glacier) */
 body[data-theme="nordic"] .text-white,
 body[data-theme="paper"] .text-white,
 body[data-theme="alpineday"] .text-white,
 body[data-theme="pastel"] .text-white,
+body[data-theme="glacier"] .text-white,
 body[data-theme="nordic"] .text-slate-200,
 body[data-theme="paper"] .text-slate-200,
 body[data-theme="alpineday"] .text-slate-200,
 body[data-theme="pastel"] .text-slate-200,
+body[data-theme="glacier"] .text-slate-200,
 body[data-theme="nordic"] .text-slate-300,
 body[data-theme="paper"] .text-slate-300,
 body[data-theme="alpineday"] .text-slate-300,
-body[data-theme="pastel"] .text-slate-300 {
+body[data-theme="pastel"] .text-slate-300,
+body[data-theme="glacier"] .text-slate-300 {
     color: var(--text-main) !important;
 }
 
@@ -275,10 +310,12 @@ body[data-theme="nordic"] .text-slate-400,
 body[data-theme="paper"] .text-slate-400,
 body[data-theme="alpineday"] .text-slate-400,
 body[data-theme="pastel"] .text-slate-400,
+body[data-theme="glacier"] .text-slate-400,
 body[data-theme="nordic"] .text-slate-500,
 body[data-theme="paper"] .text-slate-500,
 body[data-theme="alpineday"] .text-slate-500,
-body[data-theme="pastel"] .text-slate-500 {
+body[data-theme="pastel"] .text-slate-500,
+body[data-theme="glacier"] .text-slate-500 {
     color: var(--text-muted) !important;
 }
 
@@ -286,10 +323,12 @@ body[data-theme="nordic"] .bg-slate-900,
 body[data-theme="paper"] .bg-slate-900,
 body[data-theme="alpineday"] .bg-slate-900,
 body[data-theme="pastel"] .bg-slate-900,
+body[data-theme="glacier"] .bg-slate-900,
 body[data-theme="nordic"] .bg-slate-900\/70,
 body[data-theme="paper"] .bg-slate-900\/70,
 body[data-theme="alpineday"] .bg-slate-900\/70,
-body[data-theme="pastel"] .bg-slate-900\/70 {
+body[data-theme="pastel"] .bg-slate-900\/70,
+body[data-theme="glacier"] .bg-slate-900\/70 {
     background-color: var(--bg-card) !important;
     border-color: var(--border-color) !important;
 }
@@ -298,14 +337,17 @@ body[data-theme="nordic"] .bg-slate-800,
 body[data-theme="paper"] .bg-slate-800,
 body[data-theme="alpineday"] .bg-slate-800,
 body[data-theme="pastel"] .bg-slate-800,
+body[data-theme="glacier"] .bg-slate-800,
 body[data-theme="nordic"] .bg-slate-800\/70,
 body[data-theme="paper"] .bg-slate-800\/70,
 body[data-theme="alpineday"] .bg-slate-800\/70,
 body[data-theme="pastel"] .bg-slate-800\/70,
+body[data-theme="glacier"] .bg-slate-800\/70,
 body[data-theme="nordic"] .bg-slate-800\/80,
 body[data-theme="paper"] .bg-slate-800\/80,
 body[data-theme="alpineday"] .bg-slate-800\/80,
-body[data-theme="pastel"] .bg-slate-800\/80 {
+body[data-theme="pastel"] .bg-slate-800\/80,
+body[data-theme="glacier"] .bg-slate-800\/80 {
     background-color: var(--bg-sidebar) !important;
     border-color: var(--border-color) !important;
 }
@@ -314,18 +356,22 @@ body[data-theme="nordic"] .border-slate-800,
 body[data-theme="paper"] .border-slate-800,
 body[data-theme="alpineday"] .border-slate-800,
 body[data-theme="pastel"] .border-slate-800,
+body[data-theme="glacier"] .border-slate-800,
 body[data-theme="nordic"] .border-slate-800\/80,
 body[data-theme="paper"] .border-slate-800\/80,
 body[data-theme="alpineday"] .border-slate-800\/80,
 body[data-theme="pastel"] .border-slate-800\/80,
+body[data-theme="glacier"] .border-slate-800\/80,
 body[data-theme="nordic"] .border-slate-700,
 body[data-theme="paper"] .border-slate-700,
 body[data-theme="alpineday"] .border-slate-700,
 body[data-theme="pastel"] .border-slate-700,
+body[data-theme="glacier"] .border-slate-700,
 body[data-theme="nordic"] .border-slate-700\/60,
 body[data-theme="paper"] .border-slate-700\/60,
 body[data-theme="alpineday"] .border-slate-700\/60,
-body[data-theme="pastel"] .border-slate-700\/60 {
+body[data-theme="pastel"] .border-slate-700\/60,
+body[data-theme="glacier"] .border-slate-700\/60 {
     border-color: var(--border-color) !important;
 }
 
@@ -649,25 +695,32 @@ body[data-theme="pastel"] #live-voice-overlay {
     background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.96) 0%, rgba(248, 238, 250, 0.99) 75%);
 }
 
+body[data-theme="glacier"] #live-voice-overlay {
+    background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.96) 0%, rgba(224, 242, 254, 0.99) 75%);
+}
+
 /* Voice Screen Light & Pastel Contrast Adjustments */
 body[data-theme="nordic"] #live-voice-overlay,
 body[data-theme="paper"] #live-voice-overlay,
 body[data-theme="alpineday"] #live-voice-overlay,
-body[data-theme="pastel"] #live-voice-overlay {
+body[data-theme="pastel"] #live-voice-overlay,
+body[data-theme="glacier"] #live-voice-overlay {
     color: var(--text-main) !important;
 }
 
 body[data-theme="nordic"] #live-voice-overlay .text-slate-300,
 body[data-theme="paper"] #live-voice-overlay .text-slate-300,
 body[data-theme="alpineday"] #live-voice-overlay .text-slate-300,
-body[data-theme="pastel"] #live-voice-overlay .text-slate-300 {
+body[data-theme="pastel"] #live-voice-overlay .text-slate-300,
+body[data-theme="glacier"] #live-voice-overlay .text-slate-300 {
     color: var(--text-main) !important;
 }
 
 body[data-theme="nordic"] #live-voice-overlay #btn-close-live-voice,
 body[data-theme="paper"] #live-voice-overlay #btn-close-live-voice,
 body[data-theme="alpineday"] #live-voice-overlay #btn-close-live-voice,
-body[data-theme="pastel"] #live-voice-overlay #btn-close-live-voice {
+body[data-theme="pastel"] #live-voice-overlay #btn-close-live-voice,
+body[data-theme="glacier"] #live-voice-overlay #btn-close-live-voice {
     background-color: var(--bg-card) !important;
     color: var(--text-main) !important;
     border-color: var(--border-color) !important;
@@ -676,7 +729,8 @@ body[data-theme="pastel"] #live-voice-overlay #btn-close-live-voice {
 body[data-theme="nordic"] #live-voice-overlay #live-voice-user-sub,
 body[data-theme="paper"] #live-voice-overlay #live-voice-user-sub,
 body[data-theme="alpineday"] #live-voice-overlay #live-voice-user-sub,
-body[data-theme="pastel"] #live-voice-overlay #live-voice-user-sub {
+body[data-theme="pastel"] #live-voice-overlay #live-voice-user-sub,
+body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
     color: var(--text-muted) !important;
 }
 

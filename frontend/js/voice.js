@@ -437,6 +437,22 @@ class VoiceController {
                     thinking: "rgba(192, 132, 252, 0.5)",
                     muted: "rgba(203, 213, 225, 0.25)"
                 }
+            },
+            glacier: {
+                is8Bit: false,
+                glowColor: "#0284c7",
+                colors: {
+                    listening: ["#0284c7", "#38bdf8", "#7dd3fc"],
+                    speaking: ["#0369a1", "#0284c7", "#bae6fd"],
+                    thinking: ["#38bdf8", "#7dd3fc", "#0c4a6e"],
+                    muted: ["#94a3b8", "#64748b", "#475569"]
+                },
+                glow: {
+                    listening: "rgba(2, 132, 199, 0.5)",
+                    speaking: "rgba(3, 105, 161, 0.45)",
+                    thinking: "rgba(56, 189, 248, 0.5)",
+                    muted: "rgba(148, 163, 184, 0.25)"
+                }
             }
         };
         return configs[theme] || configs.default;

@@ -363,7 +363,8 @@ class App {
                     drops[i]++;
                 }
             }, 55);
-        } else if (themeName === "snowforest") {
+        } else if (themeName === "snowforest" || themeName === "glacier") {
+            const isGlacier = themeName === "glacier";
             const canvas = document.createElement("canvas");
             canvas.className = "w-full h-full pointer-events-none";
             layer.appendChild(canvas);
@@ -435,7 +436,9 @@ class App {
                     if (f.landed) {
                         f.meltTimer++;
                         const meltRatio = Math.max(0, 1 - (f.meltTimer / f.maxMelt));
-                        ctx.fillStyle = `rgba(240, 253, 244, ${f.opacity * meltRatio})`;
+                        ctx.fillStyle = isGlacier 
+                            ? `rgba(186, 230, 253, ${f.opacity * meltRatio})`
+                            : `rgba(240, 253, 244, ${f.opacity * meltRatio})`;
                         ctx.beginPath();
                         ctx.arc(f.x, f.y, f.radius * (0.8 + 0.2 * meltRatio), 0, Math.PI * 2);
                         ctx.fill();
@@ -470,14 +473,18 @@ class App {
                     }
 
                     // Draw falling snowflake
-                    ctx.fillStyle = `rgba(240, 253, 244, ${f.opacity})`;
+                    ctx.fillStyle = isGlacier
+                        ? `rgba(147, 197, 253, ${f.opacity * 0.9})`
+                        : `rgba(240, 253, 244, ${f.opacity})`;
                     ctx.beginPath();
                     ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Subtle frost glow around larger flakes
                     if (f.radius > 2.2) {
-                        ctx.fillStyle = `rgba(167, 243, 208, ${f.opacity * 0.25})`;
+                        ctx.fillStyle = isGlacier
+                            ? `rgba(56, 189, 248, ${f.opacity * 0.35})`
+                            : `rgba(167, 243, 208, ${f.opacity * 0.25})`;
                         ctx.beginPath();
                         ctx.arc(f.x, f.y, f.radius * 1.8, 0, Math.PI * 2);
                         ctx.fill();
