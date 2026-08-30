@@ -258,33 +258,94 @@ body[data-theme="pastel"] #ambient-layer {
 /* 12. GLACIAL ICE (Frozen Arctic Tundra & Falling Snow - Light Mode) */
 body[data-theme="glacier"] {
     --bg-main: #edf5fa;
-    --bg-header: rgba(240, 248, 255, 0.94);
-    --bg-sidebar: #e3eff7;
-    --bg-card: rgba(255, 255, 255, 0.9);
+    --bg-header: rgba(235, 245, 253, 0.55);
+    --bg-sidebar: rgba(224, 242, 254, 0.45);
+    --bg-card: rgba(240, 249, 255, 0.52);
     --bg-user-bubble: #0284c7;
     --text-user-bubble: #ffffff;
-    --border-color: #bae6fd;
-    --border-radius: 1rem;
+    --border-color: rgba(186, 230, 253, 0.7);
+    --border-radius: 1.15rem;
     --text-main: #0c2340;
     --text-muted: #547896;
     --brand-primary: #0284c7;
     --brand-hover: #0369a1;
-    --brand-glow: rgba(2, 132, 199, 0.25);
-    --input-bg: #ffffff;
+    --brand-glow: rgba(2, 132, 199, 0.3);
+    --input-bg: rgba(255, 255, 255, 0.6);
     --font-family: 'Inter', sans-serif;
     --font-heading: 'Inter', sans-serif;
 }
+body[data-theme="glacier"] {
+    background: linear-gradient(135deg, #e8f4fc 0%, #edf5fa 40%, #e0f2fe 100%) fixed !important;
+}
 body[data-theme="glacier"] #ambient-layer {
-    background: radial-gradient(ellipse at 50% 0%, rgba(186, 230, 253, 0.35) 0%, transparent 60%),
-                radial-gradient(circle at 80% 90%, rgba(125, 211, 252, 0.2) 0%, transparent 50%);
+    background: radial-gradient(ellipse at 30% 20%, rgba(186, 230, 253, 0.45) 0%, transparent 60%),
+                radial-gradient(circle at 80% 85%, rgba(147, 197, 253, 0.35) 0%, transparent 60%);
     pointer-events: none;
 }
-/* Frost / Ice Caps on Top of Tiles in Glacial Ice Theme */
+
+/* Translucent Sheets of Ice for Sidebar, Header, Chat Tiles & Cards */
+body[data-theme="glacier"] #sidebar {
+    background-color: rgba(224, 242, 254, 0.45) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-right: 1px solid rgba(186, 230, 253, 0.75) !important;
+    box-shadow: 4px 0 28px rgba(186, 230, 253, 0.25) !important;
+}
+body[data-theme="glacier"] header {
+    background-color: rgba(235, 245, 253, 0.55) !important;
+    backdrop-filter: blur(18px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(186, 230, 253, 0.6) !important;
+}
 body[data-theme="glacier"] .message-bubble-wrapper > div,
 body[data-theme="glacier"] .bg-slate-900\/70,
-body[data-theme="glacier"] .hud-card {
+body[data-theme="glacier"] .hud-card,
+body[data-theme="glacier"] .example-card,
+body[data-theme="glacier"] #settings-modal > div {
+    background-color: rgba(240, 249, 255, 0.52) !important;
+    backdrop-filter: blur(16px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+    border: 1px solid rgba(186, 230, 253, 0.65) !important;
+    border-top: 2.5px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 10px 35px rgba(186, 230, 253, 0.35), inset 0 1px 3px rgba(255, 255, 255, 0.9) !important;
+}
+body[data-theme="glacier"] .user-message-bubble {
+    background-color: rgba(2, 132, 199, 0.88) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-top: 2px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.3) !important;
+}
+body[data-theme="glacier"] #chat-input-wrapper {
+    background-color: rgba(240, 249, 255, 0.65) !important;
+    backdrop-filter: blur(18px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+    border: 1px solid rgba(186, 230, 253, 0.8) !important;
     border-top: 2px solid rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 -2px 10px rgba(56, 189, 248, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 10px 35px rgba(186, 230, 253, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.9) !important;
+}
+body[data-theme="glacier"] #chat-input {
+    background: transparent !important;
+}
+body[data-theme="glacier"] #sidebar select,
+body[data-theme="glacier"] #sidebar input,
+body[data-theme="glacier"] #sidebar #btn-purge-vram {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(186, 230, 253, 0.7) !important;
+}
+body[data-theme="glacier"] #sidebar .session-tab {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(8px) !important;
+}
+body[data-theme="glacier"] #sidebar .session-tab:hover {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+    border-color: rgba(186, 230, 253, 0.8) !important;
+}
+body[data-theme="glacier"] #sidebar .session-tab.bg-slate-800 {
+    background-color: rgba(255, 255, 255, 0.82) !important;
+    border: 1px solid #7dd3fc !important;
+    box-shadow: 0 2px 12px rgba(56, 189, 248, 0.25) !important;
 }
 
 /* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, glacier) */

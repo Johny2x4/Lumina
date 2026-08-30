@@ -378,8 +378,10 @@ class App {
             this._resizeHandler = resizeCanvas;
             window.addEventListener("resize", resizeCanvas);
 
-            // Snowflake Particles Pool
-            const FLAKE_COUNT = Math.min(95, Math.max(45, Math.floor(window.innerWidth / 16)));
+            // Blizzard particle density for Glacier (3-4x more snow), gentle snowfall for Snowforest
+            const FLAKE_COUNT = isGlacier 
+                ? Math.min(340, Math.max(180, Math.floor(window.innerWidth / 4.8)))
+                : Math.min(95, Math.max(45, Math.floor(window.innerWidth / 16)));
             const flakes = [];
 
             // Visible tile ledges cache (refreshed periodically to avoid layout thrashing)
@@ -405,18 +407,23 @@ class App {
 
             let frameCount = 0;
 
-            const createFlake = (initialY = null) => ({
-                x: Math.random() * canvas.width,
-                y: initialY !== null ? initialY : Math.random() * canvas.height,
-                radius: 1.0 + Math.random() * 2.2,
-                speedY: 0.6 + Math.random() * 1.3,
-                sway: Math.random() * Math.PI * 2,
-                swaySpeed: 0.015 + Math.random() * 0.02,
-                opacity: 0.35 + Math.random() * 0.55,
-                landed: false,
-                meltTimer: 0,
-                maxMelt: 180 + Math.floor(Math.random() * 240), // 3-7s resting before melting
-            });
+            const createFlake = (initialY = null, initialX = null) => {
+                const isStreak = isGlacier && Math.random() < 0.20; // 20% flurry wind streaks in blizzard
+                return {
+                    x: initialX !== null ? initialX : Math.random() * (canvas.width + 100) - 50,
+                    y: initialY !== null ? initialY : Math.random() * canvas.height,
+                    radius: isGlacier ? (0.8 + Math.random() * 2.4) : (1.0 + Math.random() * 2.2),
+                    speedY: isGlacier ? (1.6 + Math.random() * 3.4) : (0.6 + Math.random() * 1.3),
+                    speedX: isGlacier ? (1.8 + Math.random() * 3.2) : 0,
+                    sway: Math.random() * Math.PI * 2,
+                    swaySpeed: 0.015 + Math.random() * 0.03,
+                    opacity: isGlacier ? (0.35 + Math.random() * 0.6) : (0.35 + Math.random() * 0.55),
+                    landed: false,
+                    isStreak: isStreak,
+                    meltTimer: 0,
+                    maxMelt: isGlacier ? (120 + Math.floor(Math.random() * 180)) : (180 + Math.floor(Math.random() * 240)),
+                };
+            };
 
             for (let i = 0; i < FLAKE_COUNT; i++) {
                 flakes.push(createFlake());
@@ -429,6 +436,9 @@ class App {
                 if (frameCount % 60 === 0) {
                     updateLedges();
                 }
+
+                // Blizzard wind gusts that pulse across the screen
+                const windGust = isGlacier ? (1.6 + Math.sin(frameCount * 0.018) * 1.4) : 0;
 
                 for (let i = 0; i < flakes.length; i++) {
                     const f = flakes[i];
@@ -444,55 +454,83 @@ class App {
                         ctx.fill();
 
                         if (f.meltTimer >= f.maxMelt) {
-                            flakes[i] = createFlake(-5);
+                            flakes[i] = createFlake(-10);
                         }
                         continue;
                     }
 
-                    // Update falling position
-                    f.sway += f.swaySpeed;
-                    f.x += Math.sin(f.sway) * 0.65;
-                    f.y += f.speedY;
+                    // Update position: diagonal flurry rush in blizzard, gentle sway in snowforest
+                    if (isGlacier) {
+                        f.x += f.speedX + windGust;
+                        f.y += f.speedY;
+                    } else {
+                        f.sway += f.swaySpeed;
+                        f.x += Math.sin(f.sway) * 0.65;
+                        f.y += f.speedY;
+                    }
 
-                    // Collision check with horizontal tile ledges
-                    for (let j = 0; j < tileLedges.length; j++) {
-                        const ledge = tileLedges[j];
-                        if (
-                            f.y >= ledge.top - 1 &&
-                            f.y <= ledge.top + 3 &&
-                            f.x >= ledge.left &&
-                            f.x <= ledge.right
-                        ) {
-                            // 70% chance to stick and rest on the tile top
-                            if (Math.random() < 0.70) {
-                                f.landed = true;
-                                f.y = ledge.top;
-                                break;
+                    // Collision check with horizontal tile ledges (sheets of ice)
+                    if (!f.isStreak) {
+                        for (let j = 0; j < tileLedges.length; j++) {
+                            const ledge = tileLedges[j];
+                            if (
+                                f.y >= ledge.top - 1 &&
+                                f.y <= ledge.top + 4 &&
+                                f.x >= ledge.left &&
+                                f.x <= ledge.right
+                            ) {
+                                if (Math.random() < 0.65) {
+                                    f.landed = true;
+                                    f.y = ledge.top;
+                                    break;
+                                }
                             }
                         }
                     }
 
-                    // Draw falling snowflake
-                    ctx.fillStyle = isGlacier
-                        ? `rgba(147, 197, 253, ${f.opacity * 0.9})`
-                        : `rgba(240, 253, 244, ${f.opacity})`;
-                    ctx.beginPath();
-                    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Subtle frost glow around larger flakes
-                    if (f.radius > 2.2) {
-                        ctx.fillStyle = isGlacier
-                            ? `rgba(56, 189, 248, ${f.opacity * 0.35})`
-                            : `rgba(167, 243, 208, ${f.opacity * 0.25})`;
+                    // Render snowflake particle
+                    if (f.isStreak && isGlacier) {
+                        // High-speed blizzard flurry streak
+                        ctx.strokeStyle = `rgba(186, 230, 253, ${f.opacity * 0.8})`;
+                        ctx.lineWidth = 1.3;
                         ctx.beginPath();
-                        ctx.arc(f.x, f.y, f.radius * 1.8, 0, Math.PI * 2);
+                        ctx.moveTo(f.x, f.y);
+                        ctx.lineTo(f.x - (f.speedX + windGust) * 2.2, f.y - f.speedY * 1.8);
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = isGlacier
+                            ? `rgba(147, 197, 253, ${f.opacity * 0.92})`
+                            : `rgba(240, 253, 244, ${f.opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
                         ctx.fill();
+
+                        // Soft icy azure glow around larger flakes
+                        if (f.radius > 2.0) {
+                            ctx.fillStyle = isGlacier
+                                ? `rgba(56, 189, 248, ${f.opacity * 0.4})`
+                                : `rgba(167, 243, 208, ${f.opacity * 0.25})`;
+                            ctx.beginPath();
+                            ctx.arc(f.x, f.y, f.radius * 1.8, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
                     }
 
-                    // Reset if out of bounds
-                    if (f.y > canvas.height + 5 || f.x < -10 || f.x > canvas.width + 10) {
-                        flakes[i] = createFlake(-5);
+                    // Wrap-around / reset out of bounds
+                    if (isGlacier) {
+                        if (f.x > canvas.width + 40 || f.y > canvas.height + 20) {
+                            if (Math.random() < 0.65) {
+                                // Re-enter from the top
+                                flakes[i] = createFlake(-10, Math.random() * canvas.width - 50);
+                            } else {
+                                // Re-enter from the left windward edge
+                                flakes[i] = createFlake(Math.random() * canvas.height, -25);
+                            }
+                        }
+                    } else {
+                        if (f.y > canvas.height + 5 || f.x < -10 || f.x > canvas.width + 10) {
+                            flakes[i] = createFlake(-5);
+                        }
                     }
                 }
 
