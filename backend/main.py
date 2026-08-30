@@ -159,6 +159,57 @@ def clean_search_query(text: str) -> str:
     return text
 
 
+async def generate_search_keywords(client: httpx.AsyncClient, raw_query: str, model: str = None) -> str:
+    """Use Ollama to extract 2-4 optimal search keywords from conversational prompts in ~50ms."""
+    target_model = model
+    if not target_model:
+        try:
+            r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=1.5)
+            if r.status_code == 200:
+                tags = r.json().get("models", [])
+                if tags:
+                    target_model = tags[0].get("name")
+        except Exception:
+            pass
+
+    if not target_model:
+        return clean_search_query(raw_query)
+
+    prompt = (
+        "You are a search engine query generator. Convert the user's question into a concise 2-4 keyword search query. "
+        "Output ONLY the keywords, no punctuation, no quotes, no explanation.\n\n"
+        f"Question: {raw_query}\n"
+        "Keywords:"
+    )
+
+    try:
+        r = await client.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            json={
+                "model": target_model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.0,
+                    "num_predict": 10,
+                    "stop": ["\n", ".", ","]
+                }
+            },
+            timeout=2.0,
+        )
+        if r.status_code == 200:
+            res = r.json().get("response", "").strip().strip('"\'`')
+            res = re.sub(r"[?!.,;:\"']", " ", res)
+            res = re.sub(r"\s+", " ", res).strip()
+            words = res.split()
+            if 1 <= len(words) <= 6:
+                return res
+    except Exception:
+        pass
+
+    return clean_search_query(raw_query)
+
+
 @app.get("/api/search/status")
 async def search_status():
     return JSONResponse({
@@ -167,7 +218,7 @@ async def search_status():
 
 
 @app.get("/api/search")
-async def search_web(q: str, request: Request):
+async def search_web(q: str, request: Request, model: str = None):
     if not SEARXNG_URL:
         raise HTTPException(
             status_code=404,
@@ -178,17 +229,21 @@ async def search_web(q: str, request: Request):
     if not raw_query:
         return JSONResponse({"query": "", "results": []})
 
-    cleaned = clean_search_query(raw_query)
-    search_term = cleaned if len(cleaned) >= 3 else raw_query
-
     client: httpx.AsyncClient = request.app.state.http_client
+
+    # 1. Generate optimal search keywords via Ollama model or regex fallback
+    search_term = await generate_search_keywords(client, raw_query, model)
+    if not search_term or len(search_term) < 2:
+        search_term = clean_search_query(raw_query) or raw_query
+
+    # 2. Query SearXNG with google and bing
     try:
         r = await client.get(
             f"{SEARXNG_URL}/search",
             params={
                 "q": search_term,
                 "format": "json",
-                "engines": "google,bing,wikipedia",
+                "engines": "google,bing",
             },
             timeout=10.0,
         )
@@ -201,7 +256,7 @@ async def search_web(q: str, request: Request):
             snippet = item.get("content", "")
             engine = item.get("engine", "")
             # Filter out single-word dictionary definitions and disambiguation pages from Wikipedia
-            if engine == "wikipedia" and (title.lower() in ("what", "whatsapp") or "disambiguation" in snippet.lower()):
+            if engine == "wikipedia" and (title.lower() in ("what", "whatsapp", "big") or "disambiguation" in snippet.lower()):
                 continue
             results.append({
                 "title": title,

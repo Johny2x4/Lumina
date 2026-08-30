@@ -284,7 +284,8 @@ class ChatManager {
         let searchSources = null;
         if (this.isWebSearchEnabled && this.isWebSearchActive && text) {
             try {
-                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}`);
+                const modelParam = model ? `&model=${encodeURIComponent(model)}` : "";
+                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}${modelParam}`);
                 if (sRes.ok) {
                     const sData = await sRes.json();
                     if (sData.results && sData.results.length > 0) {
