@@ -114,6 +114,63 @@ async def websocket_telemetry(websocket: WebSocket):
 
 
 # ---------------------------------------------------------------------------
+# Web Search: Progressive enhancement via optional SearXNG instance
+# ---------------------------------------------------------------------------
+SEARXNG_URL = os.getenv("SEARXNG_URL", "").rstrip("/")
+
+
+@app.get("/api/search/status")
+async def search_status():
+    return JSONResponse({
+        "enabled": bool(SEARXNG_URL)
+    })
+
+
+@app.get("/api/search")
+async def search_web(q: str, request: Request):
+    if not SEARXNG_URL:
+        raise HTTPException(
+            status_code=404,
+            detail="Web search is not configured on this Lumina instance.",
+        )
+
+    query = q.strip()
+    if not query:
+        return JSONResponse({"query": "", "results": []})
+
+    client: httpx.AsyncClient = request.app.state.http_client
+    try:
+        r = await client.get(
+            f"{SEARXNG_URL}/search",
+            params={
+                "q": query,
+                "format": "json",
+                "engines": "google,bing,wikipedia",
+            },
+            timeout=10.0,
+        )
+        r.raise_for_status()
+        data = r.json()
+
+        results = []
+        for item in data.get("results", [])[:5]:
+            results.append({
+                "title": item.get("title", ""),
+                "url": item.get("url", ""),
+                "snippet": item.get("content", ""),
+                "engine": item.get("engine", ""),
+            })
+
+        return JSONResponse({"query": query, "results": results})
+    except Exception as e:
+        return JSONResponse(
+            {"query": query, "results": [], "error": str(e)},
+            status_code=502,
+        )
+
+
+
+# ---------------------------------------------------------------------------
 # Ollama proxy with SSRF-prevention path whitelist
 # ---------------------------------------------------------------------------
 ALLOWED_OLLAMA_PATHS = frozenset({

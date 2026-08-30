@@ -487,7 +487,7 @@ class App {
                 return;
             }
             sess.messages.forEach(msg => {
-                window.chatManager?.renderMessageUI(msg.role, msg.content, msg.imagePreviews);
+                window.chatManager?.renderMessageUI(msg.role, msg.content, msg.imagePreviews, msg.sources);
             });
         }
         if (window.chatManager) {

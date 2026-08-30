@@ -99,7 +99,9 @@ Access the UI at: **`http://localhost:3000`**
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Target Ollama API host (e.g. `http://ollama:11434` or remote IP) |
+| `OLLAMA_BASE_URL` / `OLLAMA_HOST` | `http://localhost:11434` | Target Ollama API host (e.g. `http://ollama:11434` or remote IP) |
+| `SEARXNG_URL` | *(disabled)* | Optional SearXNG instance URL (e.g. `http://searxng:8080`) to enable live web search & citations |
+| `LUMINA_CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated, without credentials) |
 | `PORT` | `3000` | Port for the Lumina web server |
 
 ---

@@ -5,12 +5,52 @@ class ChatManager {
         this.stagedAttachments = []; // { id, type: 'image'|'text', name, size, data, previewUrl }
         this.abortController = null;
         this.isGenerating = false;
+        this.isWebSearchEnabled = false;
+        this.isWebSearchActive = localStorage.getItem("lumina_web_search_active") === "true";
         this.init();
     }
 
     init() {
         this.bindEvents();
         this.bindAttachmentEvents();
+        this.initWebSearch();
+    }
+
+    async initWebSearch() {
+        const btnSearch = document.getElementById("btn-web-search");
+        if (!btnSearch) return;
+
+        try {
+            const res = await fetch("/api/search/status");
+            if (res.ok) {
+                const data = await res.json();
+                this.isWebSearchEnabled = !!data.enabled;
+            }
+        } catch (e) {
+            this.isWebSearchEnabled = false;
+        }
+
+        if (this.isWebSearchEnabled) {
+            btnSearch.classList.remove("hidden");
+            this.updateWebSearchButtonUI();
+
+            btnSearch.addEventListener("click", () => {
+                this.isWebSearchActive = !this.isWebSearchActive;
+                localStorage.setItem("lumina_web_search_active", this.isWebSearchActive);
+                this.updateWebSearchButtonUI();
+            });
+        } else {
+            btnSearch.classList.add("hidden");
+        }
+    }
+
+    updateWebSearchButtonUI() {
+        const btnSearch = document.getElementById("btn-web-search");
+        if (!btnSearch) return;
+        btnSearch.classList.toggle("search-active", this.isWebSearchActive);
+        btnSearch.title = this.isWebSearchActive
+            ? "Web Search: ON (Queries live web before answering)"
+            : "Web Search: OFF (Local inference only)";
     }
 
     bindEvents() {
@@ -240,6 +280,28 @@ class ChatManager {
         const emptyState = document.getElementById("empty-state");
         if (emptyState) emptyState.remove();
 
+        // Optional Web Search Pre-fetch
+        let searchSources = null;
+        if (this.isWebSearchEnabled && this.isWebSearchActive && text) {
+            try {
+                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}`);
+                if (sRes.ok) {
+                    const sData = await sRes.json();
+                    if (sData.results && sData.results.length > 0) {
+                        searchSources = sData.results;
+                        const contextLines = searchSources.map((s, i) => {
+                            return `[${i + 1}] "${s.title}" (${s.url})\n${s.snippet}`;
+                        }).join("\n\n");
+
+                        const webContextPrompt = `\n\n--- Real-Time Web Search Results ---\n${contextLines}\n------------------------------------\nInstructions: Use the real-time web search results above to answer the user's prompt accurately. Cite references using [1], [2], etc., where appropriate.`;
+                        fullPromptContent = `${fullPromptContent}${webContextPrompt}`;
+                    }
+                }
+            } catch (searchErr) {
+                console.warn("Web search query failed, continuing with direct LLM inference:", searchErr);
+            }
+        }
+
         // 1. Append User Message
         const userMsg = {
             role: "user",
@@ -248,7 +310,8 @@ class ChatManager {
             imagePreviews: imagePreviews.length > 0 ? imagePreviews : undefined
         };
         this.currentMessages.push(userMsg);
-        this.renderMessageUI("user", userMsg.content, userMsg.imagePreviews);
+        // Show original clean text in user bubble rather than the raw injected search payload
+        this.renderMessageUI("user", text || userMsg.content, userMsg.imagePreviews);
 
         // 2. Append Assistant Message Container
         const assistantMsgEl = this.renderMessageUI("assistant", "");
@@ -356,8 +419,17 @@ class ChatManager {
             }
 
             // Save completed message
-            this.currentMessages.push({ role: "assistant", content: assistantContent });
+            this.currentMessages.push({
+                role: "assistant",
+                content: assistantContent,
+                sources: searchSources && searchSources.length > 0 ? searchSources : undefined
+            });
             window.app?.onMessagesUpdated();
+
+            // Render sources citations card if search results were used
+            if (searchSources && searchSources.length > 0) {
+                this.renderSourcesUI(assistantMsgEl, searchSources);
+            }
 
             // Attach final contextual action handlers to this assistant container
             this.bindMessageActions(assistantMsgEl, "assistant", assistantContent);
@@ -437,7 +509,7 @@ class ChatManager {
         if (btnStop) btnStop.classList.toggle("hidden", !isGen);
     }
 
-    renderMessageUI(role, content, imagePreviews = null) {
+    renderMessageUI(role, content, imagePreviews = null, sources = null) {
         const container = document.getElementById("messages-container");
         const isUser = role === "user";
 
@@ -451,6 +523,26 @@ class ChatManager {
                     ${imagePreviews.map(url => `
                         <img src="${url}" class="max-h-48 max-w-full rounded-xl object-contain border border-white/20 shadow-sm" alt="Uploaded multimodal image">
                     `).join("")}
+                </div>
+            `;
+        }
+
+        let sourcesHtml = "";
+        if (!isUser && sources && Array.isArray(sources) && sources.length > 0) {
+            sourcesHtml = `
+                <div class="search-sources-container">
+                    <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        <span>Sources</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        ${sources.map((s, idx) => `
+                            <a href="${escapeAttr(s.url)}" target="_blank" rel="noopener noreferrer" class="source-chip" title="${escapeAttr(s.title)}">
+                                <span class="text-cyan-400 font-bold font-mono">[${idx + 1}]</span>
+                                <span class="truncate">${escapeHtml(s.title)}</span>
+                            </a>
+                        `).join("")}
+                    </div>
                 </div>
             `;
         }
@@ -481,6 +573,7 @@ class ChatManager {
                         `)}
                     </div>
                     <pre class="raw-content hidden font-mono text-xs whitespace-pre-wrap p-2 bg-black/40 rounded-lg border border-white/10 select-text overflow-x-auto custom-scrollbar my-1"></pre>
+                    ${sourcesHtml}
                 </div>
 
                 <!-- Contextual Action Bar (Subtle on hover / persistent on mobile) -->
@@ -522,6 +615,30 @@ class ChatManager {
         }
         this.scrollToBottom();
         return msgDiv;
+    }
+
+    renderSourcesUI(msgDiv, sources) {
+        if (!msgDiv || !sources || sources.length === 0) return;
+        const bubble = msgDiv.querySelector(".message-bubble-wrapper > div");
+        if (!bubble || bubble.querySelector(".search-sources-container")) return;
+
+        const container = document.createElement("div");
+        container.className = "search-sources-container";
+        container.innerHTML = `
+            <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                <span>Sources</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+                ${sources.map((s, idx) => `
+                    <a href="${escapeAttr(s.url)}" target="_blank" rel="noopener noreferrer" class="source-chip" title="${escapeAttr(s.title)}">
+                        <span class="text-cyan-400 font-bold font-mono">[${idx + 1}]</span>
+                        <span class="truncate">${escapeHtml(s.title)}</span>
+                    </a>
+                `).join("")}
+            </div>
+        `;
+        bubble.appendChild(container);
     }
 
     bindMessageActions(msgDiv, role, content) {
