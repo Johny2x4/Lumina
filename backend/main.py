@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -119,6 +120,45 @@ async def websocket_telemetry(websocket: WebSocket):
 SEARXNG_URL = os.getenv("SEARXNG_URL", "").rstrip("/")
 
 
+def clean_search_query(text: str) -> str:
+    """Normalize conversational prompts into focused search engine queries."""
+    if not text:
+        return ""
+    # Normalize unicode curly apostrophes and quotes
+    text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+
+    # Weather intent detection & normalization
+    # e.g., "what's the weather supposed to be like today in Omaha Nebraska?" -> "Omaha Nebraska weather"
+    weather_match = re.search(r"\bweather\b.*?\b(?:in|for|at)\s+([a-zA-Z\s,]+)", text, re.IGNORECASE)
+    if weather_match:
+        loc = weather_match.group(1).strip()
+        loc = re.sub(r"\b(today|tomorrow|this week|right now|currently|tonight)\b", "", loc, flags=re.IGNORECASE)
+        loc = re.sub(r"[?!.,;:\"]", "", loc).strip()
+        if loc:
+            return f"{loc} weather".strip()
+
+    # Strip conversational prefixes
+    prefixes = [
+        r"^(?:what(?:'s|\s+is|\s+are)?|tell\s+me\s+about|can\s+you\s+(?:tell\s+me|find|search)|how(?:\s+is|'s)|search\s+(?:for)?|find\s+(?:out)?|who\s+(?:is|was)|where\s+is|please\s+tell\s+me|give\s+me\s+(?:the)?)\s+(?:the\s+|a\s+|an\s+)?",
+    ]
+    for p in prefixes:
+        text = re.sub(p, "", text, flags=re.IGNORECASE).strip()
+
+    # Strip conversational filler phrases
+    fillers = [
+        r"\bsupposed\s+to\s+be\s+like\b",
+        r"\bgoing\s+to\s+be\s+like\b",
+        r"\blooks?\s+like\b",
+        r"\blike\s+today\s+in\b",
+    ]
+    for f in fillers:
+        text = re.sub(f, "", text, flags=re.IGNORECASE).strip()
+
+    text = re.sub(r"[?!.,;:\"]+$", "", text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
 @app.get("/api/search/status")
 async def search_status():
     return JSONResponse({
@@ -134,16 +174,19 @@ async def search_web(q: str, request: Request):
             detail="Web search is not configured on this Lumina instance.",
         )
 
-    query = q.strip()
-    if not query:
+    raw_query = q.strip()
+    if not raw_query:
         return JSONResponse({"query": "", "results": []})
+
+    cleaned = clean_search_query(raw_query)
+    search_term = cleaned if len(cleaned) >= 3 else raw_query
 
     client: httpx.AsyncClient = request.app.state.http_client
     try:
         r = await client.get(
             f"{SEARXNG_URL}/search",
             params={
-                "q": query,
+                "q": search_term,
                 "format": "json",
                 "engines": "google,bing,wikipedia",
             },
@@ -153,20 +196,29 @@ async def search_web(q: str, request: Request):
         data = r.json()
 
         results = []
-        for item in data.get("results", [])[:5]:
+        for item in data.get("results", []):
+            title = item.get("title", "")
+            snippet = item.get("content", "")
+            engine = item.get("engine", "")
+            # Filter out single-word dictionary definitions and disambiguation pages from Wikipedia
+            if engine == "wikipedia" and (title.lower() in ("what", "whatsapp") or "disambiguation" in snippet.lower()):
+                continue
             results.append({
-                "title": item.get("title", ""),
+                "title": title,
                 "url": item.get("url", ""),
-                "snippet": item.get("content", ""),
-                "engine": item.get("engine", ""),
+                "snippet": snippet,
+                "engine": engine,
             })
+            if len(results) >= 5:
+                break
 
-        return JSONResponse({"query": query, "results": results})
+        return JSONResponse({"query": search_term, "raw_query": raw_query, "results": results})
     except Exception as e:
         return JSONResponse(
-            {"query": query, "results": [], "error": str(e)},
+            {"query": search_term, "raw_query": raw_query, "results": [], "error": str(e)},
             status_code=502,
         )
+
 
 
 
