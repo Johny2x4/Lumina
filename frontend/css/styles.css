@@ -284,6 +284,158 @@ body[data-theme="monochrome"] {
     --font-heading: 'Inter', sans-serif;
 }
 
+/* 13. SNOWY FOREST (Alpine Pines & Falling Snow) */
+body[data-theme="snowforest"] {
+    --bg-main: #07130c;
+    --bg-header: rgba(9, 24, 16, 0.92);
+    --bg-sidebar: #06110b;
+    --bg-card: rgba(14, 34, 23, 0.7);
+    --bg-user-bubble: #166534;
+    --text-user-bubble: #f0fdf4;
+    --border-color: rgba(167, 243, 208, 0.3);
+    --border-radius: 1rem;
+    --text-main: #f0fdf4;
+    --text-muted: #86efac;
+    --brand-primary: #34d399;
+    --brand-hover: #10b981;
+    --brand-glow: rgba(52, 211, 153, 0.3);
+    --input-bg: rgba(10, 26, 17, 0.85);
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+}
+body[data-theme="snowforest"] #ambient-layer {
+    background: radial-gradient(ellipse at 50% 100%, rgba(20, 83, 45, 0.35) 0%, transparent 65%),
+                radial-gradient(circle at 80% 10%, rgba(52, 211, 153, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+}
+/* Snowy Accumulation Caps on Top of Tiles in Snowy Forest Theme */
+body[data-theme="snowforest"] .message-bubble-wrapper > div,
+body[data-theme="snowforest"] .bg-slate-900\/70,
+body[data-theme="snowforest"] .hud-card {
+    border-top: 2px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 -2px 10px rgba(255, 255, 255, 0.2), inset 0 1px 3px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 14. NORDIC FROST (Clean Scandinavian Light Mode) */
+body[data-theme="nordic"] {
+    --bg-main: #f4f7fb;
+    --bg-header: rgba(248, 250, 253, 0.94);
+    --bg-sidebar: #edf2f7;
+    --bg-card: #ffffff;
+    --bg-user-bubble: #2563eb;
+    --text-user-bubble: #ffffff;
+    --border-color: #dbeafe;
+    --border-radius: 1rem;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --brand-primary: #2563eb;
+    --brand-hover: #1d4ed8;
+    --brand-glow: rgba(37, 99, 235, 0.2);
+    --input-bg: #ffffff;
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+}
+
+/* 15. PAPER & INK (Warm Editorial Light Mode) */
+body[data-theme="paper"] {
+    --bg-main: #fcfbf7;
+    --bg-header: rgba(250, 248, 243, 0.95);
+    --bg-sidebar: #f4f0e6;
+    --bg-card: #ffffff;
+    --bg-user-bubble: #3d372e;
+    --text-user-bubble: #fdfbf7;
+    --border-color: #e7dfd1;
+    --border-radius: 0.875rem;
+    --text-main: #26231f;
+    --text-muted: #78716c;
+    --brand-primary: #c2410c;
+    --brand-hover: #9a3412;
+    --brand-glow: rgba(194, 65, 12, 0.2);
+    --input-bg: #ffffff;
+    --font-family: 'Inter', serif, sans-serif;
+    --font-heading: 'Inter', serif, sans-serif;
+}
+
+/* 16. ALPINE DAY (Frosted Sage & Meadow Light Forest) */
+body[data-theme="alpineday"] {
+    --bg-main: #f0f5f2;
+    --bg-header: rgba(242, 247, 244, 0.94);
+    --bg-sidebar: #e3ede7;
+    --bg-card: #ffffff;
+    --bg-user-bubble: #1b4332;
+    --text-user-bubble: #ffffff;
+    --border-color: #c1d7cc;
+    --border-radius: 1rem;
+    --text-main: #132a1f;
+    --text-muted: #52796f;
+    --brand-primary: #2d6a4f;
+    --brand-hover: #1b4332;
+    --brand-glow: rgba(45, 106, 79, 0.2);
+    --input-bg: #ffffff;
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+}
+
+/* Common Light Mode Class Overrides (nordic, paper, alpineday) */
+body[data-theme="nordic"] .text-white,
+body[data-theme="paper"] .text-white,
+body[data-theme="alpineday"] .text-white,
+body[data-theme="nordic"] .text-slate-200,
+body[data-theme="paper"] .text-slate-200,
+body[data-theme="alpineday"] .text-slate-200,
+body[data-theme="nordic"] .text-slate-300,
+body[data-theme="paper"] .text-slate-300,
+body[data-theme="alpineday"] .text-slate-300 {
+    color: var(--text-main) !important;
+}
+
+body[data-theme="nordic"] .text-slate-400,
+body[data-theme="paper"] .text-slate-400,
+body[data-theme="alpineday"] .text-slate-400,
+body[data-theme="nordic"] .text-slate-500,
+body[data-theme="paper"] .text-slate-500,
+body[data-theme="alpineday"] .text-slate-500 {
+    color: var(--text-muted) !important;
+}
+
+body[data-theme="nordic"] .bg-slate-900,
+body[data-theme="paper"] .bg-slate-900,
+body[data-theme="alpineday"] .bg-slate-900,
+body[data-theme="nordic"] .bg-slate-900\/70,
+body[data-theme="paper"] .bg-slate-900\/70,
+body[data-theme="alpineday"] .bg-slate-900\/70 {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+body[data-theme="nordic"] .bg-slate-800,
+body[data-theme="paper"] .bg-slate-800,
+body[data-theme="alpineday"] .bg-slate-800,
+body[data-theme="nordic"] .bg-slate-800\/70,
+body[data-theme="paper"] .bg-slate-800\/70,
+body[data-theme="alpineday"] .bg-slate-800\/70,
+body[data-theme="nordic"] .bg-slate-800\/80,
+body[data-theme="paper"] .bg-slate-800\/80,
+body[data-theme="alpineday"] .bg-slate-800\/80 {
+    background-color: var(--bg-sidebar) !important;
+    border-color: var(--border-color) !important;
+}
+
+body[data-theme="nordic"] .border-slate-800,
+body[data-theme="paper"] .border-slate-800,
+body[data-theme="alpineday"] .border-slate-800,
+body[data-theme="nordic"] .border-slate-800\/80,
+body[data-theme="paper"] .border-slate-800\/80,
+body[data-theme="alpineday"] .border-slate-800\/80,
+body[data-theme="nordic"] .border-slate-700,
+body[data-theme="paper"] .border-slate-700,
+body[data-theme="alpineday"] .border-slate-700,
+body[data-theme="nordic"] .border-slate-700\/60,
+body[data-theme="paper"] .border-slate-700\/60,
+body[data-theme="alpineday"] .border-slate-700\/60 {
+    border-color: var(--border-color) !important;
+}
+
 /* Base Body Styles */
 body {
     background-color: var(--bg-main);

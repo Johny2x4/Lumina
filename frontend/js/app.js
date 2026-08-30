@@ -318,6 +318,10 @@ class App {
             clearInterval(this.matrixInterval);
             this.matrixInterval = null;
         }
+        if (this.snowAnimFrame) {
+            cancelAnimationFrame(this.snowAnimFrame);
+            this.snowAnimFrame = null;
+        }
         if (this._resizeHandler) {
             window.removeEventListener("resize", this._resizeHandler);
             this._resizeHandler = null;
@@ -359,6 +363,136 @@ class App {
                     drops[i]++;
                 }
             }, 55);
+        } else if (themeName === "snowforest") {
+            const canvas = document.createElement("canvas");
+            canvas.className = "w-full h-full pointer-events-none";
+            layer.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
+
+            // Snowflake Particles Pool
+            const FLAKE_COUNT = Math.min(95, Math.max(45, Math.floor(window.innerWidth / 16)));
+            const flakes = [];
+
+            // Visible tile ledges cache (refreshed periodically to avoid layout thrashing)
+            let tileLedges = [];
+            const updateLedges = () => {
+                const elements = document.querySelectorAll(
+                    ".message-bubble-wrapper > div, #chat-input, #chat-input-wrapper, .hud-card, .example-card, #header-model-pill"
+                );
+                const list = [];
+                elements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.width > 20 && rect.top > 0 && rect.top < window.innerHeight) {
+                        list.push({
+                            left: rect.left,
+                            right: rect.right,
+                            top: rect.top,
+                        });
+                    }
+                });
+                tileLedges = list;
+            };
+            updateLedges();
+
+            let frameCount = 0;
+
+            const createFlake = (initialY = null) => ({
+                x: Math.random() * canvas.width,
+                y: initialY !== null ? initialY : Math.random() * canvas.height,
+                radius: 1.0 + Math.random() * 2.2,
+                speedY: 0.6 + Math.random() * 1.3,
+                sway: Math.random() * Math.PI * 2,
+                swaySpeed: 0.015 + Math.random() * 0.02,
+                opacity: 0.35 + Math.random() * 0.55,
+                landed: false,
+                meltTimer: 0,
+                maxMelt: 180 + Math.floor(Math.random() * 240), // 3-7s resting before melting
+            });
+
+            for (let i = 0; i < FLAKE_COUNT; i++) {
+                flakes.push(createFlake());
+            }
+
+            const animateSnow = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                frameCount++;
+                if (frameCount % 60 === 0) {
+                    updateLedges();
+                }
+
+                for (let i = 0; i < flakes.length; i++) {
+                    const f = flakes[i];
+
+                    if (f.landed) {
+                        f.meltTimer++;
+                        const meltRatio = Math.max(0, 1 - (f.meltTimer / f.maxMelt));
+                        ctx.fillStyle = `rgba(240, 253, 244, ${f.opacity * meltRatio})`;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius * (0.8 + 0.2 * meltRatio), 0, Math.PI * 2);
+                        ctx.fill();
+
+                        if (f.meltTimer >= f.maxMelt) {
+                            flakes[i] = createFlake(-5);
+                        }
+                        continue;
+                    }
+
+                    // Update falling position
+                    f.sway += f.swaySpeed;
+                    f.x += Math.sin(f.sway) * 0.65;
+                    f.y += f.speedY;
+
+                    // Collision check with horizontal tile ledges
+                    for (let j = 0; j < tileLedges.length; j++) {
+                        const ledge = tileLedges[j];
+                        if (
+                            f.y >= ledge.top - 1 &&
+                            f.y <= ledge.top + 3 &&
+                            f.x >= ledge.left &&
+                            f.x <= ledge.right
+                        ) {
+                            // 70% chance to stick and rest on the tile top
+                            if (Math.random() < 0.70) {
+                                f.landed = true;
+                                f.y = ledge.top;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Draw falling snowflake
+                    ctx.fillStyle = `rgba(240, 253, 244, ${f.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Subtle frost glow around larger flakes
+                    if (f.radius > 2.2) {
+                        ctx.fillStyle = `rgba(167, 243, 208, ${f.opacity * 0.25})`;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius * 1.8, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Reset if out of bounds
+                    if (f.y > canvas.height + 5 || f.x < -10 || f.x > canvas.width + 10) {
+                        flakes[i] = createFlake(-5);
+                    }
+                }
+
+                this.snowAnimFrame = requestAnimationFrame(animateSnow);
+            };
+
+            this.snowAnimFrame = requestAnimationFrame(animateSnow);
         }
     }
 
