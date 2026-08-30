@@ -532,14 +532,14 @@ class ChatManager {
         if (!isUser && sources && Array.isArray(sources) && sources.length > 0) {
             sourcesHtml = `
                 <div class="search-sources-container">
-                    <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    <div class="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-[var(--brand-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
                         <span>Sources</span>
                     </div>
                     <div class="flex flex-wrap gap-1.5">
                         ${sources.map((s, idx) => `
                             <a href="${escapeAttr(s.url)}" target="_blank" rel="noopener noreferrer" class="source-chip" title="${escapeAttr(s.title)}">
-                                <span class="text-cyan-400 font-bold font-mono">[${idx + 1}]</span>
+                                <span class="text-[var(--brand-primary)] font-bold font-mono">[${idx + 1}]</span>
                                 <span class="truncate">${escapeHtml(s.title)}</span>
                             </a>
                         `).join("")}
@@ -550,7 +550,7 @@ class ChatManager {
 
         msgDiv.innerHTML = `
             ${!isUser ? `
-                <div class="w-7 h-7 rounded-xl bg-indigo-600/25 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 select-none text-xs font-bold shadow-sm">
+                <div class="w-7 h-7 rounded-xl bg-[var(--brand-glow)] border border-[var(--border-color)] flex items-center justify-center text-[var(--brand-primary)] shrink-0 select-none text-xs font-bold shadow-sm">
                     AI
                 </div>
             ` : ''}

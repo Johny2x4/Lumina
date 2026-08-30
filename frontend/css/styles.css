@@ -73,7 +73,7 @@ body[data-theme="matrix"] {
     --border-color: rgba(34, 197, 94, 0.5);
     --border-radius: 0.5rem;
     --text-main: #4ade80;
-    --text-muted: #15803d;
+    --text-muted: #86efac;
     --brand-primary: #22c55e;
     --brand-hover: #16a34a;
     --brand-glow: rgba(34, 197, 94, 0.35);
@@ -169,7 +169,7 @@ body[data-theme="snowforest"] .hud-card {
     box-shadow: 0 -2px 10px rgba(255, 255, 255, 0.2), inset 0 1px 3px rgba(255, 255, 255, 0.15) !important;
 }
 
-/* 14. NORDIC FROST (Clean Scandinavian Light Mode) */
+/* 8. NORDIC FROST (Clean Scandinavian Light Mode) */
 body[data-theme="nordic"] {
     --bg-main: #f4f7fb;
     --bg-header: rgba(248, 250, 253, 0.94);
@@ -180,7 +180,7 @@ body[data-theme="nordic"] {
     --border-color: #dbeafe;
     --border-radius: 1rem;
     --text-main: #0f172a;
-    --text-muted: #64748b;
+    --text-muted: #334155;
     --brand-primary: #2563eb;
     --brand-hover: #1d4ed8;
     --brand-glow: rgba(37, 99, 235, 0.2);
@@ -189,7 +189,7 @@ body[data-theme="nordic"] {
     --font-heading: 'Inter', sans-serif;
 }
 
-/* 15. PAPER & INK (Warm Editorial Light Mode) */
+/* 9. PAPER & INK (Warm Editorial Light Mode) */
 body[data-theme="paper"] {
     --bg-main: #fcfbf7;
     --bg-header: rgba(250, 248, 243, 0.95);
@@ -200,7 +200,7 @@ body[data-theme="paper"] {
     --border-color: #e7dfd1;
     --border-radius: 0.875rem;
     --text-main: #26231f;
-    --text-muted: #78716c;
+    --text-muted: #44403c;
     --brand-primary: #c2410c;
     --brand-hover: #9a3412;
     --brand-glow: rgba(194, 65, 12, 0.2);
@@ -220,7 +220,7 @@ body[data-theme="alpineday"] {
     --border-color: #c1d7cc;
     --border-radius: 1rem;
     --text-main: #132a1f;
-    --text-muted: #52796f;
+    --text-muted: #2d4a3e;
     --brand-primary: #2d6a4f;
     --brand-hover: #1b4332;
     --brand-glow: rgba(45, 106, 79, 0.2);
@@ -239,8 +239,8 @@ body[data-theme="pastel"] {
     --text-user-bubble: #ffffff;
     --border-color: #edd5f2;
     --border-radius: 1.15rem;
-    --text-main: #3b2847;
-    --text-muted: #8b6d9b;
+    --text-main: #2b1a37;
+    --text-muted: #5a3b68;
     --brand-primary: #ec4899;
     --brand-hover: #db2777;
     --brand-glow: rgba(236, 72, 153, 0.25);
@@ -265,8 +265,8 @@ body[data-theme="glacier"] {
     --text-user-bubble: #ffffff;
     --border-color: rgba(186, 230, 253, 0.7);
     --border-radius: 1.15rem;
-    --text-main: #0c2340;
-    --text-muted: #547896;
+    --text-main: #081d33;
+    --text-muted: #244669;
     --brand-primary: #0284c7;
     --brand-hover: #0369a1;
     --brand-glow: rgba(2, 132, 199, 0.3);
@@ -354,6 +354,11 @@ body[data-theme="paper"] .text-white,
 body[data-theme="alpineday"] .text-white,
 body[data-theme="pastel"] .text-white,
 body[data-theme="glacier"] .text-white,
+body[data-theme="nordic"] .text-slate-100,
+body[data-theme="paper"] .text-slate-100,
+body[data-theme="alpineday"] .text-slate-100,
+body[data-theme="pastel"] .text-slate-100,
+body[data-theme="glacier"] .text-slate-100,
 body[data-theme="nordic"] .text-slate-200,
 body[data-theme="paper"] .text-slate-200,
 body[data-theme="alpineday"] .text-slate-200,
@@ -434,6 +439,119 @@ body[data-theme="alpineday"] .border-slate-700\/60,
 body[data-theme="pastel"] .border-slate-700\/60,
 body[data-theme="glacier"] .border-slate-700\/60 {
     border-color: var(--border-color) !important;
+}
+
+/* ==========================================================================
+   UNIVERSAL CHAT BAR & BOTTOM CONTRAST CONTROLS (ALL THEMES)
+   ========================================================================== */
+
+#chat-box-container {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+#chat-box-container .border-t,
+#chat-box-container .border-b {
+    border-color: var(--border-color) !important;
+}
+
+#chat-input {
+    color: var(--text-main) !important;
+    caret-color: var(--brand-primary) !important;
+}
+
+#chat-input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.85 !important;
+}
+
+#btn-attach,
+#btn-web-search {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+#btn-attach:hover,
+#btn-web-search:hover {
+    background-color: var(--brand-primary) !important;
+    border-color: var(--brand-primary) !important;
+    color: var(--text-user-bubble) !important;
+}
+
+#btn-attach svg,
+#btn-web-search svg {
+    color: inherit !important;
+}
+
+#btn-web-search.search-active {
+    background-color: var(--brand-primary) !important;
+    border-color: var(--brand-primary) !important;
+    color: var(--text-user-bubble) !important;
+    box-shadow: 0 0 12px var(--brand-glow) !important;
+}
+
+#btn-send {
+    background-color: var(--brand-primary) !important;
+    color: var(--text-user-bubble) !important;
+}
+
+#btn-send:hover {
+    background-color: var(--brand-hover) !important;
+}
+
+/* Token Telemetry Badge */
+#token-telemetry-badge {
+    color: var(--text-muted) !important;
+}
+#token-telemetry-badge span {
+    color: var(--text-main) !important;
+}
+#token-telemetry-badge .text-indigo-400,
+#token-telemetry-badge .text-emerald-400 {
+    color: var(--brand-primary) !important;
+}
+#token-telemetry-badge #tt-context-ratio {
+    color: var(--text-muted) !important;
+}
+
+/* Welcome State & Example Cards */
+#empty-state h2 {
+    color: var(--text-main) !important;
+}
+#empty-state p {
+    color: var(--text-muted) !important;
+}
+.example-card {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+.example-card:hover {
+    border-color: var(--brand-primary) !important;
+    color: var(--brand-primary) !important;
+}
+
+/* Header Elements Contrast */
+header {
+    border-bottom-color: var(--border-color) !important;
+}
+header button,
+header #btn-toggle-sidebar,
+header #btn-quick-new-chat,
+header #btn-open-settings {
+    color: var(--text-main) !important;
+}
+header .font-bold.tracking-wide {
+    color: var(--text-main) !important;
+}
+header #header-model-pill {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+header #header-model-name {
+    color: var(--text-main) !important;
 }
 
 /* ==========================================================================
@@ -618,7 +736,8 @@ body {
     color: var(--brand-primary);
 }
 .prose-lumina pre {
-    background: rgba(0, 0, 0, 0.4) !important;
+    background: #0f172a !important;
+    color: #f8fafc !important;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: 0.875rem 1rem;

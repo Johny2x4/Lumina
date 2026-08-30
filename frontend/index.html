@@ -237,13 +237,13 @@
                         <img src="assets/icon.png" alt="Lumina Icon" class="w-16 h-16 rounded-2xl object-cover shadow-xl shadow-indigo-500/25 ring-1 ring-white/20">
                         <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-slate-900 animate-pulse"></div>
                     </div>
-                    <h2 class="text-lg font-bold text-white tracking-tight">Lumina Local Intelligence</h2>
-                    <p class="text-xs text-slate-400 max-w-xs mt-1 mb-5">Zero cold-start lag, pinned VRAM residence, and native hardware telemetry.</p>
+                    <h2 class="text-lg font-bold text-[var(--text-main)] tracking-tight">Lumina Local Intelligence</h2>
+                    <p class="text-xs text-[var(--text-muted)] max-w-xs mt-1 mb-5">Zero cold-start lag, pinned VRAM residence, and native hardware telemetry.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left max-w-md w-full">
-                        <div class="example-card p-3 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-brand-500/40 cursor-pointer transition text-xs text-slate-300 active:scale-98" data-prompt="Analyze the memory and performance of our current NVIDIA RTX 5060 Ti GPU.">
+                        <div class="example-card p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--brand-primary)] cursor-pointer transition text-xs text-[var(--text-main)] active:scale-98" data-prompt="Analyze the memory and performance of our current NVIDIA RTX 5060 Ti GPU.">
                             📊 Explain system architecture
                         </div>
-                        <div class="example-card p-3 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-brand-500/40 cursor-pointer transition text-xs text-slate-300 active:scale-98" data-prompt="Write a fast asynchronous Python function to stream real-time JSON metrics.">
+                        <div class="example-card p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--brand-primary)] cursor-pointer transition text-xs text-[var(--text-main)] active:scale-98" data-prompt="Write a fast asynchronous Python function to stream real-time JSON metrics.">
                             ⚡ Fast async Python sampler
                         </div>
                     </div>
@@ -251,48 +251,48 @@
             </div>
 
             <!-- FLOATING PER-TURN TOKEN TELEMETRY BADGE -->
-            <div id="token-telemetry-badge" class="max-w-3xl w-full mx-auto px-4 pb-1.5 flex items-center justify-between text-[11px] text-slate-400 font-mono hidden select-none">
+            <div id="token-telemetry-badge" class="max-w-3xl w-full mx-auto px-4 pb-1.5 flex items-center justify-between text-[11px] text-[var(--text-muted)] font-mono hidden select-none">
                 <div class="flex items-center gap-2.5 truncate">
-                    <span class="flex items-center gap-1"><span class="text-indigo-400 font-semibold">Prompt:</span> <span id="tt-prompt-speed">-- t/s</span></span>
-                    <span class="flex items-center gap-1"><span class="text-emerald-400 font-semibold">Eval:</span> <span id="tt-eval-speed">-- t/s</span></span>
-                    <span class="flex items-center gap-1 text-slate-500 hidden sm:inline"><span>Lat:</span> <span id="tt-duration">-- ms</span></span>
+                    <span class="flex items-center gap-1"><span class="text-[var(--brand-primary)] font-semibold">Prompt:</span> <span id="tt-prompt-speed" class="text-[var(--text-main)]">-- t/s</span></span>
+                    <span class="flex items-center gap-1"><span class="text-[var(--brand-primary)] font-semibold">Eval:</span> <span id="tt-eval-speed" class="text-[var(--text-main)]">-- t/s</span></span>
+                    <span class="flex items-center gap-1 text-[var(--text-muted)] hidden sm:inline"><span>Lat:</span> <span id="tt-duration" class="text-[var(--text-main)]">-- ms</span></span>
                 </div>
                 <div class="shrink-0">
-                    <span id="tt-context-ratio" class="text-slate-400 text-[10px]">Ctx: 0 / 32k</span>
+                    <span id="tt-context-ratio" class="text-[var(--text-muted)] text-[10px]">Ctx: 0 / 32k</span>
                 </div>
             </div>
 
             <!-- PINNED BOTTOM INPUT BAR -->
             <div class="p-2 sm:p-4 bg-gradient-to-t from-[var(--bg-main)] via-[var(--bg-main)]/95 to-transparent shrink-0">
-                <div class="max-w-3xl mx-auto rounded-2xl bg-[var(--input-bg)] border border-slate-700/60 shadow-xl focus-within:border-brand-500/70 transition-all overflow-hidden">
+                <div id="chat-box-container" class="max-w-3xl mx-auto rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] shadow-xl focus-within:border-[var(--brand-primary)] transition-all overflow-hidden">
                     <!-- Staged File / Image Previews -->
-                    <div id="attachment-previews" class="px-3 pt-2.5 flex flex-wrap gap-2 hidden border-b border-slate-700/30 pb-2">
+                    <div id="attachment-previews" class="px-3 pt-2.5 flex flex-wrap gap-2 hidden border-b border-[var(--border-color)] pb-2">
                         <!-- Populated dynamically by chat.js -->
                     </div>
 
                     <textarea id="chat-input" rows="1" placeholder="Send a message"
-                        class="w-full bg-transparent px-3.5 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none max-h-36 custom-scrollbar leading-relaxed"></textarea>
+                        class="w-full bg-transparent px-3.5 py-3 text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none resize-none max-h-36 custom-scrollbar leading-relaxed"></textarea>
 
-                    <div class="flex items-center justify-between px-3 pb-2 pt-0.5 border-t border-slate-700/30">
+                    <div class="flex items-center justify-between px-3 pb-2 pt-0.5 border-t border-[var(--border-color)]">
                         <div class="flex items-center gap-1.5 sm:gap-2">
                             <!-- Hidden File Input -->
                             <input type="file" id="file-input" multiple accept="image/*,text/*,.pdf,.py,.js,.ts,.html,.css,.json,.csv,.md,.txt,.log,.sh,.yml,.yaml,.sql,.c,.cpp,.h,.go,.rs" class="hidden">
 
                             <!-- Attachment Button -->
-                            <button id="btn-attach" class="p-2 rounded-xl bg-slate-700/40 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs active:scale-95" title="Attach images or text documents">
+                            <button id="btn-attach" class="p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--brand-primary)] text-[var(--text-main)] hover:text-[var(--text-user-bubble)] border border-[var(--border-color)] transition flex items-center gap-1.5 text-xs active:scale-95" title="Attach images or text documents">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                                 <span class="hidden sm:inline text-[11px]">Attach</span>
                             </button>
 
                             <!-- Web Search Toggle Button (Progressive Enhancement: hidden unless SEARXNG_URL is enabled) -->
-                            <button id="btn-web-search" class="hidden p-2 rounded-xl bg-slate-700/40 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 text-xs active:scale-95 border border-transparent" title="Toggle Real-Time Web Search">
+                            <button id="btn-web-search" class="hidden p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--brand-primary)] text-[var(--text-muted)] hover:text-[var(--text-user-bubble)] border border-[var(--border-color)] transition flex items-center gap-1.5 text-xs active:scale-95" title="Toggle Real-Time Web Search">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
                                 <span class="hidden sm:inline text-[11px]">Web</span>
                             </button>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <button id="btn-send" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                            <button id="btn-send" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" style="background-color: var(--brand-primary); color: var(--text-user-bubble);">
                                 <span>Send</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
