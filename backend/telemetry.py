@@ -32,7 +32,6 @@ def get_system_stats() -> dict:
     global nvml_initialized
     if not nvml_initialized:
         try:
-            import pynvml
             pynvml.nvmlInit()
             nvml_initialized = True
         except Exception:
@@ -40,7 +39,6 @@ def get_system_stats() -> dict:
 
     if nvml_initialized:
         try:
-            import pynvml
             device_count = pynvml.nvmlDeviceGetCount()
             for i in range(device_count):
                 handle = pynvml.nvmlDeviceGetHandleByIndex(i)

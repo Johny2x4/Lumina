@@ -5,6 +5,7 @@ class App {
         this.sessions = [];
         this.activeSessionId = null;
         this.currentTheme = localStorage.getItem("lumina_theme") || "default";
+        this._saveTimer = null;
         this.init();
     }
 
@@ -317,6 +318,10 @@ class App {
             clearInterval(this.matrixInterval);
             this.matrixInterval = null;
         }
+        if (this._resizeHandler) {
+            window.removeEventListener("resize", this._resizeHandler);
+            this._resizeHandler = null;
+        }
 
         if (themeName === "matrix") {
             const canvas = document.createElement("canvas");
@@ -324,8 +329,13 @@ class App {
             layer.appendChild(canvas);
 
             const ctx = canvas.getContext("2d");
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
 
             const chars = "01010101XYZ日ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ";
             const fontSize = 14;
@@ -409,9 +419,26 @@ class App {
 
     saveSessions() {
         if (this.isIncognito) return;
-        try {
-            localStorage.setItem("lumina_sessions", JSON.stringify(this.sessions));
-        } catch (e) {}
+        // Debounce: avoid excessive localStorage writes during streaming
+        if (this._saveTimer) clearTimeout(this._saveTimer);
+        this._saveTimer = setTimeout(() => {
+            try {
+                // Strip base64 image data before persisting to avoid blowing
+                // through the ~5 MB localStorage quota
+                const stripped = this.sessions.map(s => ({
+                    ...s,
+                    messages: s.messages.map(m => {
+                        if (m.imagePreviews) {
+                            return { ...m, imagePreviews: m.imagePreviews.map(() => "[image]") };
+                        }
+                        return m;
+                    }),
+                }));
+                localStorage.setItem("lumina_sessions", JSON.stringify(stripped));
+            } catch (e) {
+                console.warn("Failed to save sessions to localStorage:", e);
+            }
+        }, 500);
     }
 
     createNewSession() {
@@ -522,12 +549,14 @@ class App {
 
         listEl.innerHTML = displaySessions.map(s => {
             const isActive = s.id === this.activeSessionId;
+            const safeTitle = escapeHtml(s.title);
+            const safeId = escapeAttr(s.id);
             return `
                 <div class="session-tab group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs ${
                     isActive ? 'bg-slate-800 text-white font-medium shadow-sm' : 'hover:bg-slate-800/40 text-slate-400 hover:text-slate-200'
-                }" onclick="window.app.switchSession('${s.id}')">
-                    <span class="truncate max-w-[180px]">${s.title}</span>
-                    <button class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition p-1 text-sm leading-none" onclick="window.app.deleteSession('${s.id}', event)" title="Delete Chat">
+                }" onclick="window.app.switchSession('${safeId}')">
+                    <span class="truncate max-w-[180px]">${safeTitle}</span>
+                    <button class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition p-1 text-sm leading-none" onclick="window.app.deleteSession('${safeId}', event)" title="Delete Chat">
                         &times;
                     </button>
                 </div>

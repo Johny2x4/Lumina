@@ -165,7 +165,9 @@ class ModelManager {
 
             const optionsHtml = this.models.map(m => {
                 const sizeGb = Math.round((m.size / (1024 ** 3)) * 10) / 10;
-                return `<option value="${m.name}">${m.name} (${sizeGb} GB)</option>`;
+                const safeName = escapeHtml(m.name);
+                const safeNameAttr = escapeAttr(m.name);
+                return `<option value="${safeNameAttr}">${safeName} (${sizeGb} GB)</option>`;
             }).join("");
 
             if (select) select.innerHTML = optionsHtml;
@@ -208,21 +210,23 @@ class ModelManager {
             const paramSize = m.details?.parameter_size || "";
             const quant = m.details?.quantization_level || "";
             const isSelected = m.name === this.selectedModel;
+            const safeName = escapeHtml(m.name);
+            const safeNameAttr = escapeAttr(m.name);
 
             return `
                 <div class="p-2.5 bg-slate-800/70 rounded-xl border border-slate-700/60 flex items-center justify-between gap-2">
                     <div class="truncate">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-medium text-slate-200 font-mono text-xs truncate">${m.name}</span>
+                            <span class="font-medium text-slate-200 font-mono text-xs truncate">${safeName}</span>
                             ${isSelected ? '<span class="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Active</span>' : ''}
                         </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">${sizeGb} GB ${paramSize ? '• ' + paramSize : ''} ${quant ? '• ' + quant : ''}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${sizeGb} GB ${paramSize ? '• ' + escapeHtml(paramSize) : ''} ${quant ? '• ' + escapeHtml(quant) : ''}</div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <button class="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white transition active:scale-95" onclick="window.modelManager.setSelectedModel('${m.name}'); document.getElementById('model-modal').classList.add('hidden');">
+                        <button class="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white transition active:scale-95" onclick="window.modelManager.setSelectedModel('${safeNameAttr}'); document.getElementById('model-modal').classList.add('hidden');">
                             Select
                         </button>
-                        <button class="text-[10px] p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/30 transition" onclick="window.modelManager.deleteModel('${m.name}')" title="Delete Model">
+                        <button class="text-[10px] p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/30 transition" onclick="window.modelManager.deleteModel('${safeNameAttr}')" title="Delete Model">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>

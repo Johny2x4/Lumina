@@ -162,15 +162,17 @@ class ChatManager {
         container.classList.remove("hidden");
         container.innerHTML = this.stagedAttachments.map(att => {
             const sizeKb = Math.round(att.size / 1024);
+            const safeName = escapeHtml(att.name);
+            const safeId = escapeAttr(att.id);
             if (att.type === "image") {
                 return `
                     <div class="relative group flex items-center gap-1.5 p-1 bg-slate-800/80 rounded-xl border border-slate-700/60 shadow-sm shrink-0">
-                        <img src="${att.previewUrl}" alt="${att.name}" class="w-10 h-10 object-cover rounded-lg">
+                        <img src="${escapeAttr(att.previewUrl)}" alt="${safeName}" class="w-10 h-10 object-cover rounded-lg">
                         <div class="max-w-[100px] truncate text-[11px] font-mono pr-2">
-                            <div class="text-slate-200 truncate">${att.name}</div>
+                            <div class="text-slate-200 truncate">${safeName}</div>
                             <div class="text-slate-500 text-[9px]">${sizeKb} KB</div>
                         </div>
-                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${att.id}')" title="Remove attachment">
+                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${safeId}')" title="Remove attachment">
                             &times;
                         </button>
                     </div>
@@ -180,10 +182,10 @@ class ChatManager {
                     <div class="relative group flex items-center gap-2 px-2.5 py-1.5 bg-slate-800/80 rounded-xl border border-slate-700/60 shadow-sm shrink-0 text-[11px]">
                         <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <div class="max-w-[120px] truncate font-mono">
-                            <div class="text-slate-200 truncate">${att.name}</div>
+                            <div class="text-slate-200 truncate">${safeName}</div>
                             <div class="text-slate-500 text-[9px]">${sizeKb} KB</div>
                         </div>
-                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${att.id}')" title="Remove attachment">
+                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${safeId}')" title="Remove attachment">
                             &times;
                         </button>
                     </div>
@@ -337,7 +339,12 @@ class ChatManager {
                         const chunk = JSON.parse(line);
                         if (chunk.message?.content) {
                             assistantContent += chunk.message.content;
-                            contentEl.innerHTML = marked.parse(assistantContent);
+                            try {
+                                contentEl.innerHTML = marked.parse(assistantContent);
+                            } catch (parseErr) {
+                                // Fallback to escaped plaintext if Markdown parsing fails
+                                contentEl.textContent = assistantContent;
+                            }
                             this.highlightCode(contentEl);
                             this.scrollToBottom();
                         }
@@ -373,7 +380,7 @@ class ChatManager {
                     this.bindMessageActions(assistantMsgEl, "assistant", assistantContent);
                 }
             } else {
-                contentEl.innerHTML = `<p class="text-xs text-rose-400 font-mono">Error: ${err.message}</p>`;
+                contentEl.innerHTML = `<p class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(err.message)}</p>`;
             }
         } finally {
             this.setGenerating(false);
@@ -462,7 +469,7 @@ class ChatManager {
                 }">
                     ${imagesHtml}
                     <div class="message-content prose-lumina ${isUser ? 'text-[var(--text-user-bubble)]' : ''}">
-                        ${isUser ? this.escapeHtml(content) : (content ? marked.parse(content) : `
+                        ${isUser ? escapeHtml(content) : (content ? (() => { try { return marked.parse(content); } catch(e) { return escapeHtml(content); } })() : `
                             <div class="thinking-indicator flex items-center gap-2 py-1 select-none">
                                 <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 0ms"></span>
@@ -687,9 +694,7 @@ class ChatManager {
         }
     }
 
-    escapeHtml(str) {
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    // Use the global escapeHtml utility from utils.js
 }
 
 window.chatManager = new ChatManager();

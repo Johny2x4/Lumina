@@ -94,7 +94,7 @@ class TelemetryManager {
             if (ramBar) ramBar.style.width = `${Math.min(100, Math.max(0, ramPercent))}%`;
         }
 
-        // 3. Dynamic GPUs
+        // 3. Dynamic GPUs (optimized: only update values, don't rebuild DOM)
         const gpusContainer = document.getElementById("hud-gpus-container");
         const summaryBadge = document.getElementById("telemetry-summary-badge");
 
@@ -107,45 +107,81 @@ class TelemetryManager {
                 }
 
                 if (gpusContainer) {
-                    gpusContainer.innerHTML = data.gpus.map(gpu => {
-                        const vramPercent = gpu.vram_total_mb > 0 ? Math.round((gpu.vram_used_mb / gpu.vram_total_mb) * 100) : 0;
-                        const vramUsedGb = Math.round(gpu.vram_used_mb / 1024 * 10) / 10;
-                        const vramTotalGb = Math.round(gpu.vram_total_mb / 1024 * 10) / 10;
-                        const tempColor = gpu.temp_c > 78 ? 'text-rose-400' : (gpu.temp_c > 65 ? 'text-amber-400' : 'text-emerald-400');
+                    // Create GPU cards once, then update in place
+                    if (!this._gpuCardCache || this._gpuCardCache.length !== data.gpus.length) {
+                        this._gpuCardCache = [];
+                        gpusContainer.innerHTML = "";
 
-                        return `
-                            <div class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50 space-y-1.5" title="${gpu.name}">
+                        data.gpus.forEach((gpu, idx) => {
+                            const card = document.createElement("div");
+                            card.className = "p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50 space-y-1.5";
+
+                            card.innerHTML = `
                                 <div class="flex items-center justify-between text-[11px]">
-                                    <span class="font-bold text-slate-200 font-mono"><span class="text-brand-400">GPU ${gpu.id}:</span> ${gpu.name.replace('NVIDIA ', '').replace('GeForce ', '')}</span>
+                                    <span class="font-bold text-slate-200 font-mono"><span class="text-brand-400">GPU ${gpu.id}:</span> <span data-field="gpu-name"></span></span>
                                     <div class="flex items-center gap-1.5 font-mono">
-                                        <span class="${tempColor}">${gpu.temp_c}°C</span>
+                                        <span data-field="gpu-temp" class="text-emerald-400"></span>
                                         <span class="text-slate-500">•</span>
-                                        <span class="text-slate-400">${gpu.power_w}W</span>
+                                        <span data-field="gpu-power" class="text-slate-400"></span>
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
                                     <div class="flex justify-between text-[10px] font-mono text-slate-400">
                                         <span>VRAM</span>
-                                        <span>${vramUsedGb} / ${vramTotalGb} GB (${vramPercent}%)</span>
+                                        <span data-field="gpu-vram-text"></span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                        <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${vramPercent}%"></div>
+                                        <div data-field="gpu-vram-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
                                     <div class="flex justify-between text-[10px] font-mono text-slate-400">
                                         <span>Core Load</span>
-                                        <span>${gpu.core_util_percent}%</span>
+                                        <span data-field="gpu-core-text"></span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-400 transition-all duration-300" style="width: ${gpu.core_util_percent}%"></div>
+                                        <div data-field="gpu-core-bar" class="h-full bg-indigo-400 transition-all duration-300" style="width: 0%"></div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    }).join("");
+                            `;
+
+                            gpusContainer.appendChild(card);
+                            this._gpuCardCache.push({
+                                card,
+                                nameEl: card.querySelector('[data-field="gpu-name"]'),
+                                tempEl: card.querySelector('[data-field="gpu-temp"]'),
+                                powerEl: card.querySelector('[data-field="gpu-power"]'),
+                                vramTextEl: card.querySelector('[data-field="gpu-vram-text"]'),
+                                vramBarEl: card.querySelector('[data-field="gpu-vram-bar"]'),
+                                coreTextEl: card.querySelector('[data-field="gpu-core-text"]'),
+                                coreBarEl: card.querySelector('[data-field="gpu-core-bar"]'),
+                            });
+                        });
+                    }
+
+                    // Update values in existing cards
+                    data.gpus.forEach((gpu, idx) => {
+                        const c = this._gpuCardCache[idx];
+                        if (!c) return;
+
+                        const vramPercent = gpu.vram_total_mb > 0 ? Math.round((gpu.vram_used_mb / gpu.vram_total_mb) * 100) : 0;
+                        const vramUsedGb = Math.round(gpu.vram_used_mb / 1024 * 10) / 10;
+                        const vramTotalGb = Math.round(gpu.vram_total_mb / 1024 * 10) / 10;
+                        const tempColor = gpu.temp_c > 78 ? 'text-rose-400' : (gpu.temp_c > 65 ? 'text-amber-400' : 'text-emerald-400');
+
+                        c.nameEl.textContent = gpu.name.replace('NVIDIA ', '').replace('GeForce ', '');
+                        c.card.title = gpu.name;
+                        c.tempEl.textContent = `${gpu.temp_c}°C`;
+                        c.tempEl.className = tempColor;
+                        c.powerEl.textContent = `${gpu.power_w}W`;
+                        c.vramTextEl.textContent = `${vramUsedGb} / ${vramTotalGb} GB (${vramPercent}%)`;
+                        c.vramBarEl.style.width = `${vramPercent}%`;
+                        c.coreTextEl.textContent = `${gpu.core_util_percent}%`;
+                        c.coreBarEl.style.width = `${gpu.core_util_percent}%`;
+                    });
                 }
             } else {
+                this._gpuCardCache = null;
                 if (summaryBadge) summaryBadge.textContent = "No GPU";
                 if (gpusContainer) {
                     gpusContainer.innerHTML = `<div class="text-[11px] text-slate-500 italic p-1">No NVML GPU detected.</div>`;

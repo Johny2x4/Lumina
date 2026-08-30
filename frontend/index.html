@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Lumina is a zero-latency, private local AI client with GPU telemetry, voice mode, and 12 themes. Powered by Ollama.">
     <title>Lumina UI — Local AI Engine</title>
     <!-- Modern & Retro Typography (Inter, JetBrains Mono, Orbitron, Press Start 2P, VT323) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +14,7 @@
     <link rel="apple-touch-icon" href="assets/icon.png">
     <link rel="manifest" href="manifest.json">
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -37,7 +38,7 @@
         }
     </script>
     <!-- Marked.js for Markdown & Highlight.js for Code Highlighting -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.4/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
     <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
@@ -57,7 +58,7 @@
             <!-- Brand Logo with Custom App Icon -->
             <div class="flex items-center gap-2">
                 <img src="assets/icon.png" alt="Lumina Logo" class="w-6 h-6 rounded-lg object-cover shadow-sm ring-1 ring-indigo-500/40">
-                <span class="font-bold tracking-tight text-white text-sm tracking-wide">LUMINA</span>
+                <span class="font-bold tracking-wide text-white text-sm">LUMINA</span>
             </div>
 
             <!-- Active Model Pill (Click to open model switcher in sidebar) -->
@@ -639,6 +640,7 @@
     </div>
 
     <!-- Application Scripts -->
+    <script src="js/utils.js"></script>
     <script src="js/telemetry.js"></script>
     <script src="js/models.js"></script>
     <script src="js/voice.js"></script>

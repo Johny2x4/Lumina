@@ -21,8 +21,9 @@ services:
     image: ollama/ollama:latest
     container_name: lumina-ollama
     restart: unless-stopped
+    # Only expose on localhost — Lumina connects via Docker internal network
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ollama-data:/root/.ollama
     deploy:
