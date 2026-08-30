@@ -1,0 +1,17 @@
+{
+  "name": "Lumina AI Engine",
+  "short_name": "Lumina",
+  "description": "High-speed, zero-cold-start single-user Ollama local client with native hardware telemetry",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

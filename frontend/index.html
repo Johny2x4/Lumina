@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina UI — Local AI Engine</title>
+    <!-- Modern & Retro Typography (Inter, JetBrains Mono, Orbitron, Press Start 2P, VT323) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&family=VT323&display=swap" rel="stylesheet">
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="apple-touch-icon" href="assets/icon.png">
+    <link rel="manifest" href="manifest.json">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Marked.js for Markdown & Highlight.js for Code Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="h-[100dvh] w-screen flex flex-col overflow-hidden selection:bg-indigo-500 selection:text-white select-none">
+    <!-- Background Ambient & Retro Animation Layer -->
+    <div id="ambient-layer" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- 1. COMPACT, MOBILE-FIRST TOP HEADER -->
+    <header class="h-12 border-b border-slate-800/80 px-3 py-1 flex items-center justify-between z-30 shrink-0 select-none bg-[var(--bg-header)] backdrop-blur-md">
+        <div class="flex items-center gap-2.5">
+            <!-- Sidebar Toggle Button (Mobile & Desktop) -->
+            <button id="btn-toggle-sidebar" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 active:scale-95 transition" aria-label="Toggle Sidebar" title="Toggle Sidebar">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+
+            <!-- Brand Logo with Custom App Icon -->
+            <div class="flex items-center gap-2">
+                <img src="assets/icon.png" alt="Lumina Logo" class="w-6 h-6 rounded-lg object-cover shadow-sm ring-1 ring-indigo-500/40">
+                <span class="font-bold tracking-tight text-white text-sm tracking-wide">LUMINA</span>
+            </div>
+
+            <!-- Active Model Pill (Click to open model switcher in sidebar) -->
+            <button id="header-model-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-indigo-500/50 transition truncate max-w-[140px] sm:max-w-[200px]" title="Change active model">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>
+                <span id="header-model-name" class="truncate font-mono text-[11px]">Loading...</span>
+            </button>
+        </div>
+
+        <!-- Right Header Actions: New Chat & Settings -->
+        <div class="flex items-center gap-1.5">
+            <!-- Incognito Badge (Visible when active) -->
+            <div id="header-incognito-badge" class="hidden px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-medium flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Incognito
+            </div>
+
+            <!-- Quick Live Voice Button -->
+            <button id="btn-header-live-voice" class="p-2 rounded-lg text-indigo-400 hover:text-white hover:bg-indigo-600/30 active:scale-95 transition" title="Launch Gemini Live Voice Mode">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            </button>
+
+            <!-- Quick New Chat Button -->
+            <button id="btn-quick-new-chat" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 active:scale-95 transition" title="New Chat">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            </button>
+
+            <!-- Settings Button -->
+            <button id="btn-open-settings" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 active:scale-95 transition" title="Settings & Themes">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. MAIN APP CONTAINER -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Backdrop for mobile drawer -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+        <!-- EXPANDING / COLLAPSIBLE SIDEBAR -->
+        <aside id="sidebar" class="w-72 bg-[var(--bg-sidebar)] border-r border-slate-800/80 flex flex-col transition-all duration-300 z-50 shrink-0">
+
+            <!-- Sidebar Header & New Chat -->
+            <div class="p-3 border-b border-slate-800/60 flex items-center justify-between gap-2">
+                <button id="btn-sidebar-new-chat" class="flex-1 py-2 px-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    New Chat
+                </button>
+                <!-- Close / Collapse Sidebar Button (Mobile & Desktop) -->
+                <button id="btn-close-sidebar" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition" aria-label="Close sidebar" title="Collapse sidebar">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Scrollable Controls & History in Sidebar -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar text-xs">
+
+                <!-- SECTION 1: MODEL SELECTION & VRAM ACTIONS -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider px-1">
+                        <span>Active Model</span>
+                        <button id="open-model-modal" class="text-brand-400 hover:text-brand-300 font-normal normal-case flex items-center gap-1 transition">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Pull / Manage
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <select id="model-select" class="w-full bg-slate-800/80 text-xs text-slate-200 rounded-xl px-3 py-2.5 border border-slate-700/70 focus:outline-none focus:border-brand-500 cursor-pointer truncate">
+                            <option value="">Loading models...</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 px-1">
+                        <button id="btn-purge-vram" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 border border-slate-700/60 hover:border-rose-500/50 text-slate-300 hover:text-rose-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm" title="Unload active model from GPU VRAM">
+                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Free VRAM</span>
+                        </button>
+                        <span id="vram-purge-status" class="hidden text-[11px] text-emerald-400 font-mono font-medium">Unloaded!</span>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: HARDWARE TELEMETRY ACCORDION (EXPANDING) -->
+                <div class="rounded-xl border border-slate-800/80 bg-slate-900/40 overflow-hidden transition-all">
+                    <!-- Accordion Trigger Button -->
+                    <button id="btn-toggle-telemetry" class="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-800/40 transition select-none">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-xs font-semibold text-slate-300">Hardware Telemetry</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span id="telemetry-summary-badge" class="text-[10px] text-slate-400 font-mono">--% GPU</span>
+                            <svg id="telemetry-chevron" class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </button>
+
+                    <!-- Collapsible Body -->
+                    <div id="telemetry-content" class="p-3 pt-1 space-y-2.5 border-t border-slate-800/60 transition-all">
+                        <!-- CPU Gauge -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] font-mono">
+                                <span class="text-slate-400">CPU Usage</span>
+                                <span id="hud-cpu-val" class="text-slate-200 font-bold">--%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="hud-cpu-bar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- RAM Gauge -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] font-mono">
+                                <span class="text-slate-400">RAM (Host)</span>
+                                <span id="hud-ram-val" class="text-slate-200 font-bold">-- GB</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="hud-ram-bar" class="h-full bg-cyan-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Multi-GPUs Container -->
+                        <div id="hud-gpus-container" class="space-y-2 pt-1 border-t border-slate-800/40">
+                            <!-- GPU badges injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: CHAT HISTORY WITH SEARCH -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider px-1">
+                        <span>Recent Chats</span>
+                        <span id="chat-count-badge" class="text-[10px] text-slate-500 font-mono">0</span>
+                    </div>
+                    <!-- Real-Time Fuzzy Search Filter Input -->
+                    <div class="relative">
+                        <input type="text" id="session-search-input" placeholder="Search conversations..." class="w-full bg-slate-800/80 text-xs text-slate-200 rounded-xl pl-8 pr-3 py-1.5 border border-slate-700/70 focus:outline-none focus:border-brand-500 placeholder-slate-500 transition">
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div id="chat-list" class="space-y-1 max-h-[38vh] overflow-y-auto custom-scrollbar">
+                        <!-- Populated by app.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer: Mode Toggle & Quick Links -->
+            <div class="p-3 border-t border-slate-800/60 bg-[var(--bg-sidebar)] flex flex-col gap-2">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs text-slate-400 flex items-center gap-1.5">
+                        <svg id="incognito-icon" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        <span id="incognito-label">Persistent</span>
+                    </span>
+                    <button id="toggle-incognito" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-700">
+                        <span id="incognito-slider" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
+                    <button id="btn-sidebar-settings" class="text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Settings
+                    </button>
+                    <a href="https://github.com/Johny2x4/Lumina" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-brand-400 flex items-center gap-1.5 transition" title="Lumina on GitHub">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 3. CHAT MAIN VIEW (MOBILE-FRIENDLY & NO UNWANTED SCROLLING) -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+            <!-- Message Scroll Area (Only area that scrolls) -->
+            <div id="messages-container" class="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 space-y-4 max-w-3xl w-full mx-auto custom-scrollbar">
+                <!-- Welcome greeting if empty -->
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center p-4 select-none opacity-90">
+                    <div class="relative mb-4">
+                        <img src="assets/icon.png" alt="Lumina Icon" class="w-16 h-16 rounded-2xl object-cover shadow-xl shadow-indigo-500/25 ring-1 ring-white/20">
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-slate-900 animate-pulse"></div>
+                    </div>
+                    <h2 class="text-lg font-bold text-white tracking-tight">Lumina Local Intelligence</h2>
+                    <p class="text-xs text-slate-400 max-w-xs mt-1 mb-5">Zero cold-start lag, pinned VRAM residence, and native hardware telemetry.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left max-w-md w-full">
+                        <div class="example-card p-3 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-brand-500/40 cursor-pointer transition text-xs text-slate-300 active:scale-98" data-prompt="Analyze the memory and performance of our current NVIDIA RTX 5060 Ti GPU.">
+                            📊 Explain system architecture
+                        </div>
+                        <div class="example-card p-3 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-brand-500/40 cursor-pointer transition text-xs text-slate-300 active:scale-98" data-prompt="Write a fast asynchronous Python function to stream real-time JSON metrics.">
+                            ⚡ Fast async Python sampler
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLOATING PER-TURN TOKEN TELEMETRY BADGE -->
+            <div id="token-telemetry-badge" class="max-w-3xl w-full mx-auto px-4 pb-1.5 flex items-center justify-between text-[11px] text-slate-400 font-mono hidden select-none">
+                <div class="flex items-center gap-2.5 truncate">
+                    <span class="flex items-center gap-1"><span class="text-indigo-400 font-semibold">Prompt:</span> <span id="tt-prompt-speed">-- t/s</span></span>
+                    <span class="flex items-center gap-1"><span class="text-emerald-400 font-semibold">Eval:</span> <span id="tt-eval-speed">-- t/s</span></span>
+                    <span class="flex items-center gap-1 text-slate-500 hidden sm:inline"><span>Lat:</span> <span id="tt-duration">-- ms</span></span>
+                </div>
+                <div class="shrink-0">
+                    <span id="tt-context-ratio" class="text-slate-400 text-[10px]">Ctx: 0 / 32k</span>
+                </div>
+            </div>
+
+            <!-- PINNED BOTTOM INPUT BAR -->
+            <div class="p-2 sm:p-4 bg-gradient-to-t from-[var(--bg-main)] via-[var(--bg-main)]/95 to-transparent shrink-0">
+                <div class="max-w-3xl mx-auto rounded-2xl bg-[var(--input-bg)] border border-slate-700/60 shadow-xl focus-within:border-brand-500/70 transition-all overflow-hidden">
+                    <!-- Staged File / Image Previews -->
+                    <div id="attachment-previews" class="px-3 pt-2.5 flex flex-wrap gap-2 hidden border-b border-slate-700/30 pb-2">
+                        <!-- Populated dynamically by chat.js -->
+                    </div>
+
+                    <textarea id="chat-input" rows="1" placeholder="Send a message"
+                        class="w-full bg-transparent px-3.5 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none max-h-36 custom-scrollbar leading-relaxed"></textarea>
+
+                    <div class="flex items-center justify-between px-3 pb-2 pt-0.5 border-t border-slate-700/30">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <!-- Hidden File Input -->
+                            <input type="file" id="file-input" multiple accept="image/*,text/*,.pdf,.py,.js,.ts,.html,.css,.json,.csv,.md,.txt,.log,.sh,.yml,.yaml,.sql,.c,.cpp,.h,.go,.rs" class="hidden">
+
+                            <!-- Attachment Button -->
+                            <button id="btn-attach" class="p-2 rounded-xl bg-slate-700/40 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs active:scale-95" title="Attach images or text documents">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                <span class="hidden sm:inline text-[11px]">Attach</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="btn-send" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                                <span>Send</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </button>
+                            <button id="btn-stop" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl text-xs font-semibold hidden flex items-center gap-1.5 transition">
+                                <span class="w-2.5 h-2.5 bg-white rounded-sm"></span>
+                                <span>Stop</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 4. SETTINGS & THEMES MODAL -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Settings & Appearance
+                </h3>
+                <button id="close-settings-modal" class="text-slate-400 hover:text-white p-1 text-lg leading-none">&times;</button>
+            </div>
+
+            <!-- Appearance Theme Selection (12 Curated Themes) -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-slate-300">Theme Collection (12 Available)</label>
+                    <span class="text-[10px] text-indigo-400 font-mono">Full system retheme</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-64 overflow-y-auto custom-scrollbar p-0.5">
+                    <!-- 1. Midnight Slate -->
+                    <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-[#090d16] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="default">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <span class="font-medium text-slate-200 text-[11px] truncate">Midnight</span>
+                        </div>
+                        <span class="text-[9px] text-slate-400">Default Slate</span>
+                    </button>
+
+                    <!-- 2. AMOLED Black -->
+                    <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-black text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="amoled">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
+                            <span class="font-medium text-slate-200 text-[11px] truncate">AMOLED</span>
+                        </div>
+                        <span class="text-[9px] text-slate-400">Pure Black OLED</span>
+                    </button>
+
+                    <!-- 3. Cyberpunk 2077 (Animated) -->
+                    <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#07050e] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="cyberpunk">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                            <span class="font-medium text-cyan-300 text-[11px] truncate">Cyberpunk</span>
+                        </div>
+                        <span class="text-[9px] text-pink-400">Neon Grid</span>
+                    </button>
+
+                    <!-- 4. 8-Bit Retro Arcade (CRT Scanlines) -->
+                    <button class="theme-btn p-2 rounded-none border-2 border-emerald-500 bg-[#081408] text-left transition hover:bg-emerald-950 flex flex-col justify-between gap-1" data-theme-val="eightbit">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-emerald-400"></span>
+                            <span class="font-bold text-emerald-300 text-[9px] truncate font-mono">8-BIT ARCADE</span>
+                        </div>
+                        <span class="text-[8px] text-emerald-400 font-mono">Retro CRT</span>
+                    </button>
+
+                    <!-- 5. Matrix Rain (Animated) -->
+                    <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#020603] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1" data-theme-val="matrix">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="font-medium text-emerald-400 text-[11px] truncate">Matrix</span>
+                        </div>
+                        <span class="text-[9px] text-emerald-600">Terminal Rain</span>
+                    </button>
+
+                    <!-- 6. Synthwave Outrun (Animated) -->
+                    <button class="theme-btn p-2 rounded-xl border border-pink-500/50 bg-[#130722] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="synthwave">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                            <span class="font-medium text-pink-300 text-[11px] truncate">Synthwave</span>
+                        </div>
+                        <span class="text-[9px] text-cyan-400">Outrun Horizon</span>
+                    </button>
+
+                    <!-- 7. Aurora Borealis (Animated) -->
+                    <button class="theme-btn p-2 rounded-xl border border-teal-500/50 bg-[#05131a] text-left transition hover:border-teal-400 flex flex-col justify-between gap-1" data-theme-val="aurora">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                            <span class="font-medium text-teal-300 text-[11px] truncate">Aurora</span>
+                        </div>
+                        <span class="text-[9px] text-teal-500">Northern Glow</span>
+                    </button>
+
+                    <!-- 8. Crimson Eclipse -->
+                    <button class="theme-btn p-2 rounded-xl border border-rose-500/40 bg-[#0e0407] text-left transition hover:border-rose-400 flex flex-col justify-between gap-1" data-theme-val="crimson">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <span class="font-medium text-rose-300 text-[11px] truncate">Crimson</span>
+                        </div>
+                        <span class="text-[9px] text-rose-500">Blood Eclipse</span>
+                    </button>
+
+                    <!-- 9. Sakura Twilight -->
+                    <button class="theme-btn p-2 rounded-xl border border-pink-400/40 bg-[#140b18] text-left transition hover:border-pink-300 flex flex-col justify-between gap-1" data-theme-val="sakura">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
+                            <span class="font-medium text-pink-300 text-[11px] truncate">Sakura</span>
+                        </div>
+                        <span class="text-[9px] text-purple-400">Tokyo Dusk</span>
+                    </button>
+
+                    <!-- 10. Solarized Amber -->
+                    <button class="theme-btn p-2 rounded-xl border border-amber-500/40 bg-[#100b04] text-left transition hover:border-amber-400 flex flex-col justify-between gap-1" data-theme-val="solarized">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span class="font-medium text-amber-300 text-[11px] truncate">Solarized</span>
+                        </div>
+                        <span class="text-[9px] text-amber-500">Amber Glow</span>
+                    </button>
+
+                    <!-- 11. Bioluminescent Abyss -->
+                    <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#030a16] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="abyss">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            <span class="font-medium text-cyan-300 text-[11px] truncate">Deep Abyss</span>
+                        </div>
+                        <span class="text-[9px] text-sky-500">Ocean Glow</span>
+                    </button>
+
+                    <!-- 12. Monochrome Luxury -->
+                    <button class="theme-btn p-2 rounded-xl border border-zinc-700 bg-[#09090b] text-left transition hover:border-zinc-500 flex flex-col justify-between gap-1" data-theme-val="monochrome">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-zinc-300"></span>
+                            <span class="font-medium text-zinc-200 text-[11px] truncate">Monochrome</span>
+                        </div>
+                        <span class="text-[9px] text-zinc-500">Luxury Ghost</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Default Model Selection -->
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                <label class="text-xs font-semibold text-slate-300 block">Default Model</label>
+                <p class="text-[11px] text-slate-400">Preferred model loaded automatically when opening Lumina.</p>
+                <select id="settings-default-model-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                    <option value="">Loading installed models...</option>
+                </select>
+            </div>
+
+            <!-- System Persona & Prompt Presets -->
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                <label class="text-xs font-semibold text-slate-300 block">System Persona & Prompt Preset</label>
+                <p class="text-[11px] text-slate-400">Sets the behavioral persona and system instructions for the AI.</p>
+                <select id="settings-persona-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
+                    <option value="default">Default Assistant (Helpful, direct, well-structured)</option>
+                    <option value="engineer">Concise Senior Engineer (Technical, minimal fluff, clean code)</option>
+                    <option value="writer">Creative Writer (Articulate, vivid, narrative depth)</option>
+                    <option value="extractor">Raw Data Extractor (Strict JSON/Markdown tables, zero preamble)</option>
+                    <option value="custom">Custom Persona Override</option>
+                </select>
+                <textarea id="settings-custom-persona-text" rows="2" placeholder="Enter your custom system instructions here..." class="w-full bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 placeholder-slate-500 custom-scrollbar hidden"></textarea>
+            </div>
+
+            <!-- Inference & Sampling Controls -->
+            <div class="space-y-3 pt-2 border-t border-slate-800/80">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-slate-300">Inference & Sampling Controls</label>
+                    <button id="btn-reset-inference" type="button" class="text-[10px] text-brand-400 hover:text-brand-300 transition">Reset Defaults</button>
+                </div>
+
+                <!-- Context Length (num_ctx) -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">Context Window (num_ctx)</span>
+                        <span id="label-num-ctx" class="font-mono text-slate-300 font-medium">8192 tokens</span>
+                    </div>
+                    <select id="settings-num-ctx" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <option value="2048">2048 (Low VRAM)</option>
+                        <option value="4096">4096 (Standard)</option>
+                        <option value="8192" selected>8192 (Recommended Default)</option>
+                        <option value="16384">16384 (Long Context)</option>
+                        <option value="32768">32768 (Ultra Long Context)</option>
+                    </select>
+                </div>
+
+                <!-- Temperature -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">Temperature (Creativity)</span>
+                        <span id="label-temperature" class="font-mono text-slate-300 font-medium">0.70</span>
+                    </div>
+                    <input type="range" id="settings-temperature" min="0" max="1.5" step="0.05" value="0.7" class="w-full accent-brand-500 cursor-pointer">
+                </div>
+
+                <!-- Top P -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">Top P (Nucleus Sampling)</span>
+                        <span id="label-top-p" class="font-mono text-slate-300 font-medium">0.90</span>
+                    </div>
+                    <input type="range" id="settings-top-p" min="0" max="1" step="0.05" value="0.9" class="w-full accent-brand-500 cursor-pointer">
+                </div>
+
+                <!-- Repeat Penalty -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">Repeat Penalty</span>
+                        <span id="label-repeat-penalty" class="font-mono text-slate-300 font-medium">1.10</span>
+                    </div>
+                    <input type="range" id="settings-repeat-penalty" min="1.0" max="2.0" step="0.05" value="1.1" class="w-full accent-brand-500 cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Voice Assistant (TTS Voice Selection) -->
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-slate-300">Speech Reply Voice (TTS)</label>
+                    <button id="btn-test-voice" type="button" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                        <span>Test Voice</span>
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400">Select the speech persona used for spoken replies in Gemini Live voice mode.</p>
+                <select id="settings-tts-voice-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
+                    <option value="">System Default Voice</option>
+                </select>
+            </div>
+
+            <!-- Data Export & Session Management -->
+            <div class="space-y-2 pt-2 border-t border-slate-800/80">
+                <label class="text-xs font-semibold text-slate-300 block">Data & Export</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-export-markdown" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
+                        <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export .MD
+                    </button>
+                    <button id="btn-export-json" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export .JSON
+                    </button>
+                </div>
+                <button id="btn-clear-all-history" class="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-medium transition">
+                    Clear All Chat History
+                </button>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button id="btn-save-settings" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. MODEL MANAGEMENT & PULL MODAL -->
+    <div id="model-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Model Management & Pull
+                </h3>
+                <button id="close-model-modal" class="text-slate-400 hover:text-white p-1 text-lg leading-none">&times;</button>
+            </div>
+
+            <!-- Installed Models List -->
+            <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">Installed Models</label>
+                <div id="installed-models-list" class="max-h-40 overflow-y-auto space-y-1.5 custom-scrollbar text-xs">
+                    <!-- Populated via API -->
+                </div>
+            </div>
+
+            <!-- Pull Model Input -->
+            <div class="space-y-2 pt-2 border-t border-slate-800/80">
+                <label class="text-xs font-semibold text-slate-300 block">Pull New Model</label>
+                <p class="text-[11px] text-slate-400">Accepts standard Ollama tags (e.g. <code>qwen2.5:14b</code>) or Hugging Face GGUF identifiers (e.g. <code>hf.co/bartowski/Qwen2.5-14B-Instruct-GGUF:Q5_K_M</code>).</p>
+                <div class="flex gap-2">
+                    <input type="text" id="pull-model-input" placeholder="e.g. qwen2.5-coder:7b" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500">
+                    <button id="btn-pull-model" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition shrink-0">Pull</button>
+                </div>
+
+                <!-- Pull Progress Bar -->
+                <div id="pull-progress-box" class="space-y-1.5 pt-2 hidden">
+                    <div class="flex justify-between text-xs font-mono">
+                        <span id="pull-status-text" class="text-slate-300 truncate max-w-[200px]">Initiating pull...</span>
+                        <span id="pull-percent-text" class="text-brand-400 font-bold">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="pull-progress-bar" class="h-full bg-brand-500 transition-all duration-200" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. GEMINI LIVE VOICE MODE (FULLSCREEN IMMERSIVE OVERLAY) -->
+    <div id="live-voice-overlay" class="fixed inset-0 z-50 flex flex-col justify-between items-center p-6 backdrop-blur-2xl hidden select-none">
+        <!-- Top Bar: Model pill, status badge, exit button -->
+        <div class="w-full max-w-xl flex items-center justify-between z-10">
+            <div class="flex items-center gap-2">
+                <img src="assets/icon.png" alt="Lumina Logo" class="w-5 h-5 rounded-md object-cover ring-1 ring-[var(--brand-primary)]">
+                <span class="font-bold tracking-tight text-white text-xs">LUMINA LIVE</span>
+                <span id="live-voice-model-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-card)] text-[var(--brand-primary)] border border-[var(--border-color)] font-mono">--</span>
+            </div>
+            <!-- Status Badge -->
+            <div id="live-voice-status-badge" class="px-3 py-1 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--brand-primary)] text-xs font-medium flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[var(--brand-primary)] animate-pulse"></span>
+                <span id="live-voice-status-text">Listening...</span>
+            </div>
+            <!-- Exit Button -->
+            <button id="btn-close-live-voice" class="p-2 rounded-full bg-[var(--bg-card)] hover:bg-[var(--brand-primary)] text-slate-300 hover:text-white border border-[var(--border-color)] transition active:scale-95" title="Exit Voice Mode">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Center: Glowing Audio Visualizer Orb -->
+        <div class="relative flex flex-col items-center justify-center my-auto w-full max-w-md">
+            <!-- Background Radial Glow Layers -->
+            <div id="live-voice-glow" class="live-voice-orb-glow animate-voice-ripple"></div>
+            <!-- Animated Canvas for Visual Representation of Speech -->
+            <canvas id="live-voice-canvas" width="340" height="340" class="relative z-10 drop-shadow-[0_0_35px_var(--brand-glow)]"></canvas>
+
+            <!-- Real-time Speech Subtitles -->
+            <div class="w-full text-center space-y-2 mt-6 px-4 z-10 min-h-[90px] flex flex-col justify-center">
+                <p id="live-voice-user-sub" class="text-sm font-medium text-[var(--text-muted)] italic transition-all line-clamp-2"></p>
+                <p id="live-voice-ai-sub" class="text-xs text-[var(--brand-primary)] leading-relaxed font-sans line-clamp-3"></p>
+            </div>
+        </div>
+
+        <!-- Bottom Controls Bar -->
+        <div class="w-full max-w-xs flex items-center justify-center gap-4 z-10 pb-4">
+            <!-- Mic Mute/Unmute -->
+            <button id="btn-live-mic-toggle" class="p-4 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--brand-primary)] text-[var(--text-main)] transition active:scale-95 shadow-lg" title="Mute/Unmute">
+                <svg id="live-mic-icon-on" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                <svg id="live-mic-icon-off" class="w-6 h-6 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+            </button>
+
+            <!-- Interrupt / Stop AI Speech -->
+            <button id="btn-live-interrupt" class="p-4 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-rose-500 text-slate-300 hover:text-white transition active:scale-95 shadow-lg" title="Interrupt AI">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
+            </button>
+
+            <!-- End Session Button -->
+            <button id="btn-live-end" class="p-4 rounded-full bg-rose-600 hover:bg-rose-500 text-white transition active:scale-95 shadow-lg shadow-rose-600/30" title="End Live Voice">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Scripts -->
+    <script src="js/telemetry.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
