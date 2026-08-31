@@ -1,6 +1,8 @@
 # Lumina ✦ Deployment & Quick Start Guide
 
-This guide covers everything you need to deploy **Lumina** in production or homelab environments, including hardware acceleration, web search integration, and setting up **TLS / HTTPS** for browser microphone and voice chat support.
+> **Note:** **Lumina** is a modern **web-based frontend client & user interface**. It connects directly to an **[Ollama](https://ollama.com/)** backend (which runs the actual LLM models) and an optional **[SearXNG](https://searx.github.io/searxng/)** instance (which provides real-time web search results). It does not replace Ollama; it gives Ollama a sovereign, fast, and feature-rich UI.
+
+This guide covers everything you need to deploy Lumina in production or homelab environments, including multi-container stacks, GPU hardware acceleration, and setting up **TLS / HTTPS** for browser microphone and voice chat support.
 
 ---
 

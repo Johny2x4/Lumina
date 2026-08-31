@@ -1,12 +1,23 @@
 # Lumina ✦
+### Sovereign Web Frontend for Ollama & SearXNG
 
-> **Lumina** is a zero-latency, private local AI client built for dedicated hardware acceleration. Featuring instant VRAM pinning, real-time GPU telemetry, multimodal vision, a fullscreen audio-reactive voice mode, and 12 bespoke themes, it delivers high-performance sovereign intelligence in an ultra-clean, minimalist interface.
+> **Lumina** is a lightweight, zero-latency, private **web-based frontend client** designed to interface directly with your existing **[Ollama](https://ollama.com/)** inference engine and optional **[SearXNG](https://searx.github.io/searxng/)** metasearch service.
+> 
+> Rather than replacing Ollama, Lumina provides an ultra-responsive, sovereign web interface on top of it—delivering instant VRAM pinning controls, real-time NVIDIA GPU hardware telemetry, multimodal vision chat, a Gemini Live-style fullscreen audio voice mode, real-time web citations, and 12 bespoke themes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
+[![Ollama Frontend](https://img.shields.io/badge/Ollama-Frontend%20Client-black.svg)](https://ollama.com/)
+[![SearXNG Compatible](https://img.shields.io/badge/SearXNG-Search%20Ready-blue.svg)](https://searx.github.io/searxng/)
 [![NVIDIA CUDA](https://img.shields.io/badge/NVIDIA-NVML%20Supported-76B900.svg)](https://developer.nvidia.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose%20Ready-2496ED.svg)](https://www.docker.com/)
+
+> [!NOTE]
+> **What Lumina Is (and Isn't):**
+> - ✅ **It IS a web frontend & interface:** Lumina provides a modern browser UI, streaming chat interface, WebSocket telemetry monitor, and voice interaction canvas.
+> - ❌ **It is NOT an LLM runtime:** Lumina does not run model weights or execute tensor math itself. It connects to and streams responses from an **Ollama** backend running locally or over your network.
+> - 🔍 **SearXNG Web Search Integration:** Seamlessly pairs with a **SearXNG** instance to automatically reformulate questions and inject real-time web sources and citations into your models.
 
 ---
 
@@ -125,24 +136,28 @@ Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUse
 ## 🏛️ Architecture
 
 ```
-                      ┌─────────────────────────────────┐
-                      │    Client Browser / Mobile PWA  │
-                      └────────────────┬────────────────┘
-                                       │ HTTP / WebSockets
-                                       ▼
-                      ┌─────────────────────────────────┐
-                      │        Lumina FastApi App       │
-                      │  - Static Single-Page App       │
-                      │  - WebSocket Telemetry Sampler  │
-                      │  - Streaming Ollama Proxy       │
-                      └───┬─────────────────────────┬───┘
-                          │                         │
-            NVML / psutil │                         │ HTTP Stream
-                          ▼                         ▼
-             ┌─────────────────────────┐   ┌─────────────────────────┐
-             │ NVIDIA GPUs (RTX / Data)│   │      Ollama Engine      │
-             │ Core Load, VRAM, Temp   │   │  Llama 3.2, Gemma, etc. │
-             └─────────────────────────┘   └─────────────────────────┘
+                      ┌─────────────────────────────────────────┐
+                      │       Client Browser / Mobile PWA       │
+                      │  (Chat UI, Audio Visualizer, 12 Themes) │
+                      └────────────────────┬────────────────────┘
+                                           │ HTTP / WebSockets
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │         Lumina Web Frontend UI          │
+                      │         (FastAPI + Vanilla JS)          │
+                      │  - Single-Page Responsive Web Client    │
+                      │  - Fullscreen Voice & Audio Engine      │
+                      │  - Real-Time NVML Hardware Telemetry    │
+                      │  - Streaming Proxy & Query Reformulator │
+                      └───┬───────────────────┬───────────────┬─┘
+                          │                   │               │
+            NVML / psutil │     HTTP Streaming│               │ HTTP Metasearch
+                          ▼                   ▼               ▼
+             ┌─────────────────────────┐ ┌─────────┐     ┌─────────┐
+             │ NVIDIA GPUs (RTX / Data)│ │ Ollama  │     │ SearXNG │
+             │ Core Load, VRAM, Power  │ │ Backend │     │ Backend │
+             │ Temperatures & Status   │ │ (LLMs)  │     │ (Search)│
+             └─────────────────────────┘ └─────────┘     └─────────┘
 ```
 
 ---
