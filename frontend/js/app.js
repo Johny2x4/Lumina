@@ -64,7 +64,7 @@ class App {
         const openSettings = () => {
             this.closeSidebar();
             settingsModal?.classList.remove("hidden");
-            this.syncSettingsUI();
+            window.voiceController?.detectTtsEngine();
         };
 
         if (btnOpenSettings) btnOpenSettings.addEventListener("click", openSettings);

@@ -244,6 +244,7 @@ class VoiceController {
 
     async enterLiveVoiceMode() {
         this.isActive = true;
+        await this.detectTtsEngine();
         const overlay = document.getElementById("live-voice-overlay");
         const modelPill = document.getElementById("live-voice-model-pill");
 
@@ -721,18 +722,25 @@ class VoiceController {
             window.chatManager.renderMessageUI("user", promptText);
         }
 
-        // Voice chat explicit system instruction: keep it short and conversational
+        // 1. Voice chat explicit system instruction
         const voiceSystemInstruction = {
             role: "system",
-            content: "You are speaking directly with the user in real-time voice mode. Keep all responses brief, natural, conversational, and direct (1 to 2 sentences maximum) unless the user explicitly asks for more detail or an explanation. Never use markdown, bullet points, headers, numbered lists, emojis, or code blocks. Speak naturally as in a phone call."
+            content: "You are speaking directly with the user in live voice mode. Rules:\n1. Keep your reply extremely short (1 to 2 sentences max).\n2. Speak naturally and conversationally.\n3. Never use emojis, bullet points, headers, lists, markdown, or code blocks.\n4. Answer immediately without conversational fluff or filler."
         };
 
-        // Filter previous system prompts and take recent turns for fast sub-second voice inference
+        // 2. Filter previous system prompts and take recent turns
         const baseHistory = (window.chatManager ? window.chatManager.currentMessages : [])
             .filter(m => m.role !== "system")
-            .slice(-6);
+            .slice(-4);
 
-        const apiMessages = [voiceSystemInstruction, ...baseHistory];
+        // 3. Strong inline prompt directive (works for ALL models, even those ignoring system role)
+        const promptWithDirective = `${promptText}\n\n[Instruction: Reply in 1 or 2 concise spoken sentences only. Strictly no emojis, no markdown.]`;
+
+        const apiMessages = [
+            voiceSystemInstruction,
+            ...baseHistory.slice(0, -1),
+            { role: "user", content: promptWithDirective }
+        ];
 
         let fullAiText = "";
         let fullThinking = "";
@@ -741,7 +749,11 @@ class VoiceController {
                 model: model,
                 messages: apiMessages,
                 stream: true,
-                keep_alive: -1
+                keep_alive: -1,
+                options: {
+                    num_predict: 100, // Hard physical cap: guarantees responses cannot be verbose
+                    temperature: 0.6
+                }
             };
 
             const res = await fetch("/api/ollama/chat", {
@@ -830,7 +842,9 @@ class VoiceController {
         // Strip math formulas
         clean = clean.replace(/\$\$[\s\S]*?\$\$/g, "");
         clean = clean.replace(/\$[^$\n]+\$/g, "");
-        // Strip emojis and excessive whitespace
+        // Strip all emojis and symbol pictographs
+        clean = clean.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{200D}\u{FE0F}]/gu, "");
+        // Strip excessive whitespace
         clean = clean.replace(/\s+/g, " ").trim();
         return clean;
     }
