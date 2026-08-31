@@ -182,6 +182,7 @@ class ChatJob:
         self.model = model
         self.sources = sources or []
         self.accumulated_text = ""
+        self.accumulated_thinking = ""
         self.chunks: List[dict] = []
         self.final_metadata: Optional[dict] = None
         self.done = False
@@ -196,6 +197,7 @@ class ChatJob:
             "session_id": self.session_id,
             "model": self.model,
             "accumulated_text": self.accumulated_text,
+            "accumulated_thinking": self.accumulated_thinking,
             "sources": self.sources,
             "final_metadata": self.final_metadata,
             "done": self.done,
@@ -277,9 +279,14 @@ class ChatJobManager:
                         continue
                     try:
                         data = json.loads(line)
-                        content = data.get("message", {}).get("content", "")
+                        msg = data.get("message", {})
+                        content = msg.get("content", "")
+                        thinking = msg.get("thinking", "") or data.get("thinking", "")
+
                         if content:
                             job.accumulated_text += content
+                        if thinking:
+                            job.accumulated_thinking += thinking
 
                         job.chunks.append(data)
                         if data.get("done"):

@@ -397,6 +397,21 @@ class ChatManager {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = "";
+            let assistantContent = "";
+            let assistantThinking = "";
+            let isThinkingPhase = false;
+            let thinkingStartTime = Date.now();
+            let receivedFirstChunk = false;
+
+            // Give feedback if a large model is loading into GPU VRAM
+            const loadTimer = setTimeout(() => {
+                if (!receivedFirstChunk && contentEl) {
+                    const statusText = contentEl.querySelector(".thinking-indicator-text");
+                    if (statusText) {
+                        statusText.textContent = "Loading model into GPU VRAM...";
+                    }
+                }
+            }, 3000);
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -410,23 +425,39 @@ class ChatManager {
                     if (!line.trim()) continue;
                     try {
                         const chunk = JSON.parse(line);
-                        if (chunk.message?.content) {
-                            assistantContent += chunk.message.content;
-                            try {
-                                contentEl.innerHTML = renderMarkdown(assistantContent);
-                            } catch (parseErr) {
-                                // Fallback to escaped plaintext if Markdown parsing fails
-                                contentEl.textContent = assistantContent;
+                        receivedFirstChunk = true;
+                        clearTimeout(loadTimer);
+
+                        const msg = chunk.message || {};
+                        const contentChunk = msg.content || "";
+                        const thinkingChunk = msg.thinking || chunk.thinking || "";
+
+                        if (thinkingChunk) {
+                            if (!isThinkingPhase) {
+                                isThinkingPhase = true;
+                                thinkingStartTime = Date.now();
                             }
-                            this.highlightCode(contentEl);
+                            assistantThinking += thinkingChunk;
+                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                             this.scrollToBottom();
                         }
+
+                        if (contentChunk) {
+                            if (isThinkingPhase) {
+                                isThinkingPhase = false;
+                            }
+                            assistantContent += contentChunk;
+                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
+                            this.scrollToBottom();
+                        }
+
                         if (chunk.done) {
                             finalMetadata = chunk;
                         }
                     } catch (e) {}
                 }
             }
+            clearTimeout(loadTimer);
 
             // Save completed message
             this.currentMessages.push({
@@ -523,6 +554,9 @@ class ChatManager {
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
             let buffer = "";
+            let assistantThinking = initialJob.accumulated_thinking || "";
+            let isThinkingPhase = !assistantContent && !initialJob.done;
+            let thinkingStartTime = Date.now();
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -536,16 +570,29 @@ class ChatManager {
                     if (!line.trim()) continue;
                     try {
                         const chunk = JSON.parse(line);
-                        if (chunk.message?.content) {
-                            assistantContent += chunk.message.content;
-                            try {
-                                contentEl.innerHTML = renderMarkdown(assistantContent);
-                            } catch (parseErr) {
-                                contentEl.textContent = assistantContent;
+                        const msg = chunk.message || {};
+                        const contentChunk = msg.content || "";
+                        const thinkingChunk = msg.thinking || chunk.thinking || "";
+
+                        if (thinkingChunk) {
+                            if (!isThinkingPhase) {
+                                isThinkingPhase = true;
+                                thinkingStartTime = Date.now();
                             }
-                            this.highlightCode(contentEl);
+                            assistantThinking += thinkingChunk;
+                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                             this.scrollToBottom();
                         }
+
+                        if (contentChunk) {
+                            if (isThinkingPhase) {
+                                isThinkingPhase = false;
+                            }
+                            assistantContent += contentChunk;
+                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
+                            this.scrollToBottom();
+                        }
+
                         if (chunk.done) {
                             finalMetadata = chunk;
                         }
@@ -680,14 +727,14 @@ class ChatManager {
                 }">
                     ${imagesHtml}
                     <div class="message-content prose-lumina ${isUser ? 'text-[var(--text-user-bubble)]' : ''}">
-                        ${isUser ? escapeHtml(content) : (content ? (() => { try { return renderMarkdown(content); } catch(e) { return escapeHtml(content); } })() : `
+                        ${isUser ? escapeHtml(content) : (content || msg.thinking ? this.renderMessageContent(content, msg.thinking) : `
                             <div class="thinking-indicator flex items-center gap-2 py-1 select-none">
                                 <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 0ms"></span>
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 150ms"></span>
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 300ms"></span>
                                 </div>
-                                <span class="text-xs text-[var(--brand-primary)] font-medium tracking-wide">Thinking...</span>
+                                <span class="thinking-indicator-text text-xs text-[var(--brand-primary)] font-medium tracking-wide">Thinking...</span>
                             </div>
                         `)}
                     </div>
@@ -945,6 +992,93 @@ class ChatManager {
         if (container) {
             container.scrollTop = container.scrollHeight;
         }
+    }
+
+    renderMessageContent(content, thinking) {
+        let thoughts = thinking || "";
+        let mainContent = content || "";
+
+        if (mainContent.includes("<think>")) {
+            const endIdx = mainContent.indexOf("</think>");
+            if (endIdx !== -1) {
+                thoughts += (thoughts ? "\n" : "") + mainContent.substring(7, endIdx).trim();
+                mainContent = mainContent.substring(endIdx + 8).trim();
+            } else {
+                thoughts += (thoughts ? "\n" : "") + mainContent.substring(7).trim();
+                mainContent = "";
+            }
+        }
+
+        let html = "";
+        if (thoughts) {
+            html += `
+                <details class="thinking-accordion group mb-3 rounded-xl border border-indigo-500/25 bg-indigo-950/20 text-xs overflow-hidden transition-all">
+                    <summary class="flex items-center gap-2 px-3 py-2 cursor-pointer select-none text-indigo-300 hover:text-indigo-200 font-medium transition bg-indigo-500/10">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                        <span class="font-mono text-[11px] tracking-wide">Reasoning Process</span>
+                        <svg class="w-3.5 h-3.5 text-indigo-400 group-open:rotate-180 transition-transform ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </summary>
+                    <div class="thinking-content px-3.5 py-2.5 font-mono text-[11px] text-slate-300/90 whitespace-pre-wrap border-t border-indigo-500/15 max-h-60 overflow-y-auto leading-relaxed custom-scrollbar bg-black/20">
+                        ${escapeHtml(thoughts)}
+                    </div>
+                </details>
+            `;
+        }
+
+        if (mainContent) {
+            html += renderMarkdown(mainContent);
+        }
+
+        return html;
+    }
+
+    renderStreamContent(contentEl, content, thinking, isThinking, startTime) {
+        let thoughts = thinking || "";
+        let mainContent = content || "";
+
+        if (mainContent.includes("<think>")) {
+            const endIdx = mainContent.indexOf("</think>");
+            if (endIdx !== -1) {
+                thoughts += (thoughts ? "\n" : "") + mainContent.substring(7, endIdx).trim();
+                mainContent = mainContent.substring(endIdx + 8).trim();
+            } else {
+                thoughts += (thoughts ? "\n" : "") + mainContent.substring(7).trim();
+                mainContent = "";
+            }
+        }
+
+        let html = "";
+        if (thoughts) {
+            const durationSec = startTime ? Math.max(1, Math.round((Date.now() - startTime) / 1000)) : 1;
+            const durationLabel = isThinking ? `${durationSec}s` : `Thought for ${durationSec}s`;
+            const pulseClass = isThinking ? "animate-pulse" : "";
+            const openAttr = isThinking ? "open" : "";
+
+            html += `
+                <details class="thinking-accordion group mb-3 rounded-xl border border-indigo-500/25 bg-indigo-950/20 text-xs overflow-hidden transition-all" ${openAttr}>
+                    <summary class="flex items-center gap-2 px-3 py-2 cursor-pointer select-none text-indigo-300 hover:text-indigo-200 font-medium transition bg-indigo-500/10">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 ${pulseClass}"></span>
+                        <span class="font-mono text-[11px] tracking-wide">${isThinking ? "Thinking..." : "Reasoning Process"}</span>
+                        <span class="thinking-duration text-slate-400 text-[10px] ml-auto font-mono">${durationLabel}</span>
+                        <svg class="w-3.5 h-3.5 text-indigo-400 group-open:rotate-180 transition-transform ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </summary>
+                    <div class="thinking-content px-3.5 py-2.5 font-mono text-[11px] text-slate-300/90 whitespace-pre-wrap border-t border-indigo-500/15 max-h-60 overflow-y-auto leading-relaxed custom-scrollbar bg-black/20">
+                        ${escapeHtml(thoughts)}
+                    </div>
+                </details>
+            `;
+        }
+
+        if (mainContent) {
+            html += renderMarkdown(mainContent);
+        }
+
+        contentEl.innerHTML = html;
+        this.highlightCode(contentEl);
     }
 
     // Use the global escapeHtml utility from utils.js
