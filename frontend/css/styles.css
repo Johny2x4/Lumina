@@ -1170,10 +1170,9 @@ body[data-theme] .msg-actions-bar {
 body[data-theme] .msg-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.2rem 0.4rem;
-    font-size: 0.65rem;
-    font-weight: 500;
+    justify-content: center;
+    padding: 0.28rem !important;
+    border-radius: 0.375rem;
     color: var(--text-muted);
     background: transparent !important;
     background-color: transparent !important;
@@ -1185,7 +1184,6 @@ body[data-theme] .msg-action-btn {
     box-shadow: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-radius: 0.375rem;
     transition: all 0.15s ease;
     cursor: pointer;
     user-select: none;
@@ -1195,13 +1193,13 @@ body[data-theme] .msg-action-btn {
 .msg-action-btn:hover,
 body[data-theme] .msg-action-btn:hover {
     color: var(--text-main);
-    background: rgba(125, 125, 125, 0.15) !important;
-    background-color: rgba(125, 125, 125, 0.15) !important;
+    background: rgba(125, 125, 125, 0.18) !important;
+    background-color: rgba(125, 125, 125, 0.18) !important;
 }
 
 .msg-action-btn:active,
 body[data-theme] .msg-action-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
 }
 
 /* Web Search Toggle & Citation Badges */

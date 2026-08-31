@@ -753,24 +753,20 @@ class ChatManager {
                 </div>
 
                 <!-- Floating Action Buttons underneath message bubble -->
-                <div class="msg-actions-bar flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}">
+                <div class="msg-actions-bar flex items-center gap-1 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}">
                     ${!isUser ? `
-                        <button class="msg-action-btn btn-copy-msg" title="Copy response">
+                        <button class="msg-action-btn btn-copy-msg" title="Copy response" aria-label="Copy response">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            <span>Copy</span>
                         </button>
-                        <button class="msg-action-btn btn-toggle-raw" title="Toggle raw Markdown">
+                        <button class="msg-action-btn btn-toggle-raw" title="Toggle raw Markdown" aria-label="Toggle raw Markdown">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                            <span>Raw</span>
                         </button>
-                        <button class="msg-action-btn btn-regen-msg" title="Regenerate from here">
+                        <button class="msg-action-btn btn-regen-msg" title="Regenerate response" aria-label="Regenerate response">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            <span>Regenerate</span>
                         </button>
                     ` : `
-                        <button class="msg-action-btn btn-edit-msg" title="Edit prompt & re-run">
+                        <button class="msg-action-btn btn-edit-msg" title="Edit prompt & re-run" aria-label="Edit prompt & re-run">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            <span>Edit</span>
                         </button>
                     `}
                 </div>
@@ -826,9 +822,13 @@ class ChatManager {
             if (btnCopy) {
                 btnCopy.addEventListener("click", () => {
                     navigator.clipboard.writeText(content);
-                    const span = btnCopy.querySelector("span");
-                    if (span) span.textContent = "Copied!";
-                    setTimeout(() => { if (span) span.textContent = "Copy"; }, 2000);
+                    const originalSvg = btnCopy.innerHTML;
+                    btnCopy.setAttribute("title", "Copied!");
+                    btnCopy.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    setTimeout(() => {
+                        btnCopy.innerHTML = originalSvg;
+                        btnCopy.setAttribute("title", "Copy response");
+                    }, 2000);
                 });
             }
 
@@ -842,12 +842,14 @@ class ChatManager {
                     if (isShowingRaw) {
                         rawEl.classList.add("hidden");
                         proseEl.classList.remove("hidden");
-                        btnRaw.querySelector("span").textContent = "Raw";
+                        btnRaw.setAttribute("title", "Toggle raw Markdown");
+                        btnRaw.classList.remove("text-brand-400");
                     } else {
                         rawEl.textContent = content;
                         rawEl.classList.remove("hidden");
                         proseEl.classList.add("hidden");
-                        btnRaw.querySelector("span").textContent = "Rendered";
+                        btnRaw.setAttribute("title", "Toggle rendered Markdown");
+                        btnRaw.classList.add("text-brand-400");
                     }
                 });
             }
