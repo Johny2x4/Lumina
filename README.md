@@ -30,16 +30,20 @@
 - Theme-synchronized canvas visualizer displaying radiant glowing speech orbs, harmonic waveform animations, and live transcription subtitles.
 - In 8-bit mode, transitions to stepped arcade diamond waveform geometry and CRT scanline styling.
 
-### 5. 12 Bespoke System Themes
-Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, and voice overlay):
-- **Lumina Dark (Default)**: Deep midnight indigo and refined cyan.
+### 5. 12 Curated System Themes
+Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, voice overlay, and particle animations):
+- **Midnight Slate (Default)**: Deep midnight slate and refined indigo glow.
+- **Glacial Ice**: Translucent frosted ice sheets, high-density blizzard particle physics, and pure white ledges.
+- **Pastel Dream**: Soft marshmallow lilac, rose accents, and orchid gradients.
+- **Snowy Forest**: Deep spruce evergreen with gentle animated snowflakes landing on message cards.
+- **Nordic Frost**: Minimalist crisp Scandinavian daylight mode.
+- **Paper & Ink**: Warm literary editorial light mode with warm charcoal typography.
+- **Alpine Day**: Frosted sage, meadow green, and light pine tones.
+- **AMOLED**: True pure black `#000000` for OLED efficiency.
 - **Cyberpunk**: Neon cyan, electric yellow, and pulsing magenta.
-- **Matrix**: Phosphor terminal green on deep black.
-- **8-Bit Retro Arcade**: Pixelated typography, chunky borders, and arcade scanlines.
-- **Synthwave**: 80s neon magenta, sunset violet, and gridlines.
+- **Matrix**: High-contrast phosphor terminal green code rain.
+- **Synthwave**: 80s neon magenta, sunset violet, and animated perspective gridlines.
 - **Aurora**: Arctic emerald, cyan, and northern lights gradients.
-- **AMOLED**: True pure black `#000000` for OLED displays.
-- **Solarized Dark, Crimson Nocturne, Sakura Dream, Deep Abyss, Clean Monochrome**.
 
 ### 6. Multimodal Vision & Document Ingestion
 - Drag-and-drop or file-picker upload for images (PNG, JPG, WebP) and documents (TXT, MD, CSV, JSON, PDF).
@@ -58,6 +62,8 @@ Comprehensive theme re-skinning across the entire interface (chat, sidebar, draw
 ---
 
 ## 🚀 Quick Start
+
+> 📖 **Looking for full homelab, reverse proxy, or SSL setups?** Check out the detailed **[Deployment & Quick Start Guide (QUICKSTART.md)](QUICKSTART.md)**.
 
 ### Option A: Docker Compose (Recommended)
 
@@ -92,6 +98,16 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 3000
 ```
 
 Access the UI at: **`http://localhost:3000`**
+
+---
+
+## ⚠️ Important: TLS / HTTPS Required for Voice Mode
+
+Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUserMedia` & `webkitSpeechRecognition`) to **Secure Contexts** (`localhost`, `127.0.0.1`, or **HTTPS / TLS**).
+
+* **On Localhost:** Works immediately without any setup.
+* **On LAN IP / Remote Host (e.g. `http://192.168.x.x:3000`):** The browser will block the microphone unless accessed over HTTPS.
+* **Solutions:** See the [QUICKSTART.md TLS Setup Guide](QUICKSTART.md#-critical-tls--https-requirement-for-voice-chat) for instant setup with **Tailscale Serve** (`tailscale serve --https=443 3000`), **Caddy**, **Nginx / mkcert**, or browser flag overrides.
 
 ---
 
