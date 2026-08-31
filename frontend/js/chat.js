@@ -675,7 +675,7 @@ class ChatManager {
         if (btnStop) btnStop.classList.toggle("hidden", !isGen);
     }
 
-    renderMessageUI(role, content, imagePreviews = null, sources = null) {
+    renderMessageUI(role, content, imagePreviews = null, sources = null, thinking = null) {
         const container = document.getElementById("messages-container");
         const isUser = role === "user";
 
@@ -727,7 +727,7 @@ class ChatManager {
                 }">
                     ${imagesHtml}
                     <div class="message-content prose-lumina ${isUser ? 'text-[var(--text-user-bubble)]' : ''}">
-                        ${isUser ? escapeHtml(content) : (content || msg.thinking ? this.renderMessageContent(content, msg.thinking) : `
+                        ${isUser ? escapeHtml(content) : (content || thinking ? this.renderMessageContent(content, thinking) : `
                             <div class="thinking-indicator flex items-center gap-2 py-1 select-none">
                                 <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 0ms"></span>
@@ -872,7 +872,7 @@ class ChatManager {
                             if (container) {
                                 container.innerHTML = "";
                                 this.currentMessages.forEach(m => {
-                                    this.renderMessageUI(m.role, m.content, m.imagePreviews);
+                                    this.renderMessageUI(m.role, m.content, m.imagePreviews, m.sources, m.thinking);
                                 });
                             }
                         }
@@ -899,7 +899,7 @@ class ChatManager {
             if (container) {
                 container.innerHTML = "";
                 this.currentMessages.forEach(m => {
-                    this.renderMessageUI(m.role, m.content, m.imagePreviews);
+                    this.renderMessageUI(m.role, m.content, m.imagePreviews, m.sources, m.thinking);
                 });
             }
 
