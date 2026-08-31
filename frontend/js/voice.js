@@ -23,7 +23,13 @@ class VoiceController {
         this.currentVolume = 0;
         this.targetVolume = 0;
 
-        // TTS Voice Customization
+        // TTS Neural Engine vs Browser Synthesizer
+        this.ttsEngine = "browser"; // "kokoro" | "browser"
+        this.kokoroVoices = [];
+        this.selectedKokoroVoice = localStorage.getItem("lumina_kokoro_voice") || "af_heart";
+        this.activeAudio = null;
+
+        // Browser TTS Voice Customization
         this.voices = [];
         this.selectedVoiceURI = localStorage.getItem("lumina_tts_voice") || "";
         this.watchdogTimer = null;
@@ -31,10 +37,63 @@ class VoiceController {
         this.init();
     }
 
-    init() {
+    async init() {
+        await this.detectTtsEngine();
         this.initVoices();
         this.setupRecognition();
         this.bindEvents();
+    }
+
+    async detectTtsEngine() {
+        try {
+            const res = await fetch("/api/voice/status");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.available && data.engine === "kokoro") {
+                    this.ttsEngine = "kokoro";
+                    this.kokoroVoices = data.voices || [];
+                    this.updateVoiceSelectUI();
+                    return;
+                }
+            }
+        } catch (e) {}
+        this.ttsEngine = "browser";
+        this.updateVoiceSelectUI();
+    }
+
+    updateVoiceSelectUI() {
+        const select = document.getElementById("settings-tts-voice-select");
+        const statusBadge = document.getElementById("tts-engine-badge");
+        if (!select) return;
+
+        if (this.ttsEngine === "kokoro" && this.kokoroVoices.length > 0) {
+            if (statusBadge) {
+                statusBadge.innerHTML = `
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Local Neural TTS (Kokoro-82M)
+                    </span>
+                `;
+            }
+            select.innerHTML = this.kokoroVoices.map(v => {
+                const isSelected = v.id === this.selectedKokoroVoice ? "selected" : "";
+                return `<option value="${v.id}" ${isSelected}>✨ ${v.name}</option>`;
+            }).join("");
+            if (this.selectedKokoroVoice) {
+                select.value = this.selectedKokoroVoice;
+            }
+            return;
+        }
+
+        // Browser fallback
+        if (statusBadge) {
+            statusBadge.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/15 text-slate-300 border border-slate-500/30">
+                    Browser Synthesizer (Fallback)
+                </span>
+            `;
+        }
+        this.populateVoiceList();
     }
 
     initVoices() {
@@ -46,6 +105,7 @@ class VoiceController {
     }
 
     populateVoiceList() {
+        if (this.ttsEngine === "kokoro") return;
         if (!this.synth) return;
         this.voices = this.synth.getVoices();
         const select = document.getElementById("settings-tts-voice-select");
@@ -164,15 +224,20 @@ class VoiceController {
         const voiceSelect = document.getElementById("settings-tts-voice-select");
         if (voiceSelect) {
             voiceSelect.addEventListener("change", (e) => {
-                this.selectedVoiceURI = e.target.value;
-                localStorage.setItem("lumina_tts_voice", this.selectedVoiceURI);
+                if (this.ttsEngine === "kokoro") {
+                    this.selectedKokoroVoice = e.target.value;
+                    localStorage.setItem("lumina_kokoro_voice", this.selectedKokoroVoice);
+                } else {
+                    this.selectedVoiceURI = e.target.value;
+                    localStorage.setItem("lumina_tts_voice", this.selectedVoiceURI);
+                }
             });
         }
 
         const btnTest = document.getElementById("btn-test-voice");
         if (btnTest) {
             btnTest.addEventListener("click", () => {
-                this.speakTest("Hello! This is Lumina AI speaking with your selected voice.");
+                this.speakTest("Hello! This is Lumina AI speaking with natural neural voice.");
             });
         }
     }
@@ -790,8 +855,8 @@ class VoiceController {
         return chunks;
     }
 
-    speak(text) {
-        if (!this.isActive || !this.synth) return;
+    async speak(text) {
+        if (!this.isActive) return;
 
         const cleanText = this.cleanSpokenText(text);
         if (!cleanText) {
@@ -803,7 +868,64 @@ class VoiceController {
         this.setState("speaking");
         this.clearWatchdog();
 
-        // Workaround for Chrome TTS: reset and resume audio pipeline
+        // Safety Watchdog Timer: Guarantee release back to listening even if audio fails to terminate
+        const estimatedMs = Math.max(3500, cleanText.length * 90 + 3500);
+        this.watchdogTimer = setTimeout(() => {
+            console.warn("Voice TTS watchdog: audio did not release in time, force releasing back to listening.");
+            this.releaseToListening();
+        }, estimatedMs);
+
+        // 1. If Local Neural Kokoro TTS is active, play studio neural audio stream
+        if (this.ttsEngine === "kokoro") {
+            try {
+                const res = await fetch("/api/voice/tts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        text: cleanText,
+                        voice: this.selectedKokoroVoice || "af_heart",
+                        speed: 1.0
+                    })
+                });
+
+                if (!res.ok) throw new Error(`Kokoro HTTP ${res.status}`);
+
+                const blob = await res.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                const audio = new Audio(audioUrl);
+                this.activeAudio = audio;
+
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    this.activeAudio = null;
+                    this.releaseToListening();
+                };
+
+                audio.onerror = (e) => {
+                    console.warn("Kokoro audio playback error:", e);
+                    URL.revokeObjectURL(audioUrl);
+                    this.activeAudio = null;
+                    this.releaseToListening();
+                };
+
+                await audio.play();
+                return;
+            } catch (err) {
+                console.warn("Kokoro neural TTS playback failed, falling back to browser synthesis:", err);
+            }
+        }
+
+        // 2. Legacy Browser Web Speech API fallback
+        this.speakBrowser(cleanText);
+    }
+
+    speakBrowser(cleanText) {
+        if (!this.synth) {
+            this.releaseToListening();
+            return;
+        }
+
+        // Reset and resume audio pipeline
         try {
             this.synth.cancel();
             if (this.synth.resume) {
@@ -817,14 +939,6 @@ class VoiceController {
             return;
         }
 
-        // Safety Watchdog Timer: Guarantee release back to listening even if browser TTS halts
-        const estimatedMs = Math.max(3000, cleanText.length * 85 + 2500);
-        this.watchdogTimer = setTimeout(() => {
-            console.warn("Voice TTS watchdog: speech did not finish in time, releasing back to listening.");
-            this.releaseToListening();
-        }, estimatedMs);
-
-        // Keep global reference so browser garbage collection doesn't drop the callback
         window._activeUtterances = [];
         let currentIndex = 0;
 
@@ -870,12 +984,15 @@ class VoiceController {
             this.synth.speak(utterance);
         };
 
-        // 50ms delay gives Chrome's audio engine time to clear the cancel() state
         setTimeout(speakNext, 50);
     }
 
     releaseToListening() {
         this.clearWatchdog();
+        if (this.activeAudio) {
+            try { this.activeAudio.pause(); } catch (e) {}
+            this.activeAudio = null;
+        }
         try {
             if (this.synth) this.synth.cancel();
         } catch (e) {}
@@ -896,7 +1013,38 @@ class VoiceController {
         }
     }
 
-    speakTest(text) {
+    async speakTest(text) {
+        // Test Kokoro if online
+        if (this.ttsEngine === "kokoro") {
+            try {
+                if (this.activeAudio) {
+                    try { this.activeAudio.pause(); } catch (e) {}
+                    this.activeAudio = null;
+                }
+                const res = await fetch("/api/voice/tts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: this.selectedKokoroVoice || "af_heart",
+                        speed: 1.0
+                    })
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const audio = new Audio(url);
+                    this.activeAudio = audio;
+                    audio.onended = () => { URL.revokeObjectURL(url); this.activeAudio = null; };
+                    await audio.play();
+                    return;
+                }
+            } catch (err) {
+                console.warn("Kokoro test speech failed:", err);
+            }
+        }
+
+        // Test browser voice fallback
         if (!this.synth) return;
         try {
             this.synth.cancel();
@@ -916,6 +1064,14 @@ class VoiceController {
     }
 
     interruptAI() {
+        if (this.activeAudio) {
+            try { this.activeAudio.pause(); } catch (e) {}
+            this.activeAudio = null;
+        }
+        if (this.synth) {
+            try { this.synth.cancel(); } catch (e) {}
+            this.currentUtterance = null;
+        }
         this.releaseToListening();
     }
 }

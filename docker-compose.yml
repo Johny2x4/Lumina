@@ -7,6 +7,7 @@ services:
       - "3000:3000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      - KOKORO_BASE_URL=http://kokoro:8880
       # - SEARXNG_URL=http://searxng:8080  # Optional: enable real-time web search via SearXNG
     depends_on:
       - ollama
@@ -17,6 +18,13 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    container_name: lumina-kokoro
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8880:8880"
 
   ollama:
     image: ollama/ollama:latest
