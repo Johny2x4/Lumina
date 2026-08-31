@@ -334,241 +334,259 @@
                 <button id="close-settings-modal" class="text-slate-400 hover:text-white p-1 text-lg leading-none">&times;</button>
             </div>
 
-            <!-- Appearance Theme Selection (12 Curated Themes) -->
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-semibold text-slate-300">Theme Collection (12 Curated Themes)</label>
-                    <span class="text-[10px] text-indigo-400 font-mono">Full system retheme</span>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-64 overflow-y-auto custom-scrollbar p-0.5">
-                    <!-- 1. Midnight Slate -->
-                    <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-[#090d16] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="default">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                            <span class="font-medium text-slate-200 text-[11px] truncate">Midnight</span>
-                        </div>
-                        <span class="text-[9px] text-slate-400">Default Slate</span>
-                    </button>
-
-                    <!-- 2. AMOLED Black -->
-                    <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-black text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="amoled">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                            <span class="font-medium text-slate-200 text-[11px] truncate">AMOLED</span>
-                        </div>
-                        <span class="text-[9px] text-slate-400">Pure Black OLED</span>
-                    </button>
-
-                    <!-- 3. Cyberpunk 2077 (Animated) -->
-                    <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#07050e] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="cyberpunk">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
-                            <span class="font-medium text-cyan-300 text-[11px] truncate">Cyberpunk</span>
-                        </div>
-                        <span class="text-[9px] text-pink-400">Neon Grid</span>
-                    </button>
-
-                    <!-- 4. Matrix Rain (Animated) -->
-                    <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#020603] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1" data-theme-val="matrix">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="font-medium text-emerald-400 text-[11px] truncate">Matrix</span>
-                        </div>
-                        <span class="text-[9px] text-emerald-600">Terminal Rain</span>
-                    </button>
-
-                    <!-- 5. Synthwave Outrun (Animated) -->
-                    <button class="theme-btn p-2 rounded-xl border border-pink-500/50 bg-[#130722] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="synthwave">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
-                            <span class="font-medium text-pink-300 text-[11px] truncate">Synthwave</span>
-                        </div>
-                        <span class="text-[9px] text-cyan-400">Outrun Horizon</span>
-                    </button>
-
-                    <!-- 6. Aurora Borealis (Animated) -->
-                    <button class="theme-btn p-2 rounded-xl border border-teal-500/50 bg-[#05131a] text-left transition hover:border-teal-400 flex flex-col justify-between gap-1" data-theme-val="aurora">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
-                            <span class="font-medium text-teal-300 text-[11px] truncate">Aurora</span>
-                        </div>
-                        <span class="text-[9px] text-teal-500">Northern Glow</span>
-                    </button>
-
-                    <!-- 7. Snowy Forest (Animated Falling Snow) -->
-                    <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#07130c] text-left transition hover:border-emerald-300 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="snowforest">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span class="font-medium text-emerald-200 text-[11px] truncate">Snowy Forest</span>
-                        </div>
-                        <span class="text-[9px] text-emerald-400">Alpine Snow ❄️</span>
-                    </button>
-
-                    <!-- 8. Nordic Frost (Clean Light) -->
-                    <button class="theme-btn p-2 rounded-xl border border-blue-200 bg-[#f4f7fb] text-left transition hover:border-blue-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="nordic">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                            <span class="font-medium text-slate-800 text-[11px] truncate">Nordic Frost</span>
-                        </div>
-                        <span class="text-[9px] text-blue-600 font-medium">Clean Light ☀️</span>
-                    </button>
-
-                    <!-- 9. Paper & Ink (Editorial Light) -->
-                    <button class="theme-btn p-2 rounded-xl border border-[#e7dfd1] bg-[#fcfbf7] text-left transition hover:border-amber-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="paper">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#c2410c]"></span>
-                            <span class="font-medium text-[#26231f] text-[11px] truncate">Paper & Ink</span>
-                        </div>
-                        <span class="text-[9px] text-[#78716c]">Warm Editorial 📜</span>
-                    </button>
-
-                    <!-- 10. Alpine Day (Forest Light) -->
-                    <button class="theme-btn p-2 rounded-xl border border-[#c1d7cc] bg-[#f0f5f2] text-left transition hover:border-emerald-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="alpineday">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#2d6a4f]"></span>
-                            <span class="font-medium text-[#132a1f] text-[11px] truncate">Alpine Day</span>
-                        </div>
-                        <span class="text-[9px] text-[#52796f]">Sage Meadow 🌿</span>
-                    </button>
-
-                    <!-- 11. Pastel Dream (Pastel Color Theme) -->
-                    <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastel">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#ec4899] animate-pulse"></span>
-                            <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Dream</span>
-                        </div>
-                        <span class="text-[9px] text-[#ec4899] font-medium">Sweet Lilac 🌸</span>
-                    </button>
-
-                    <!-- 12. Glacial Ice (Frozen Tundra & Falling Snow - Light Mode) -->
-                    <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#edf5fa] text-left transition hover:border-sky-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="glacier">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
-                            <span class="font-medium text-[#0c2340] text-[11px] truncate">Glacial Ice</span>
-                        </div>
-                        <span class="text-[9px] text-sky-600 font-medium">Frozen Snow ❄️</span>
-                    </button>
-                </div>
+            <!-- Tab Navigation Bar -->
+            <div class="flex items-center gap-1.5 p-1 bg-slate-950/70 rounded-xl border border-slate-800/80 text-xs">
+                <button type="button" id="tab-btn-appearance-voice" class="settings-tab-btn flex-1 py-1.5 px-3 rounded-lg font-medium text-slate-200 bg-slate-800 border border-slate-700/80 shadow-sm transition flex items-center justify-center gap-1.5" data-tab="appearance-voice">
+                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                    <span>Appearance & Voice</span>
+                </button>
+                <button type="button" id="tab-btn-model-settings" class="settings-tab-btn flex-1 py-1.5 px-3 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-tab="model-settings">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                    <span>Model & Inference</span>
+                </button>
             </div>
 
-            <!-- Default Model Selection -->
-            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
-                <label class="text-xs font-semibold text-slate-300 block">Default Model</label>
-                <p class="text-[11px] text-slate-400">Preferred model loaded automatically when opening Lumina.</p>
-                <select id="settings-default-model-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                    <option value="">Loading installed models...</option>
-                </select>
-            </div>
-
-            <!-- System Persona & Prompt Presets -->
-            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
-                <label class="text-xs font-semibold text-slate-300 block">System Persona & Prompt Preset</label>
-                <p class="text-[11px] text-slate-400">Sets the behavioral persona and system instructions for the AI.</p>
-                <select id="settings-persona-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
-                    <option value="default">Default Assistant (Helpful, direct, well-structured)</option>
-                    <option value="engineer">Concise Senior Engineer (Technical, minimal fluff, clean code)</option>
-                    <option value="writer">Creative Writer (Articulate, vivid, narrative depth)</option>
-                    <option value="extractor">Raw Data Extractor (Strict JSON/Markdown tables, zero preamble)</option>
-                    <option value="custom">Custom Persona Override</option>
-                </select>
-                <textarea id="settings-custom-persona-text" rows="2" placeholder="Enter your custom system instructions here..." class="w-full bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 placeholder-slate-500 custom-scrollbar hidden"></textarea>
-            </div>
-
-            <!-- Inference & Sampling Controls -->
-            <div class="space-y-3 pt-2 border-t border-slate-800/80">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-semibold text-slate-300">Inference & Sampling Controls</label>
-                    <button id="btn-reset-inference" type="button" class="text-[10px] text-brand-400 hover:text-brand-300 transition">Reset Defaults</button>
-                </div>
-
-                <!-- Context Length (num_ctx) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Context Window (num_ctx)</span>
-                        <span id="label-num-ctx" class="font-mono text-slate-300 font-medium">8192 tokens</span>
+            <!-- TAB 1: APPEARANCE & VOICE -->
+            <div id="settings-tab-appearance-voice" class="settings-tab-pane space-y-4">
+                <!-- Appearance Theme Selection (12 Curated Themes) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-300">Theme Collection (12 Curated Themes)</label>
+                        <span class="text-[10px] text-indigo-400 font-mono">Full system retheme</span>
                     </div>
-                    <select id="settings-num-ctx" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        <option value="2048">2048 (Low VRAM)</option>
-                        <option value="4096">4096 (Standard)</option>
-                        <option value="8192" selected>8192 (Recommended Default)</option>
-                        <option value="16384">16384 (Long Context)</option>
-                        <option value="32768">32768 (Ultra Long Context)</option>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-60 overflow-y-auto custom-scrollbar p-0.5">
+                        <!-- 1. Midnight Slate -->
+                        <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-[#090d16] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="default">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                <span class="font-medium text-slate-200 text-[11px] truncate">Midnight</span>
+                            </div>
+                            <span class="text-[9px] text-slate-400">Default Slate</span>
+                        </button>
+
+                        <!-- 2. AMOLED Black -->
+                        <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-black text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="amoled">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
+                                <span class="font-medium text-slate-200 text-[11px] truncate">AMOLED</span>
+                            </div>
+                            <span class="text-[9px] text-slate-400">Pure Black OLED</span>
+                        </button>
+
+                        <!-- 3. Cyberpunk 2077 (Animated) -->
+                        <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#07050e] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="cyberpunk">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                                <span class="font-medium text-cyan-300 text-[11px] truncate">Cyberpunk</span>
+                            </div>
+                            <span class="text-[9px] text-pink-400">Neon Grid</span>
+                        </button>
+
+                        <!-- 4. Matrix Rain (Animated) -->
+                        <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#020603] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1" data-theme-val="matrix">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="font-medium text-emerald-400 text-[11px] truncate">Matrix</span>
+                            </div>
+                            <span class="text-[9px] text-emerald-600">Terminal Rain</span>
+                        </button>
+
+                        <!-- 5. Synthwave Outrun (Animated) -->
+                        <button class="theme-btn p-2 rounded-xl border border-pink-500/50 bg-[#130722] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="synthwave">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                                <span class="font-medium text-pink-300 text-[11px] truncate">Synthwave</span>
+                            </div>
+                            <span class="text-[9px] text-cyan-400">Outrun Horizon</span>
+                        </button>
+
+                        <!-- 6. Aurora Borealis (Animated) -->
+                        <button class="theme-btn p-2 rounded-xl border border-teal-500/50 bg-[#05131a] text-left transition hover:border-teal-400 flex flex-col justify-between gap-1" data-theme-val="aurora">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                                <span class="font-medium text-teal-300 text-[11px] truncate">Aurora</span>
+                            </div>
+                            <span class="text-[9px] text-teal-500">Northern Glow</span>
+                        </button>
+
+                        <!-- 7. Snowy Forest (Animated Falling Snow) -->
+                        <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#07130c] text-left transition hover:border-emerald-300 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="snowforest">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span class="font-medium text-emerald-200 text-[11px] truncate">Snowy Forest</span>
+                            </div>
+                            <span class="text-[9px] text-emerald-400">Alpine Snow ❄️</span>
+                        </button>
+
+                        <!-- 8. Nordic Frost (Clean Light) -->
+                        <button class="theme-btn p-2 rounded-xl border border-blue-200 bg-[#f4f7fb] text-left transition hover:border-blue-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="nordic">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                <span class="font-medium text-slate-800 text-[11px] truncate">Nordic Frost</span>
+                            </div>
+                            <span class="text-[9px] text-blue-600 font-medium">Clean Light ☀️</span>
+                        </button>
+
+                        <!-- 9. Paper & Ink (Editorial Light) -->
+                        <button class="theme-btn p-2 rounded-xl border border-[#e7dfd1] bg-[#fcfbf7] text-left transition hover:border-amber-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="paper">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#c2410c]"></span>
+                                <span class="font-medium text-[#26231f] text-[11px] truncate">Paper & Ink</span>
+                            </div>
+                            <span class="text-[9px] text-[#78716c]">Warm Editorial 📜</span>
+                        </button>
+
+                        <!-- 10. Alpine Day (Forest Light) -->
+                        <button class="theme-btn p-2 rounded-xl border border-[#c1d7cc] bg-[#f0f5f2] text-left transition hover:border-emerald-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="alpineday">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#2d6a4f]"></span>
+                                <span class="font-medium text-[#132a1f] text-[11px] truncate">Alpine Day</span>
+                            </div>
+                            <span class="text-[9px] text-[#52796f]">Sage Meadow 🌿</span>
+                        </button>
+
+                        <!-- 11. Pastel Dream (Pastel Color Theme) -->
+                        <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastel">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#ec4899] animate-pulse"></span>
+                                <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Dream</span>
+                            </div>
+                            <span class="text-[9px] text-[#ec4899] font-medium">Sweet Lilac 🌸</span>
+                        </button>
+
+                        <!-- 12. Glacial Ice (Frozen Tundra & Falling Snow - Light Mode) -->
+                        <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#edf5fa] text-left transition hover:border-sky-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="glacier">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
+                                <span class="font-medium text-[#0c2340] text-[11px] truncate">Glacial Ice</span>
+                            </div>
+                            <span class="text-[9px] text-sky-600 font-medium">Frozen Snow ❄️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Voice Assistant (TTS Voice Selection) -->
+                <div class="space-y-1.5 pt-3 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-semibold text-slate-300">Speech Reply Voice (TTS)</label>
+                            <div id="tts-engine-badge"></div>
+                        </div>
+                        <button id="btn-test-voice" type="button" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                            <span>Test Voice</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Select the speech persona used for spoken replies in Gemini Live voice mode.</p>
+                    <select id="settings-tts-voice-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
+                        <option value="">System Default Voice</option>
                     </select>
                 </div>
 
-                <!-- Temperature -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Temperature (Creativity)</span>
-                        <span id="label-temperature" class="font-mono text-slate-300 font-medium">0.70</span>
+                <!-- Data Export & Session Management -->
+                <div class="space-y-2 pt-3 border-t border-slate-800/80">
+                    <label class="text-xs font-semibold text-slate-300 block">Data & Export</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-export-markdown" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export .MD
+                        </button>
+                        <button id="btn-export-json" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export .JSON
+                        </button>
                     </div>
-                    <input type="range" id="settings-temperature" min="0" max="1.5" step="0.05" value="0.7" class="w-full accent-brand-500 cursor-pointer">
-                </div>
-
-                <!-- Top P -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Top P (Nucleus Sampling)</span>
-                        <span id="label-top-p" class="font-mono text-slate-300 font-medium">0.90</span>
-                    </div>
-                    <input type="range" id="settings-top-p" min="0" max="1" step="0.05" value="0.9" class="w-full accent-brand-500 cursor-pointer">
-                </div>
-
-                <!-- Repeat Penalty -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Repeat Penalty</span>
-                        <span id="label-repeat-penalty" class="font-mono text-slate-300 font-medium">1.10</span>
-                    </div>
-                    <input type="range" id="settings-repeat-penalty" min="1.0" max="2.0" step="0.05" value="1.1" class="w-full accent-brand-500 cursor-pointer">
-                </div>
-
-                <!-- Memory Persistence (VRAM Pinning) -->
-                <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
-                    <div>
-                        <span class="text-xs font-semibold text-slate-300 block">VRAM Memory Persistence</span>
-                        <span class="text-[10px] text-slate-400">Keep model weights pinned in GPU memory indefinitely (keep_alive: -1).</span>
-                    </div>
-                    <button id="settings-toggle-persistence" class="relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-indigo-600 focus:outline-none" role="switch" aria-checked="true">
-                        <span id="settings-persist-knob" class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-4"></span>
+                    <button id="btn-clear-all-history" class="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-medium transition">
+                        Clear All Chat History
                     </button>
                 </div>
             </div>
 
-            <!-- Voice Assistant (TTS Voice Selection) -->
-            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-semibold text-slate-300">Speech Reply Voice (TTS)</label>
-                        <div id="tts-engine-badge"></div>
-                    </div>
-                    <button id="btn-test-voice" type="button" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                        <span>Test Voice</span>
-                    </button>
+            <!-- TAB 2: MODEL & INFERENCE -->
+            <div id="settings-tab-model-settings" class="settings-tab-pane space-y-4 hidden">
+                <!-- Default Model Selection -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-300 block">Default Model</label>
+                    <p class="text-[11px] text-slate-400">Preferred model loaded automatically when opening Lumina.</p>
+                    <select id="settings-default-model-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <option value="">Loading installed models...</option>
+                    </select>
                 </div>
-                <p class="text-[11px] text-slate-400">Select the speech persona used for spoken replies in Gemini Live voice mode.</p>
-                <select id="settings-tts-voice-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
-                    <option value="">System Default Voice</option>
-                </select>
-            </div>
 
-            <!-- Data Export & Session Management -->
-            <div class="space-y-2 pt-2 border-t border-slate-800/80">
-                <label class="text-xs font-semibold text-slate-300 block">Data & Export</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btn-export-markdown" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Export .MD
-                    </button>
-                    <button id="btn-export-json" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Export .JSON
-                    </button>
+                <!-- System Persona & Prompt Presets -->
+                <div class="space-y-1.5 pt-3 border-t border-slate-800/80">
+                    <label class="text-xs font-semibold text-slate-300 block">System Persona & Prompt Preset</label>
+                    <p class="text-[11px] text-slate-400">Sets the behavioral persona and system instructions for the AI.</p>
+                    <select id="settings-persona-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 cursor-pointer">
+                        <option value="default">Default Assistant (Helpful, direct, well-structured)</option>
+                        <option value="engineer">Concise Senior Engineer (Technical, minimal fluff, clean code)</option>
+                        <option value="writer">Creative Writer (Articulate, vivid, narrative depth)</option>
+                        <option value="extractor">Raw Data Extractor (Strict JSON/Markdown tables, zero preamble)</option>
+                        <option value="custom">Custom Persona Override</option>
+                    </select>
+                    <textarea id="settings-custom-persona-text" rows="2" placeholder="Enter your custom system instructions here..." class="w-full bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 placeholder-slate-500 custom-scrollbar hidden"></textarea>
                 </div>
-                <button id="btn-clear-all-history" class="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-medium transition">
-                    Clear All Chat History
-                </button>
+
+                <!-- Inference & Sampling Controls -->
+                <div class="space-y-3 pt-3 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-300">Inference & Sampling Controls</label>
+                        <button id="btn-reset-inference" type="button" class="text-[10px] text-brand-400 hover:text-brand-300 transition">Reset Defaults</button>
+                    </div>
+
+                    <!-- Context Length (num_ctx) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">Context Window (num_ctx)</span>
+                            <span id="label-num-ctx" class="font-mono text-slate-300 font-medium">8192 tokens</span>
+                        </div>
+                        <select id="settings-num-ctx" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                            <option value="2048">2048 (Low VRAM)</option>
+                            <option value="4096">4096 (Standard)</option>
+                            <option value="8192" selected>8192 (Recommended Default)</option>
+                            <option value="16384">16384 (Long Context)</option>
+                            <option value="32768">32768 (Ultra Long Context)</option>
+                        </select>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">Temperature (Creativity)</span>
+                            <span id="label-temperature" class="font-mono text-slate-300 font-medium">0.70</span>
+                        </div>
+                        <input type="range" id="settings-temperature" min="0" max="1.5" step="0.05" value="0.7" class="w-full accent-brand-500 cursor-pointer">
+                    </div>
+
+                    <!-- Top P -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">Top P (Nucleus Sampling)</span>
+                            <span id="label-top-p" class="font-mono text-slate-300 font-medium">0.90</span>
+                        </div>
+                        <input type="range" id="settings-top-p" min="0" max="1" step="0.05" value="0.9" class="w-full accent-brand-500 cursor-pointer">
+                    </div>
+
+                    <!-- Repeat Penalty -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">Repeat Penalty</span>
+                            <span id="label-repeat-penalty" class="font-mono text-slate-300 font-medium">1.10</span>
+                        </div>
+                        <input type="range" id="settings-repeat-penalty" min="1.0" max="2.0" step="0.05" value="1.1" class="w-full accent-brand-500 cursor-pointer">
+                    </div>
+
+                    <!-- Memory Persistence (VRAM Pinning) -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-300 block">VRAM Memory Persistence</span>
+                            <span class="text-[10px] text-slate-400">Keep model weights pinned in GPU memory indefinitely (keep_alive: -1).</span>
+                        </div>
+                        <button id="settings-toggle-persistence" class="relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-indigo-600 focus:outline-none" role="switch" aria-checked="true">
+                            <span id="settings-persist-knob" class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-4"></span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="pt-2 flex justify-end">
@@ -676,11 +694,11 @@
     </div>
 
     <!-- Application Scripts -->
-    <script src="js/utils.js?v=2.0"></script>
-    <script src="js/telemetry.js?v=2.0"></script>
-    <script src="js/models.js?v=2.0"></script>
-    <script src="js/voice.js?v=2.0"></script>
-    <script src="js/chat.js?v=2.0"></script>
-    <script src="js/app.js?v=2.0"></script>
+    <script src="js/utils.js?v=2.1"></script>
+    <script src="js/telemetry.js?v=2.1"></script>
+    <script src="js/models.js?v=2.1"></script>
+    <script src="js/voice.js?v=2.1"></script>
+    <script src="js/chat.js?v=2.1"></script>
+    <script src="js/app.js?v=2.1"></script>
 </body>
 </html>

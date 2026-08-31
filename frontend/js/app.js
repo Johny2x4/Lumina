@@ -72,6 +72,34 @@ class App {
         if (btnCloseSettings) btnCloseSettings.addEventListener("click", () => settingsModal?.classList.add("hidden"));
         if (btnSaveSettings) btnSaveSettings.addEventListener("click", () => settingsModal?.classList.add("hidden"));
 
+        // Settings Tab Switcher (Appearance & Voice vs Model & Inference)
+        const settingsTabBtns = document.querySelectorAll(".settings-tab-btn");
+        const settingsTabPanes = document.querySelectorAll(".settings-tab-pane");
+
+        settingsTabBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const targetTab = btn.getAttribute("data-tab");
+                settingsTabBtns.forEach(b => {
+                    b.classList.remove("text-slate-200", "bg-slate-800", "border", "border-slate-700/80", "shadow-sm");
+                    b.classList.add("text-slate-400");
+                });
+                btn.classList.add("text-slate-200", "bg-slate-800", "border", "border-slate-700/80", "shadow-sm");
+                btn.classList.remove("text-slate-400");
+
+                settingsTabPanes.forEach(pane => {
+                    if (pane.id === `settings-tab-${targetTab}`) {
+                        pane.classList.remove("hidden");
+                    } else {
+                        pane.classList.add("hidden");
+                    }
+                });
+
+                if (targetTab === "appearance-voice") {
+                    window.voiceController?.detectTtsEngine();
+                }
+            });
+        });
+
         // Theme Buttons inside Settings
         document.querySelectorAll(".theme-btn").forEach(btn => {
             btn.addEventListener("click", () => {
