@@ -671,6 +671,7 @@ class App {
         }
         if (window.chatManager) {
             window.chatManager.currentMessages = [...sess.messages];
+            window.chatManager.checkBackgroundChat(id);
         }
         this.renderSessionList();
         this.closeSidebar();

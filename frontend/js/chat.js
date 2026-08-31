@@ -374,10 +374,17 @@ class ChatManager {
                 options: inferenceOptions
             };
 
-            const response = await fetch("/api/ollama/chat", {
+            const sessionId = window.app?.activeSessionId || ("sess_" + Date.now());
+            const response = await fetch("/api/chat/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    model: model,
+                    messages: apiMessages,
+                    sources: searchSources && searchSources.length > 0 ? searchSources : [],
+                    options: inferenceOptions
+                }),
                 signal: this.abortController.signal
             });
 
@@ -460,6 +467,111 @@ class ChatManager {
         }
     }
 
+    async checkBackgroundChat(sessionId) {
+        if (!sessionId) return;
+        try {
+            const res = await fetch(`/api/chat/status/${sessionId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.job) return;
+
+            const job = data.job;
+            const lastMsg = this.currentMessages[this.currentMessages.length - 1];
+
+            // If completed while window was closed
+            if (job.done && job.accumulated_text) {
+                if (!lastMsg || lastMsg.role !== "assistant" || lastMsg.content !== job.accumulated_text) {
+                    document.getElementById("empty-state")?.classList.add("hidden");
+                    this.currentMessages.push({
+                        role: "assistant",
+                        content: job.accumulated_text,
+                        sources: job.sources && job.sources.length > 0 ? job.sources : undefined
+                    });
+                    this.renderMessageUI("assistant", job.accumulated_text, null, job.sources);
+                    window.app?.onMessagesUpdated();
+                    if (job.final_metadata) {
+                        this.renderTokenTelemetry(job.final_metadata);
+                    }
+                }
+            } else if (data.active) {
+                // Job is actively generating in the background! Re-attach live stream!
+                this.attachToChatStream(sessionId, job);
+            }
+        } catch (e) {
+            console.warn("Could not check background chat:", e);
+        }
+    }
+
+    async attachToChatStream(sessionId, initialJob) {
+        this.setGenerating(true);
+        this.abortController = new AbortController();
+
+        document.getElementById("empty-state")?.classList.add("hidden");
+        const assistantMsgEl = this.renderMessageUI("assistant", initialJob.accumulated_text || "");
+        const contentEl = assistantMsgEl.querySelector(".message-content");
+        let assistantContent = initialJob.accumulated_text || "";
+        let finalMetadata = initialJob.final_metadata || null;
+
+        try {
+            const res = await fetch(`/api/chat/stream/${sessionId}`, {
+                signal: this.abortController.signal
+            });
+            if (!res.ok) throw new Error("Could not resume chat stream");
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const chunk = JSON.parse(line);
+                        if (chunk.message?.content) {
+                            assistantContent += chunk.message.content;
+                            try {
+                                contentEl.innerHTML = marked.parse(assistantContent);
+                            } catch (parseErr) {
+                                contentEl.textContent = assistantContent;
+                            }
+                            this.highlightCode(contentEl);
+                            this.scrollToBottom();
+                        }
+                        if (chunk.done) {
+                            finalMetadata = chunk;
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            this.currentMessages.push({
+                role: "assistant",
+                content: assistantContent,
+                sources: initialJob.sources && initialJob.sources.length > 0 ? initialJob.sources : undefined
+            });
+            window.app?.onMessagesUpdated();
+
+            if (initialJob.sources && initialJob.sources.length > 0) {
+                this.renderSourcesUI(assistantMsgEl, initialJob.sources);
+            }
+            this.bindMessageActions(assistantMsgEl, "assistant", assistantContent);
+            if (finalMetadata) {
+                this.renderTokenTelemetry(finalMetadata);
+            }
+        } catch (err) {
+            console.warn("Resumed stream interrupted:", err);
+        } finally {
+            this.setGenerating(false);
+        }
+    }
+
     renderTokenTelemetry(meta) {
         const badge = document.getElementById("token-telemetry-badge");
         if (!badge) return;
@@ -494,6 +606,10 @@ class ChatManager {
     }
 
     stopGeneration() {
+        const sessionId = window.app?.activeSessionId;
+        if (sessionId) {
+            fetch(`/api/chat/abort/${sessionId}`, { method: "POST" }).catch(() => {});
+        }
         if (this.abortController) {
             this.abortController.abort();
             this.abortController = null;

@@ -9,6 +9,7 @@ class ModelManager {
     async init() {
         this.bindEvents();
         await this.refreshModels();
+        await this.checkBackgroundPulls();
     }
 
     bindEvents() {
@@ -235,63 +236,98 @@ class ModelManager {
         }).join("");
     }
 
-    async pullModel(modelName) {
+    async checkBackgroundPulls() {
+        try {
+            const res = await fetch("/api/models/pull/status");
+            if (!res.ok) return;
+            const data = await res.json();
+            const activePull = (data.pulls || []).find(p => !p.done);
+            if (activePull) {
+                this.attachToPullStream(activePull.model);
+            }
+        } catch (e) {
+            console.warn("Could not check background pulls:", e);
+        }
+    }
+
+    attachToPullStream(modelName) {
         const progressBox = document.getElementById("pull-progress-box");
         const progressBar = document.getElementById("pull-progress-bar");
         const statusText = document.getElementById("pull-status-text");
         const percentText = document.getElementById("pull-percent-text");
         const btnPull = document.getElementById("btn-pull-model");
+        const inputPull = document.getElementById("pull-model-input");
 
+        if (inputPull && !inputPull.value) inputPull.value = modelName;
         if (progressBox) progressBox.classList.remove("hidden");
         if (btnPull) btnPull.disabled = true;
 
+        if (this.currentEventSource) {
+            this.currentEventSource.close();
+            this.currentEventSource = null;
+        }
+
+        const es = new EventSource(`/api/models/pull/stream?name=${encodeURIComponent(modelName)}`);
+        this.currentEventSource = es;
+
+        es.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (statusText) statusText.textContent = data.status || "Downloading...";
+                const percent = Math.min(100, Math.max(0, data.percent || 0));
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (percentText) percentText.textContent = `${percent}%`;
+
+                if (data.done) {
+                    es.close();
+                    this.currentEventSource = null;
+                    if (btnPull) btnPull.disabled = false;
+
+                    if (data.error) {
+                        if (statusText) statusText.textContent = `Error: ${data.error}`;
+                    } else {
+                        if (statusText) statusText.textContent = "Pull complete!";
+                        if (progressBar) progressBar.style.width = "100%";
+                        if (percentText) percentText.textContent = "100%";
+                        await this.refreshModels();
+                        this.setSelectedModel(modelName);
+                        this.renderModalInstalledList();
+                    }
+                }
+            } catch (err) {
+                console.error("Error parsing pull stream event:", err);
+            }
+        };
+
+        es.onerror = (err) => {
+            console.warn("Pull EventSource closed/error:", err);
+            es.close();
+            this.currentEventSource = null;
+            if (btnPull) btnPull.disabled = false;
+        };
+    }
+
+    async pullModel(modelName) {
+        const btnPull = document.getElementById("btn-pull-model");
+        const progressBox = document.getElementById("pull-progress-box");
+        const statusText = document.getElementById("pull-status-text");
+
+        if (progressBox) progressBox.classList.remove("hidden");
+        if (statusText) statusText.textContent = "Initiating background pull...";
+        if (btnPull) btnPull.disabled = true;
+
         try {
-            const res = await fetch("/api/ollama/pull", {
+            const res = await fetch("/api/models/pull", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: modelName, stream: true })
+                body: JSON.stringify({ name: modelName })
             });
 
             if (!res.ok) throw new Error(`Pull failed: ${res.statusText}`);
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split("\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        const chunk = JSON.parse(line);
-                        if (statusText) statusText.textContent = chunk.status || "Downloading...";
-
-                        if (chunk.total && chunk.completed) {
-                            const percent = Math.round((chunk.completed / chunk.total) * 100);
-                            if (progressBar) progressBar.style.width = `${percent}%`;
-                            if (percentText) percentText.textContent = `${percent}%`;
-                        }
-                    } catch (err) {}
-                }
-            }
-
-            if (statusText) statusText.textContent = "Pull complete!";
-            if (progressBar) progressBar.style.width = "100%";
-            if (percentText) percentText.textContent = "100%";
-
-            await this.refreshModels();
-            this.setSelectedModel(modelName);
-            this.renderModalInstalledList();
+            this.attachToPullStream(modelName);
         } catch (e) {
-            console.error("Error pulling model:", e);
+            console.error("Error starting model pull:", e);
             if (statusText) statusText.textContent = `Error: ${e.message}`;
-        } finally {
             if (btnPull) btnPull.disabled = false;
         }
     }
