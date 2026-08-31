@@ -26,6 +26,7 @@ class VoiceController {
         // TTS Voice Customization
         this.voices = [];
         this.selectedVoiceURI = localStorage.getItem("lumina_tts_voice") || "";
+        this.watchdogTimer = null;
 
         this.init();
     }
@@ -640,28 +641,40 @@ class VoiceController {
         const userSub = document.getElementById("live-voice-user-sub");
         const aiSub = document.getElementById("live-voice-ai-sub");
         if (userSub) userSub.textContent = `"${promptText}"`;
-        if (aiSub) aiSub.textContent = "Connecting to model...";
+        if (aiSub) aiSub.textContent = "Thinking...";
 
-        // Also add to chat messages in background so session transcript is preserved
         const model = window.modelManager?.selectedModel;
         if (!model) {
             if (aiSub) aiSub.textContent = "No model selected.";
-            this.setState("listening");
-            this.startListening();
+            this.releaseToListening();
             return;
         }
 
-        // Add user message to chat manager
+        // Add user message to chat manager history
         if (window.chatManager) {
             window.chatManager.currentMessages.push({ role: "user", content: promptText });
             window.chatManager.renderMessageUI("user", promptText);
         }
 
+        // Voice chat explicit system instruction: keep it short and conversational
+        const voiceSystemInstruction = {
+            role: "system",
+            content: "You are speaking directly with the user in real-time voice mode. Keep all responses brief, natural, conversational, and direct (1 to 2 sentences maximum) unless the user explicitly asks for more detail or an explanation. Never use markdown, bullet points, headers, numbered lists, emojis, or code blocks. Speak naturally as in a phone call."
+        };
+
+        // Filter previous system prompts and take recent turns for fast sub-second voice inference
+        const baseHistory = (window.chatManager ? window.chatManager.currentMessages : [])
+            .filter(m => m.role !== "system")
+            .slice(-6);
+
+        const apiMessages = [voiceSystemInstruction, ...baseHistory];
+
         let fullAiText = "";
+        let fullThinking = "";
         try {
             const payload = {
                 model: model,
-                messages: window.chatManager ? window.chatManager.currentMessages : [{ role: "user", content: promptText }],
+                messages: apiMessages,
                 stream: true,
                 keep_alive: -1
             };
@@ -690,92 +703,205 @@ class VoiceController {
                     if (!line.trim()) continue;
                     try {
                         const chunk = JSON.parse(line);
-                        if (chunk.message?.content) {
-                            fullAiText += chunk.message.content;
+                        const msg = chunk.message || {};
+                        const thinkingChunk = msg.thinking || chunk.thinking || "";
+                        const contentChunk = msg.content || "";
+
+                        if (thinkingChunk) {
+                            fullThinking += thinkingChunk;
+                            if (aiSub && !fullAiText) {
+                                aiSub.textContent = "Thinking through response...";
+                            }
+                        }
+
+                        if (contentChunk) {
+                            fullAiText += contentChunk;
                             if (aiSub) {
-                                aiSub.textContent = this.stripMarkdown(fullAiText);
+                                const cleanSubtitle = this.cleanSpokenText(fullAiText);
+                                aiSub.textContent = cleanSubtitle || "Responding...";
                             }
                         }
                     } catch (e) {}
                 }
             }
 
+            // Clean any reasoning blocks from text
+            const spokenText = this.cleanSpokenText(fullAiText);
+
             // Save to chat manager history
             if (window.chatManager) {
-                window.chatManager.currentMessages.push({ role: "assistant", content: fullAiText });
-                window.chatManager.renderMessageUI("assistant", fullAiText);
+                window.chatManager.currentMessages.push({
+                    role: "assistant",
+                    content: spokenText || fullAiText,
+                    thinking: fullThinking || undefined
+                });
+                window.chatManager.renderMessageUI("assistant", spokenText || fullAiText, null, null, fullThinking);
                 window.app?.onMessagesUpdated();
             }
 
-            // Speak response
-            this.speak(fullAiText);
+            // Speak response via TTS
+            this.speak(spokenText);
         } catch (err) {
             console.error("Live voice inference error:", err);
             if (aiSub) aiSub.textContent = `Error: ${err.message}`;
             setTimeout(() => {
-                if (this.isActive && !this.isMuted) {
-                    this.startListening();
-                }
-            }, 1500);
+                this.releaseToListening();
+            }, 1200);
         }
     }
 
-    stripMarkdown(text) {
-        return text
-            .replace(/```[\s\S]*?```/g, " [code block omitted] ")
-            .replace(/`([^`]+)`/g, "$1")
-            .replace(/[*#_~>]/g, "")
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-            .trim();
+    cleanSpokenText(text) {
+        if (!text) return "";
+        let clean = text;
+        // Strip <think>...</think> reasoning blocks completely
+        clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, "");
+        clean = clean.replace(/<think>[\s\S]*/gi, "");
+        // Strip code blocks and inline code
+        clean = clean.replace(/```[\s\S]*?```/g, "");
+        clean = clean.replace(/`([^`]+)`/g, "$1");
+        // Strip Markdown formatting, headers, links
+        clean = clean.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+        clean = clean.replace(/[*#_~>]/g, "");
+        // Strip math formulas
+        clean = clean.replace(/\$\$[\s\S]*?\$\$/g, "");
+        clean = clean.replace(/\$[^$\n]+\$/g, "");
+        // Strip emojis and excessive whitespace
+        clean = clean.replace(/\s+/g, " ").trim();
+        return clean;
+    }
+
+    splitIntoSentences(text) {
+        if (!text) return [];
+        const raw = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+        const chunks = [];
+        for (let s of raw) {
+            s = s.trim();
+            if (!s) continue;
+            // Prevent Chrome from choking on huge run-on sentences (> 180 chars)
+            if (s.length > 180) {
+                const sub = s.match(/[^,;:]+[,;:]+|[^,;:]+$/g) || [s];
+                for (let part of sub) {
+                    if (part.trim()) chunks.push(part.trim());
+                }
+            } else {
+                chunks.push(s);
+            }
+        }
+        return chunks;
     }
 
     speak(text) {
         if (!this.isActive || !this.synth) return;
 
-        this.stopListening();
-        this.setState("speaking");
-        this.synth.cancel();
-
-        const cleanText = this.stripMarkdown(text);
+        const cleanText = this.cleanSpokenText(text);
         if (!cleanText) {
-            this.setState("listening");
-            this.startListening();
+            this.releaseToListening();
             return;
         }
 
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        this.currentUtterance = utterance;
-        utterance.rate = 1.05;
-        utterance.pitch = 1.0;
+        this.stopListening();
+        this.setState("speaking");
+        this.clearWatchdog();
 
-        // Apply selected TTS Voice persona if specified
-        if (this.selectedVoiceURI && this.voices.length > 0) {
-            const chosen = this.voices.find(v => (v.voiceURI && v.voiceURI === this.selectedVoiceURI) || v.name === this.selectedVoiceURI);
-            if (chosen) utterance.voice = chosen;
+        // Workaround for Chrome TTS: reset and resume audio pipeline
+        try {
+            this.synth.cancel();
+            if (this.synth.resume) {
+                this.synth.resume();
+            }
+        } catch (e) {}
+
+        const sentences = this.splitIntoSentences(cleanText);
+        if (sentences.length === 0) {
+            this.releaseToListening();
+            return;
         }
 
-        utterance.onend = () => {
-            this.currentUtterance = null;
-            if (this.isActive && !this.isMuted) {
-                this.setState("listening");
-                setTimeout(() => this.startListening(), 300);
+        // Safety Watchdog Timer: Guarantee release back to listening even if browser TTS halts
+        const estimatedMs = Math.max(3000, cleanText.length * 85 + 2500);
+        this.watchdogTimer = setTimeout(() => {
+            console.warn("Voice TTS watchdog: speech did not finish in time, releasing back to listening.");
+            this.releaseToListening();
+        }, estimatedMs);
+
+        // Keep global reference so browser garbage collection doesn't drop the callback
+        window._activeUtterances = [];
+        let currentIndex = 0;
+
+        const speakNext = () => {
+            if (!this.isActive || this.state !== "speaking") {
+                this.releaseToListening();
+                return;
             }
+
+            if (currentIndex >= sentences.length) {
+                this.releaseToListening();
+                return;
+            }
+
+            const sentence = sentences[currentIndex++];
+            const utterance = new SpeechSynthesisUtterance(sentence);
+            window._activeUtterances.push(utterance);
+
+            utterance.rate = 1.05;
+            utterance.pitch = 1.0;
+
+            if (this.selectedVoiceURI && this.voices.length > 0) {
+                const chosen = this.voices.find(v => (v.voiceURI && v.voiceURI === this.selectedVoiceURI) || v.name === this.selectedVoiceURI);
+                if (chosen) utterance.voice = chosen;
+            }
+
+            utterance.onend = () => {
+                const idx = window._activeUtterances.indexOf(utterance);
+                if (idx !== -1) window._activeUtterances.splice(idx, 1);
+                setTimeout(speakNext, 60);
+            };
+
+            utterance.onerror = (err) => {
+                console.warn("TTS sentence error:", err);
+                const idx = window._activeUtterances.indexOf(utterance);
+                if (idx !== -1) window._activeUtterances.splice(idx, 1);
+                setTimeout(speakNext, 40);
+            };
+
+            if (this.synth.paused) {
+                this.synth.resume();
+            }
+            this.synth.speak(utterance);
         };
 
-        utterance.onerror = () => {
-            this.currentUtterance = null;
-            if (this.isActive && !this.isMuted) {
-                this.setState("listening");
-                setTimeout(() => this.startListening(), 300);
-            }
-        };
+        // 50ms delay gives Chrome's audio engine time to clear the cancel() state
+        setTimeout(speakNext, 50);
+    }
 
-        this.synth.speak(utterance);
+    releaseToListening() {
+        this.clearWatchdog();
+        try {
+            if (this.synth) this.synth.cancel();
+        } catch (e) {}
+        window._activeUtterances = [];
+
+        if (this.isActive && !this.isMuted) {
+            this.setState("listening");
+            setTimeout(() => this.startListening(), 250);
+        } else {
+            this.setState("idle");
+        }
+    }
+
+    clearWatchdog() {
+        if (this.watchdogTimer) {
+            clearTimeout(this.watchdogTimer);
+            this.watchdogTimer = null;
+        }
     }
 
     speakTest(text) {
         if (!this.synth) return;
-        this.synth.cancel();
+        try {
+            this.synth.cancel();
+            if (this.synth.resume) this.synth.resume();
+        } catch (e) {}
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1.05;
@@ -790,14 +916,7 @@ class VoiceController {
     }
 
     interruptAI() {
-        if (this.synth) {
-            this.synth.cancel();
-            this.currentUtterance = null;
-        }
-        if (this.isActive && !this.isMuted) {
-            this.setState("listening");
-            this.startListening();
-        }
+        this.releaseToListening();
     }
 }
 
