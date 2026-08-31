@@ -2,6 +2,24 @@
    LUMINA UI — COMPREHENSIVE 12-THEME ENGINE & AMBIENT ANIMATIONS
    ========================================================================== */
 
+/* Base Root & Body Surface */
+html, body {
+    background-color: #090d16;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0;
+}
+
+#ambient-layer {
+    background-color: var(--bg-main) !important;
+}
+
+#chat-input-bar-container {
+    background: linear-gradient(to top, var(--bg-main) 0%, var(--bg-main) 65%, transparent 100%) !important;
+}
+
 /* 1. MIDNIGHT SLATE (Default) */
 :root, body[data-theme="default"] {
     --bg-main: #090d16;
@@ -632,29 +650,63 @@ header #header-model-name {
 
 /* Settings Panel Container & Cards */
 #settings-modal > div {
-    background-color: var(--bg-card) !important;
+    background-color: var(--bg-sidebar) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-main) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 25px var(--brand-glow) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 25px var(--brand-glow) !important;
 }
 #settings-modal .border-slate-800,
 #settings-modal .border-slate-800\/80,
 #settings-modal .border-slate-800\/60,
 #settings-modal .border-slate-700,
+#settings-modal .border-slate-700\/80,
 #settings-modal .border-slate-700\/50,
-#settings-modal .border-slate-700\/60 {
+#settings-modal .border-slate-700\/60,
+#settings-modal .border-b,
+#settings-modal .border-t {
     border-color: var(--border-color) !important;
 }
+
+/* Settings Tab Navigation Bar */
+#settings-modal .bg-slate-950\/70,
+#settings-modal .bg-slate-950 {
+    background-color: var(--bg-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+#settings-modal .settings-tab-btn {
+    color: var(--text-muted) !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+#settings-modal .settings-tab-btn.bg-slate-800 {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+}
+
 #settings-modal select,
 #settings-modal input,
 #settings-modal textarea,
 #settings-modal .bg-slate-800,
 #settings-modal .bg-slate-800\/80,
-#settings-modal .bg-slate-800\/40 {
+#settings-modal .bg-slate-800\/90,
+#settings-modal .bg-slate-800\/40,
+#settings-modal #btn-export-markdown,
+#settings-modal #btn-export-json,
+#settings-modal #btn-test-voice {
     background-color: var(--input-bg) !important;
     border-color: var(--border-color) !important;
     color: var(--text-main) !important;
 }
+
+#settings-modal select option {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--text-main) !important;
+}
+
 #settings-modal .text-white,
 #settings-modal .text-slate-200,
 #settings-modal .text-slate-300,
@@ -867,13 +919,13 @@ body {
                     opacity 0.2s ease;
     }
     #sidebar.collapsed {
+        display: none !important;
         width: 0 !important;
         min-width: 0 !important;
         max-width: 0 !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        border-right: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
         overflow: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -883,19 +935,22 @@ body {
 
 @media (max-width: 768px) {
     #sidebar {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 50;
-        transform: translateX(-100%);
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
-        max-width: 85vw;
-        width: 320px;
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 50 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6) !important;
+        max-width: 85vw !important;
+        width: 320px !important;
     }
     #sidebar.open {
-        transform: translateX(0);
+        transform: translateX(0) !important;
+    }
+    #sidebar.collapsed {
+        transform: translateX(-100%) !important;
     }
 }
 

@@ -282,16 +282,13 @@ class App {
     closeSidebar() {
         const sidebar = document.getElementById("sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
-        const isMobile = window.innerWidth <= 768;
 
         if (sidebar) {
             sidebar.classList.remove("open");
-            if (!isMobile) {
-                sidebar.classList.add("collapsed");
-                localStorage.setItem("lumina_sidebar_collapsed", "true");
-            }
+            sidebar.classList.add("collapsed");
         }
         if (backdrop) backdrop.classList.add("hidden");
+        localStorage.setItem("lumina_sidebar_collapsed", "true");
     }
 
     toggleSidebar() {
@@ -306,9 +303,9 @@ class App {
             }
         } else {
             if (sidebar && sidebar.classList.contains("collapsed")) {
-                sidebar.classList.remove("collapsed");
+                this.openSidebar();
             } else {
-                sidebar?.classList.add("collapsed");
+                this.closeSidebar();
             }
         }
     }
