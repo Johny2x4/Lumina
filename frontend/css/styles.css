@@ -911,12 +911,11 @@ body {
     transition: opacity 0.25s ease-in-out;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 768px) {
     #sidebar {
-        transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    min-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.2s ease;
+        position: static !important;
+        transform: none !important;
+        transition: width 0.2s ease, opacity 0.2s ease;
     }
     #sidebar.collapsed {
         display: none !important;
@@ -933,15 +932,17 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     #sidebar {
         position: fixed !important;
         top: 0 !important;
         bottom: 0 !important;
         left: 0 !important;
+        height: 100dvh !important;
+        height: 100% !important;
         z-index: 50 !important;
         transform: translateX(-100%) !important;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6) !important;
         max-width: 85vw !important;
         width: 320px !important;

@@ -15,9 +15,20 @@ class App {
         this.loadSessions();
 
         // Restore desktop collapsed preference
-        if (window.innerWidth > 768 && localStorage.getItem("lumina_sidebar_collapsed") === "true") {
+        if (window.innerWidth >= 768) {
+            if (localStorage.getItem("lumina_sidebar_collapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                if (sidebar) sidebar.classList.add("collapsed");
+            }
+        } else {
+            // On mobile, ensure sidebar starts cleanly offscreen
             const sidebar = document.getElementById("sidebar");
-            if (sidebar) sidebar.classList.add("collapsed");
+            if (sidebar) {
+                sidebar.classList.remove("open");
+                sidebar.classList.remove("collapsed");
+            }
+            const backdrop = document.getElementById("sidebar-backdrop");
+            if (backdrop) backdrop.classList.add("hidden");
         }
     }
 
@@ -267,42 +278,49 @@ class App {
     openSidebar() {
         const sidebar = document.getElementById("sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth < 768;
 
         if (sidebar) {
-            sidebar.classList.add("open");
-            sidebar.classList.remove("collapsed");
+            if (isMobile) {
+                sidebar.classList.add("open");
+                if (backdrop) backdrop.classList.remove("hidden");
+            } else {
+                sidebar.classList.remove("collapsed");
+                localStorage.setItem("lumina_sidebar_collapsed", "false");
+            }
         }
-        if (isMobile && backdrop) {
-            backdrop.classList.remove("hidden");
-        }
-        localStorage.setItem("lumina_sidebar_collapsed", "false");
     }
 
     closeSidebar() {
         const sidebar = document.getElementById("sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
+        const isMobile = window.innerWidth < 768;
 
         if (sidebar) {
-            sidebar.classList.remove("open");
-            sidebar.classList.add("collapsed");
+            if (isMobile) {
+                sidebar.classList.remove("open");
+            } else {
+                sidebar.classList.add("collapsed");
+                localStorage.setItem("lumina_sidebar_collapsed", "true");
+            }
         }
         if (backdrop) backdrop.classList.add("hidden");
-        localStorage.setItem("lumina_sidebar_collapsed", "true");
     }
 
     toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth < 768;
+
+        if (!sidebar) return;
 
         if (isMobile) {
-            if (sidebar && sidebar.classList.contains("open")) {
+            if (sidebar.classList.contains("open")) {
                 this.closeSidebar();
             } else {
                 this.openSidebar();
             }
         } else {
-            if (sidebar && sidebar.classList.contains("collapsed")) {
+            if (sidebar.classList.contains("collapsed")) {
                 this.openSidebar();
             } else {
                 this.closeSidebar();
