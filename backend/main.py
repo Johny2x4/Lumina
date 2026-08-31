@@ -370,9 +370,49 @@ async def cancel_model_pull(request: Request):
     return JSONResponse({"cancelled": success})
 
 
+@app.post("/api/models/unload")
+async def unload_models(request: Request):
+    """Unloads any active models from GPU VRAM immediately."""
+    client: httpx.AsyncClient = request.app.state.http_client
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    target_model = data.get("model")
+
+    unloaded = []
+    try:
+        ps_resp = await client.get(f"{OLLAMA_BASE_URL}/api/ps", timeout=5.0)
+        if ps_resp.status_code == 200:
+            for m in ps_resp.json().get("models", []):
+                m_name = m.get("name") or m.get("model")
+                if m_name and (not target_model or m_name == target_model):
+                    await client.post(
+                        f"{OLLAMA_BASE_URL}/api/generate",
+                        json={"model": m_name, "keep_alive": 0},
+                        timeout=10.0,
+                    )
+                    unloaded.append(m_name)
+    except Exception:
+        pass
+
+    if target_model and target_model not in unloaded:
+        try:
+            await client.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json={"model": target_model, "keep_alive": 0},
+                timeout=5.0,
+            )
+            unloaded.append(target_model)
+        except Exception:
+            pass
+
+    return JSONResponse({"status": "flushed", "unloaded": unloaded})
+
+
 @app.post("/api/models/preload")
 async def preload_model(request: Request):
-    """Pre-warms and pins the model in VRAM immediately upon selection."""
+    """Flushes previous model from VRAM and pre-warms the new model."""
     data = await request.json()
     model_name = data.get("model", "").strip()
     keep_alive = data.get("keep_alive", -1)
@@ -380,6 +420,22 @@ async def preload_model(request: Request):
         raise HTTPException(status_code=400, detail="Missing model name")
 
     client: httpx.AsyncClient = request.app.state.http_client
+
+    # Proactively flush any old model that is NOT the target model
+    try:
+        ps_resp = await client.get(f"{OLLAMA_BASE_URL}/api/ps", timeout=3.0)
+        if ps_resp.status_code == 200:
+            for m in ps_resp.json().get("models", []):
+                old_name = m.get("name") or m.get("model")
+                if old_name and old_name != model_name:
+                    await client.post(
+                        f"{OLLAMA_BASE_URL}/api/generate",
+                        json={"model": old_name, "keep_alive": 0},
+                        timeout=10.0,
+                    )
+    except Exception:
+        pass
+
     try:
         resp = await client.post(
             f"{OLLAMA_BASE_URL}/api/generate",

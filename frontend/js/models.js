@@ -77,30 +77,23 @@ class ModelManager {
         const status = document.getElementById("vram-purge-status");
         const btnPurge = document.getElementById("btn-purge-vram");
 
-        if (!model) {
-            if (status) {
-                status.textContent = "No model!";
-                status.className = "text-[11px] text-amber-400 font-mono font-medium";
-                status.classList.remove("hidden");
-                setTimeout(() => status.classList.add("hidden"), 2500);
-            }
-            return;
+        if (btnPurge) btnPurge.disabled = true;
+        if (status) {
+            status.textContent = "Flushing...";
+            status.className = "text-[11px] text-amber-400 font-mono font-medium";
+            status.classList.remove("hidden");
         }
 
-        if (btnPurge) btnPurge.disabled = true;
-
         try {
-            // Ollama: posting keep_alive: 0 flushes the model from GPU VRAM
-            const res = await fetch("/api/ollama/generate", {
+            await fetch("/api/models/unload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ model: model, keep_alive: 0 })
+                body: JSON.stringify({ model: model || "" })
             });
 
             if (status) {
                 status.textContent = "Flushed!";
                 status.className = "text-[11px] text-emerald-400 font-mono font-medium";
-                status.classList.remove("hidden");
                 setTimeout(() => status.classList.add("hidden"), 3000);
             }
         } catch (e) {
@@ -108,7 +101,6 @@ class ModelManager {
             if (status) {
                 status.textContent = "Error!";
                 status.className = "text-[11px] text-rose-400 font-mono font-medium";
-                status.classList.remove("hidden");
                 setTimeout(() => status.classList.add("hidden"), 3000);
             }
         } finally {
@@ -206,7 +198,8 @@ class ModelManager {
         }
     }
 
-    setSelectedModel(modelName) {
+    async setSelectedModel(modelName) {
+        const previousModel = this.selectedModel;
         this.selectedModel = modelName;
         localStorage.setItem("lumina_selected_model", modelName);
 
@@ -220,9 +213,33 @@ class ModelManager {
             headerName.textContent = modelName || "Select model";
         }
 
+        // If switching to a different model, explicitly flush previous model from VRAM
+        if (previousModel && previousModel !== modelName) {
+            const status = document.getElementById("vram-purge-status");
+            if (status) {
+                status.textContent = "Flushing VRAM...";
+                status.className = "text-[11px] text-amber-400 font-mono font-medium";
+                status.classList.remove("hidden");
+            }
+            try {
+                await fetch("/api/models/unload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: previousModel })
+                });
+            } catch (e) {}
+        }
+
         // If Memory Persistence is enabled, immediately preload and pin in VRAM
         if (this.isPersistenceEnabled && modelName) {
-            this.preloadModel(modelName);
+            await this.preloadModel(modelName);
+        } else if (previousModel && previousModel !== modelName) {
+            const status = document.getElementById("vram-purge-status");
+            if (status) {
+                status.textContent = "Flushed";
+                status.className = "text-[11px] text-emerald-400 font-mono font-medium";
+                setTimeout(() => status.classList.add("hidden"), 2500);
+            }
         }
     }
 
