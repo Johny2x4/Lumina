@@ -298,6 +298,8 @@ class App {
         if (sidebar) {
             sidebar.classList.add("open");
             sidebar.classList.remove("collapsed");
+            sidebar.style.setProperty("transform", "translateX(0)", "important");
+            sidebar.style.setProperty("visibility", "visible", "important");
         }
         if (backdrop) {
             backdrop.classList.remove("hidden");
@@ -311,6 +313,7 @@ class App {
         if (sidebar) {
             sidebar.classList.remove("open");
             sidebar.classList.add("collapsed");
+            sidebar.style.setProperty("transform", "translateX(-100%)", "important");
         }
         if (backdrop) {
             backdrop.classList.add("hidden");

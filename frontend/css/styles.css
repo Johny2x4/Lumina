@@ -916,7 +916,7 @@ body {
     background-color: rgba(0, 0, 0, 0.65) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
-    z-index: 40 !important;
+    z-index: 9998 !important;
     transition: opacity 0.25s ease-in-out !important;
 }
 
@@ -929,10 +929,14 @@ body {
     height: 100% !important;
     width: 320px !important;
     max-width: 85vw !important;
-    z-index: 50 !important;
+    z-index: 9999 !important;
     transform: translateX(-100%) !important;
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.65) !important;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.75) !important;
+    background-color: var(--bg-sidebar) !important;
+    border-right: 1px solid var(--border-color) !important;
+    display: flex !important;
+    visibility: visible !important;
 }
 
 #sidebar.open {
