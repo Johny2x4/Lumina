@@ -929,6 +929,200 @@ class App {
             };
 
             this.ambientAnimFrame = requestAnimationFrame(animatePirate);
+        } else if (themeName === "rainbowrave") {
+            const canvas = document.createElement("canvas");
+            canvas.className = "w-full h-full pointer-events-none opacity-85";
+            layer.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
+
+            // Explosive Rainbow Particles & Shockwaves
+            const PARTICLE_COUNT = 160;
+            const particles = [];
+
+            const initParticle = (forceCenter = false) => {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2.0 + Math.random() * 9.0;
+                return {
+                    x: canvas.width * 0.5 + (forceCenter ? 0 : (Math.random() - 0.5) * canvas.width * 0.4),
+                    y: canvas.height * 0.5 + (forceCenter ? 0 : (Math.random() - 0.5) * canvas.height * 0.4),
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 1.5 + Math.random() * 4.5,
+                    hue: Math.floor(Math.random() * 360),
+                    alpha: 0.7 + Math.random() * 0.3,
+                    decay: 0.008 + Math.random() * 0.015,
+                    life: 1.0,
+                    trail: []
+                };
+            };
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push(initParticle(false));
+            }
+
+            let shockwaves = [];
+            let tick = 0;
+            let currentIntensity = 0;
+
+            const animateRainbowRave = () => {
+                const w = canvas.width;
+                const h = canvas.height;
+                const cx = w * 0.5;
+                const cy = h * 0.5;
+                tick++;
+
+                // Check generating / thinking state
+                const isGenerating = document.body.classList.contains("lumina-generating");
+                const isThinking = document.body.classList.contains("lumina-thinking");
+                const targetIntensity = isThinking ? 1.35 : (isGenerating ? 1.0 : 0.0);
+
+                // Smooth ramp up and ramp down transition
+                currentIntensity += (targetIntensity - currentIntensity) * 0.055;
+
+                ctx.clearRect(0, 0, w, h);
+
+                if (currentIntensity <= 0.01) {
+                    // STATIC / CALM RESTING STATE: Single-color deep cosmic obsidian backdrop with subtle prism gradient
+                    const calmGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, Math.max(w, h) * 0.7);
+                    calmGrad.addColorStop(0, "rgba(24, 8, 48, 0.45)");
+                    calmGrad.addColorStop(1, "rgba(9, 3, 20, 0.95)");
+                    ctx.fillStyle = calmGrad;
+                    ctx.fillRect(0, 0, w, h);
+
+                    // Gentle dormant center gem pulse
+                    const dormantGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
+                    dormantGlow.addColorStop(0, "rgba(255, 0, 128, 0.12)");
+                    dormantGlow.addColorStop(0.5, "rgba(0, 240, 255, 0.06)");
+                    dormantGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = dormantGlow;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 90, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    this.ambientAnimFrame = requestAnimationFrame(animateRainbowRave);
+                    return;
+                }
+
+                // ==========================================
+                // HYPER-COLOR RAINBOW EXPLOSION IN FULL EFFECT!
+                // ==========================================
+
+                // 1. Swirling Hyperspeed Rainbow Vortex Backdrop
+                ctx.save();
+                const vortexGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(w, h) * 0.85);
+                const baseHue = (tick * 4) % 360;
+                vortexGrad.addColorStop(0, `hsla(${baseHue}, 100%, 65%, ${0.35 * currentIntensity})`);
+                vortexGrad.addColorStop(0.25, `hsla(${(baseHue + 60) % 360}, 100%, 60%, ${0.25 * currentIntensity})`);
+                vortexGrad.addColorStop(0.5, `hsla(${(baseHue + 140) % 360}, 100%, 55%, ${0.2 * currentIntensity})`);
+                vortexGrad.addColorStop(0.75, `hsla(${(baseHue + 220) % 360}, 100%, 50%, ${0.15 * currentIntensity})`);
+                vortexGrad.addColorStop(1, "rgba(9, 3, 20, 0.9)");
+                ctx.fillStyle = vortexGrad;
+                ctx.fillRect(0, 0, w, h);
+                ctx.restore();
+
+                // 2. High-speed Rotating Rainbow Light Beams
+                ctx.save();
+                ctx.translate(cx, cy);
+                const beamCount = 16;
+                const rot = tick * 0.035 * (currentIntensity + 0.5);
+                ctx.rotate(rot);
+                for (let b = 0; b < beamCount; b++) {
+                    const bAngle = (b / beamCount) * Math.PI * 2;
+                    const bHue = (baseHue + b * 22) % 360;
+                    ctx.fillStyle = `hsla(${bHue}, 100%, 60%, ${0.12 * currentIntensity})`;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, Math.max(w, h), bAngle - 0.08, bAngle + 0.08);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // 3. Spawning Concentric Rainbow Shockwave Rings
+                if (tick % (isThinking ? 12 : 18) === 0 && currentIntensity > 0.25) {
+                    shockwaves.push({
+                        radius: 10,
+                        speed: 7 + Math.random() * 7,
+                        maxRadius: Math.max(w, h) * 0.85,
+                        hue: (tick * 6) % 360,
+                        lineWidth: 4 + Math.random() * 6,
+                        alpha: 0.95 * currentIntensity
+                    });
+                }
+
+                for (let s = shockwaves.length - 1; s >= 0; s--) {
+                    const sw = shockwaves[s];
+                    sw.radius += sw.speed;
+                    sw.alpha *= 0.962;
+
+                    if (sw.radius > sw.maxRadius || sw.alpha <= 0.02) {
+                        shockwaves.splice(s, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.strokeStyle = `hsla(${sw.hue}, 100%, 65%, ${sw.alpha})`;
+                    ctx.lineWidth = sw.lineWidth;
+                    ctx.shadowColor = `hsl(${sw.hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 16;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, sw.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 4. Explosive Rainbow Particles Blasting Outward
+                ctx.save();
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+
+                    p.x += p.vx * (1 + currentIntensity * 1.5);
+                    p.y += p.vy * (1 + currentIntensity * 1.5);
+                    p.hue = (p.hue + 3) % 360;
+                    p.life -= p.decay;
+
+                    p.trail.push({ x: p.x, y: p.y });
+                    if (p.trail.length > 8) p.trail.shift();
+
+                    if (p.life <= 0 || p.x < -100 || p.x > w + 100 || p.y < -100 || p.y > h + 100) {
+                        particles[i] = initParticle(true);
+                        continue;
+                    }
+
+                    // Draw trail
+                    if (p.trail.length > 1) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                        for (let t = 1; t < p.trail.length; t++) {
+                            ctx.lineTo(p.trail[t].x, p.trail[t].y);
+                        }
+                        ctx.strokeStyle = `hsla(${p.hue}, 100%, 60%, ${p.life * 0.7 * currentIntensity})`;
+                        ctx.lineWidth = p.size * 0.7;
+                        ctx.stroke();
+                    }
+
+                    // Particle head
+                    ctx.fillStyle = `hsla(${p.hue}, 100%, 75%, ${p.life * currentIntensity})`;
+                    ctx.shadowColor = `hsl(${p.hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                this.ambientAnimFrame = requestAnimationFrame(animateRainbowRave);
+            };
+
+            this.ambientAnimFrame = requestAnimationFrame(animateRainbowRave);
         }
     }
 

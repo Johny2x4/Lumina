@@ -617,6 +617,22 @@ class VoiceController {
                     thinking: "rgba(245, 158, 11, 0.55)",
                     muted: "rgba(120, 113, 108, 0.25)"
                 }
+            },
+            rainbowrave: {
+                visualizerType: "rainbowExplosion",
+                glowColor: "#ff007f",
+                colors: {
+                    listening: ["#ff0055", "#ff7700", "#ffea00", "#00ff66", "#00f0ff", "#9900ff", "#ff00aa"],
+                    speaking: ["#ff0000", "#ff6600", "#ffff00", "#00ff00", "#00ffff", "#0055ff", "#aa00ff", "#ff0055"],
+                    thinking: ["#ffffff", "#ffe600", "#ff0055", "#00ffff", "#ff00ea"],
+                    muted: ["#502040", "#301040", "#100820"]
+                },
+                glow: {
+                    listening: "rgba(0, 240, 255, 0.65)",
+                    speaking: "rgba(255, 0, 128, 0.75)",
+                    thinking: "rgba(255, 230, 0, 0.8)",
+                    muted: "rgba(80, 32, 64, 0.3)"
+                }
             }
         };
         return configs[theme] || configs.default;
@@ -679,6 +695,8 @@ class VoiceController {
             this.drawSineRibbon(ctx, width, height, centerX, centerY, this.currentVolume, cfg);
         } else if (mode === "organicBlob") {
             this.drawOrganicBlob(ctx, centerX, centerY, this.currentVolume, cfg);
+        } else if (mode === "rainbowExplosion") {
+            this.drawRainbowExplosion(ctx, width, height, centerX, centerY, this.currentVolume, cfg, this.dataArray);
         } else {
             // "radialAura"
             this.drawRadialAura(ctx, centerX, centerY, this.currentVolume, cfg, this.dataArray);
@@ -870,6 +888,95 @@ class VoiceController {
         ctx.beginPath();
         ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.restore();
+    }
+
+    drawRainbowExplosion(ctx, w, h, cx, cy, vol, cfg, freqs) {
+        const baseR = 54 + vol * 46;
+
+        // Initialize confetti explosion particles if needed
+        if (!this.rainbowParticles) this.rainbowParticles = [];
+        const targetCount = 65 + Math.floor(vol * 85);
+
+        while (this.rainbowParticles.length < targetCount) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2.5 + Math.random() * (7 + vol * 14);
+            this.rainbowParticles.push({
+                x: cx + Math.cos(angle) * (baseR * 0.45),
+                y: cy + Math.sin(angle) * (baseR * 0.45),
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 2.2 + Math.random() * 4.5,
+                hue: Math.floor(Math.random() * 360),
+                life: 1.0,
+                decay: 0.02 + Math.random() * 0.03
+            });
+        }
+
+        ctx.save();
+
+        // 1. Explosive Multi-hue Shockwave Rings
+        const ringCount = 5;
+        for (let r = 0; r < ringCount; r++) {
+            const ringR = baseR + r * (14 + vol * 24) + Math.sin(this.phase * 4 + r) * 8;
+            const ringHue = (this.phase * 60 + r * 50) % 360;
+            ctx.strokeStyle = `hsla(${ringHue}, 100%, 65%, ${0.5 + vol * 0.5 - r * 0.08})`;
+            ctx.lineWidth = 3.5 - r * 0.5;
+            ctx.shadowColor = `hsl(${ringHue}, 100%, 50%)`;
+            ctx.shadowBlur = 14;
+            ctx.beginPath();
+            ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // 2. Kaleidoscopic Pulsing Chromatic Rays
+        const rayCount = 48;
+        const angleStep = (Math.PI * 2) / rayCount;
+        for (let i = 0; i < rayCount; i++) {
+            const angle = i * angleStep + this.phase * 0.6;
+            const freqNorm = (freqs && freqs.length > 0)
+                ? (freqs[i % freqs.length] / 255)
+                : (0.3 + Math.sin(this.phase * 5 + i * 0.4) * 0.25);
+            const rayLen = 12 + (freqNorm * 65 + vol * 52);
+
+            const x1 = cx + Math.cos(angle) * (baseR + 4);
+            const y1 = cy + Math.sin(angle) * (baseR + 4);
+            const x2 = cx + Math.cos(angle) * (baseR + 4 + rayLen);
+            const y2 = cy + Math.sin(angle) * (baseR + 4 + rayLen);
+
+            const rayHue = (this.phase * 80 + i * 8) % 360;
+            ctx.strokeStyle = `hsl(${rayHue}, 100%, 60%)`;
+            ctx.lineWidth = 3 + vol * 2.2;
+            ctx.lineCap = "round";
+            ctx.shadowColor = `hsl(${rayHue}, 100%, 50%)`;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        // 3. Bursting Confetti Particles
+        for (let p = this.rainbowParticles.length - 1; p >= 0; p--) {
+            const part = this.rainbowParticles[p];
+            part.x += part.vx;
+            part.y += part.vy;
+            part.hue = (part.hue + 5) % 360;
+            part.life -= part.decay;
+
+            if (part.life <= 0) {
+                this.rainbowParticles.splice(p, 1);
+                continue;
+            }
+
+            ctx.fillStyle = `hsla(${part.hue}, 100%, 70%, ${part.life})`;
+            ctx.shadowColor = `hsl(${part.hue}, 100%, 50%)`;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(part.x, part.y, part.size * (1 + vol), 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         ctx.restore();
     }

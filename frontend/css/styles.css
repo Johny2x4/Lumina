@@ -422,6 +422,68 @@ body[data-theme="pirate"] .hud-card {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(212, 175, 55, 0.15) !important;
 }
 
+/* 15. RAINBOW RAVE (Hyper-Color Explosion & Prismatic Overdrive) */
+body[data-theme="rainbowrave"] {
+    --bg-main: #090314;
+    --bg-header: rgba(18, 6, 36, 0.94);
+    --bg-sidebar: #0f051f;
+    --bg-card: rgba(26, 8, 52, 0.65);
+    --bg-user-bubble: linear-gradient(135deg, #ff0055 0%, #ff5500 50%, #ffe600 100%);
+    --text-user-bubble: #ffffff;
+    --border-color: rgba(255, 0, 180, 0.5);
+    --border-radius: 0.875rem;
+    --text-main: #ffffff;
+    --text-muted: #e0aaff;
+    --brand-primary: #ff0077;
+    --brand-hover: #00f0ff;
+    --brand-glow: rgba(255, 0, 120, 0.5);
+    --input-bg: rgba(24, 8, 48, 0.85);
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Orbitron', 'Inter', sans-serif;
+}
+
+body[data-theme="rainbowrave"] #ambient-layer {
+    background: radial-gradient(circle at 50% 50%, rgba(30, 8, 60, 0.6) 0%, #090314 100%);
+    transition: background 0.4s ease;
+}
+
+/* Hyper-color stimulation when thinking or generating */
+body[data-theme="rainbowrave"].lumina-generating header {
+    border-bottom: 2px solid transparent !important;
+    border-image: linear-gradient(90deg, #ff0055, #ff9900, #ffee00, #00ff66, #00ffff, #7900ff, #ff00aa) 1 !important;
+    animation: rainbow-shift 1.5s linear infinite;
+}
+
+body[data-theme="rainbowrave"].lumina-generating #chat-input-wrapper {
+    box-shadow: 0 0 25px rgba(255, 0, 128, 0.6), 0 0 50px rgba(0, 240, 255, 0.4) !important;
+    border-color: #ff00c8 !important;
+    animation: rainbow-pulse 0.8s ease-in-out infinite alternate;
+}
+
+body[data-theme="rainbowrave"].lumina-generating .message-bubble-wrapper:last-child > div:not(.msg-actions-bar) {
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.15) !important;
+    border-color: #ff00c8 !important;
+    animation: rainbow-border-glow 2s linear infinite;
+}
+
+@keyframes rainbow-shift {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes rainbow-pulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 10px #ff0080); }
+    100% { transform: scale(1.005); filter: drop-shadow(0 0 25px #00ffff); }
+}
+
+@keyframes rainbow-border-glow {
+    0% { border-color: #ff0055; }
+    25% { border-color: #ffee00; }
+    50% { border-color: #00ff66; }
+    75% { border-color: #00ffff; }
+    100% { border-color: #ff0055; }
+}
+
 /* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, pastellilac, pastelprisma, glacier) */
 body[data-theme="nordic"] .text-white,
 body[data-theme="paper"] .text-white,

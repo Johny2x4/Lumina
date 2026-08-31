@@ -436,6 +436,7 @@ class ChatManager {
                             if (!isThinkingPhase) {
                                 isThinkingPhase = true;
                                 thinkingStartTime = Date.now();
+                                document.body.classList.add("lumina-thinking");
                             }
                             assistantThinking += thinkingChunk;
                             this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
@@ -445,6 +446,7 @@ class ChatManager {
                         if (contentChunk) {
                             if (isThinkingPhase) {
                                 isThinkingPhase = false;
+                                document.body.classList.remove("lumina-thinking");
                             }
                             assistantContent += contentChunk;
                             this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
@@ -578,6 +580,7 @@ class ChatManager {
                             if (!isThinkingPhase) {
                                 isThinkingPhase = true;
                                 thinkingStartTime = Date.now();
+                                document.body.classList.add("lumina-thinking");
                             }
                             assistantThinking += thinkingChunk;
                             this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
@@ -587,6 +590,7 @@ class ChatManager {
                         if (contentChunk) {
                             if (isThinkingPhase) {
                                 isThinkingPhase = false;
+                                document.body.classList.remove("lumina-thinking");
                             }
                             assistantContent += contentChunk;
                             this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
@@ -673,6 +677,12 @@ class ChatManager {
 
         if (btnSend) btnSend.classList.toggle("hidden", isGen);
         if (btnStop) btnStop.classList.toggle("hidden", !isGen);
+
+        if (isGen) {
+            document.body.classList.add("lumina-generating");
+        } else {
+            document.body.classList.remove("lumina-generating", "lumina-thinking");
+        }
     }
 
     renderMessageUI(role, content, imagePreviews = null, sources = null, thinking = null) {
