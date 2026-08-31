@@ -14,33 +14,49 @@ class App {
         this.bindEvents();
         this.loadSessions();
 
-        // Restore desktop collapsed preference
-        if (window.innerWidth >= 768) {
-            if (localStorage.getItem("lumina_sidebar_collapsed") === "true") {
-                const sidebar = document.getElementById("sidebar");
-                if (sidebar) sidebar.classList.add("collapsed");
-            }
-        } else {
-            // On mobile, ensure sidebar starts cleanly offscreen
-            const sidebar = document.getElementById("sidebar");
-            if (sidebar) {
-                sidebar.classList.remove("open");
-                sidebar.classList.remove("collapsed");
-            }
-            const backdrop = document.getElementById("sidebar-backdrop");
-            if (backdrop) backdrop.classList.add("hidden");
-        }
+        // Always collapsed by default on all screens
+        this.closeSidebar();
     }
 
     bindEvents() {
-        // Sidebar Toggle & Mobile Drawer
+        // Sidebar Toggle, Close, & Backdrop
         const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
         const btnCloseSidebar = document.getElementById("btn-close-sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
 
-        if (btnToggleSidebar) btnToggleSidebar.addEventListener("click", () => this.toggleSidebar());
-        if (btnCloseSidebar) btnCloseSidebar.addEventListener("click", () => this.closeSidebar());
-        if (backdrop) backdrop.addEventListener("click", () => this.closeSidebar());
+        if (btnToggleSidebar) {
+            btnToggleSidebar.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.toggleSidebar();
+            });
+        }
+        if (btnCloseSidebar) {
+            btnCloseSidebar.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.closeSidebar();
+            });
+        }
+        if (backdrop) {
+            backdrop.addEventListener("click", () => this.closeSidebar());
+        }
+
+        // Close sidebar when clicking outside on the document
+        document.addEventListener("click", (e) => {
+            const sidebar = document.getElementById("sidebar");
+            const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+            if (sidebar && sidebar.classList.contains("open")) {
+                if (!sidebar.contains(e.target) && !btnToggleSidebar?.contains(e.target)) {
+                    this.closeSidebar();
+                }
+            }
+        });
+
+        // Close sidebar on Escape key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                this.closeSidebar();
+            }
+        });
 
         // New Chat Buttons (Header & Sidebar)
         const btnQuickNewChat = document.getElementById("btn-quick-new-chat");
@@ -274,57 +290,41 @@ class App {
         localStorage.setItem("lumina_inference_options", JSON.stringify(opts));
     }
 
-    // Sidebar Mobile & Desktop Management
+    // Universal Floating Sidebar Drawer Methods (Overlay across Chat Window)
     openSidebar() {
         const sidebar = document.getElementById("sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
-        const isMobile = window.innerWidth < 768;
 
         if (sidebar) {
-            if (isMobile) {
-                sidebar.classList.add("open");
-                if (backdrop) backdrop.classList.remove("hidden");
-            } else {
-                sidebar.classList.remove("collapsed");
-                localStorage.setItem("lumina_sidebar_collapsed", "false");
-            }
+            sidebar.classList.add("open");
+            sidebar.classList.remove("collapsed");
+        }
+        if (backdrop) {
+            backdrop.classList.remove("hidden");
         }
     }
 
     closeSidebar() {
         const sidebar = document.getElementById("sidebar");
         const backdrop = document.getElementById("sidebar-backdrop");
-        const isMobile = window.innerWidth < 768;
 
         if (sidebar) {
-            if (isMobile) {
-                sidebar.classList.remove("open");
-            } else {
-                sidebar.classList.add("collapsed");
-                localStorage.setItem("lumina_sidebar_collapsed", "true");
-            }
+            sidebar.classList.remove("open");
+            sidebar.classList.add("collapsed");
         }
-        if (backdrop) backdrop.classList.add("hidden");
+        if (backdrop) {
+            backdrop.classList.add("hidden");
+        }
     }
 
     toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
-        const isMobile = window.innerWidth < 768;
-
         if (!sidebar) return;
 
-        if (isMobile) {
-            if (sidebar.classList.contains("open")) {
-                this.closeSidebar();
-            } else {
-                this.openSidebar();
-            }
+        if (sidebar.classList.contains("open")) {
+            this.closeSidebar();
         } else {
-            if (sidebar.classList.contains("collapsed")) {
-                this.openSidebar();
-            } else {
-                this.closeSidebar();
-            }
+            this.openSidebar();
         }
     }
 
