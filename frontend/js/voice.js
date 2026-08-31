@@ -1204,6 +1204,19 @@ class VoiceController {
 
         let fullAiText = "";
         let fullThinking = "";
+        const thinkStartTime = Date.now();
+        let thinkTimer = null;
+
+        if (aiSub) {
+            aiSub.textContent = "Thinking...";
+            thinkTimer = setInterval(() => {
+                if (this.state === "thinking" && !fullAiText) {
+                    const elapsed = Math.round((Date.now() - thinkStartTime) / 1000);
+                    aiSub.textContent = `Thinking... (${elapsed}s)`;
+                }
+            }, 1000);
+        }
+
         try {
             const payload = {
                 model: model,
@@ -1211,7 +1224,7 @@ class VoiceController {
                 stream: true,
                 keep_alive: -1,
                 options: {
-                    num_predict: 100, // Hard physical cap: guarantees responses cannot be verbose
+                    num_predict: 1024, // Generous token headroom so reasoning/thinking models don't exhaust budget inside <think>
                     temperature: 0.6
                 }
             };
@@ -1246,12 +1259,13 @@ class VoiceController {
 
                         if (thinkingChunk) {
                             fullThinking += thinkingChunk;
-                            if (aiSub && !fullAiText) {
-                                aiSub.textContent = "Thinking through response...";
-                            }
                         }
 
                         if (contentChunk) {
+                            if (thinkTimer) {
+                                clearInterval(thinkTimer);
+                                thinkTimer = null;
+                            }
                             fullAiText += contentChunk;
                             if (aiSub) {
                                 const cleanSubtitle = this.cleanSpokenText(fullAiText);
@@ -1262,23 +1276,41 @@ class VoiceController {
                 }
             }
 
-            // Clean any reasoning blocks from text
-            const spokenText = this.cleanSpokenText(fullAiText);
+            if (thinkTimer) {
+                clearInterval(thinkTimer);
+                thinkTimer = null;
+            }
+
+            // Clean reasoning blocks from text
+            let spokenText = this.cleanSpokenText(fullAiText);
+
+            // Fallback: If model placed conclusion inside thinking block and didn't generate content
+            if (!spokenText && fullThinking) {
+                const cleanThoughts = this.cleanSpokenText(fullThinking);
+                const thoughtSentences = this.splitIntoSentences(cleanThoughts);
+                if (thoughtSentences.length > 0) {
+                    spokenText = thoughtSentences.slice(-2).join(" ");
+                }
+            }
 
             // Save to chat manager history
             if (window.chatManager) {
                 window.chatManager.currentMessages.push({
                     role: "assistant",
-                    content: spokenText || fullAiText,
+                    content: spokenText || fullAiText || "...",
                     thinking: fullThinking || undefined
                 });
-                window.chatManager.renderMessageUI("assistant", spokenText || fullAiText, null, null, fullThinking);
+                window.chatManager.renderMessageUI("assistant", spokenText || fullAiText || "...", null, null, fullThinking);
                 window.app?.onMessagesUpdated();
             }
 
             // Speak response via TTS
             this.speak(spokenText);
         } catch (err) {
+            if (thinkTimer) {
+                clearInterval(thinkTimer);
+                thinkTimer = null;
+            }
             console.error("Live voice inference error:", err);
             if (aiSub) aiSub.textContent = `Error: ${err.message}`;
             setTimeout(() => {
@@ -1334,33 +1366,40 @@ class VoiceController {
 
         const cleanText = this.cleanSpokenText(text);
         if (!cleanText) {
+            console.warn("Live voice: No spoken text to speak after cleaning.");
             this.releaseToListening();
             return;
         }
+
+        // Limit spoken audio to first 3 concise sentences so speech stays snappy
+        const sentences = this.splitIntoSentences(cleanText);
+        const textToSpeak = sentences.slice(0, 3).join(" ") || cleanText;
 
         this.stopListening();
         this.setState("speaking");
         this.clearWatchdog();
 
-        // Safety Watchdog Timer: Guarantee release back to listening even if audio fails to terminate
-        const estimatedMs = Math.max(3500, cleanText.length * 90 + 3500);
-        this.watchdogTimer = setTimeout(() => {
-            console.warn("Voice TTS watchdog: audio did not release in time, force releasing back to listening.");
-            this.releaseToListening();
-        }, estimatedMs);
+        const aiSub = document.getElementById("live-voice-ai-sub");
+        if (aiSub) aiSub.textContent = textToSpeak;
 
         // 1. If Local Neural Kokoro TTS is active, play studio neural audio stream
         if (this.ttsEngine === "kokoro") {
             try {
+                // AbortController with 25s timeout for Kokoro synthesis
+                const fetchController = new AbortController();
+                const fetchTimeout = setTimeout(() => fetchController.abort(), 25000);
+
                 const res = await fetch("/api/voice/tts", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        text: cleanText,
+                        text: textToSpeak,
                         voice: this.selectedKokoroVoice || "af_heart",
                         speed: 1.0
-                    })
+                    }),
+                    signal: fetchController.signal
                 });
+                clearTimeout(fetchTimeout);
 
                 if (!res.ok) throw new Error(`Kokoro HTTP ${res.status}`);
 
@@ -1394,7 +1433,16 @@ class VoiceController {
                 source.connect(this.playbackAudioCtx.destination);
                 this.currentAudioSource = source;
 
+                // Watchdog Timer starts ONLY once playback starts, calibrated to exact audio duration + 6s buffer
+                const safetyTimeoutMs = Math.ceil(audioBuffer.duration * 1000) + 6000;
+                this.clearWatchdog();
+                this.watchdogTimer = setTimeout(() => {
+                    console.warn("Kokoro audio playback watchdog safety release.");
+                    this.releaseToListening();
+                }, safetyTimeoutMs);
+
                 source.onended = () => {
+                    this.clearWatchdog();
                     this.currentAudioSource = null;
                     this.releaseToListening();
                 };
@@ -1408,7 +1456,7 @@ class VoiceController {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            text: cleanText,
+                            text: textToSpeak,
                             voice: this.selectedKokoroVoice || "af_heart",
                             speed: 1.0
                         })
@@ -1419,12 +1467,23 @@ class VoiceController {
                         const audio = this.unlockedAudio || new Audio();
                         this.activeAudio = audio;
                         audio.src = audioUrl;
+
+                        audio.onplay = () => {
+                            const safetyTimeoutMs = Math.ceil((audio.duration || 10) * 1000) + 6000;
+                            this.clearWatchdog();
+                            this.watchdogTimer = setTimeout(() => {
+                                this.releaseToListening();
+                            }, safetyTimeoutMs);
+                        };
+
                         audio.onended = () => {
+                            this.clearWatchdog();
                             URL.revokeObjectURL(audioUrl);
                             this.activeAudio = null;
                             this.releaseToListening();
                         };
                         audio.onerror = () => {
+                            this.clearWatchdog();
                             URL.revokeObjectURL(audioUrl);
                             this.activeAudio = null;
                             this.releaseToListening();
@@ -1439,7 +1498,7 @@ class VoiceController {
         }
 
         // 2. Legacy Browser Web Speech API fallback
-        this.speakBrowser(cleanText);
+        this.speakBrowser(textToSpeak);
     }
 
     speakBrowser(cleanText) {
@@ -1467,11 +1526,13 @@ class VoiceController {
 
         const speakNext = () => {
             if (!this.isActive || this.state !== "speaking") {
+                this.clearWatchdog();
                 this.releaseToListening();
                 return;
             }
 
             if (currentIndex >= sentences.length) {
+                this.clearWatchdog();
                 this.releaseToListening();
                 return;
             }
@@ -1488,13 +1549,25 @@ class VoiceController {
                 if (chosen) utterance.voice = chosen;
             }
 
+            utterance.onstart = () => {
+                // Safety watchdog per sentence: ample time based on characters + 6s buffer
+                this.clearWatchdog();
+                const sentenceSafetyMs = Math.max(8000, sentence.length * 160 + 6000);
+                this.watchdogTimer = setTimeout(() => {
+                    console.warn("Browser TTS sentence watchdog fired.");
+                    speakNext();
+                }, sentenceSafetyMs);
+            };
+
             utterance.onend = () => {
+                this.clearWatchdog();
                 const idx = window._activeUtterances.indexOf(utterance);
                 if (idx !== -1) window._activeUtterances.splice(idx, 1);
                 setTimeout(speakNext, 60);
             };
 
             utterance.onerror = (err) => {
+                this.clearWatchdog();
                 console.warn("TTS sentence error:", err);
                 const idx = window._activeUtterances.indexOf(utterance);
                 if (idx !== -1) window._activeUtterances.splice(idx, 1);
