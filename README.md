@@ -19,6 +19,10 @@
 > - ❌ **It is NOT an LLM runtime:** Lumina does not run model weights or execute tensor math itself. It connects to and streams responses from an **Ollama** backend running locally or over your network.
 > - 🔍 **SearXNG Web Search Integration:** Seamlessly pairs with a **SearXNG** instance to automatically reformulate questions and inject real-time web sources and citations into your models.
 
+<p align="center">
+  <img src="docs/screenshots/lumina-chat-hero.png" alt="Lumina Chat Interface" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
+</p>
+
 ---
 
 ## ⚡ Core Features
@@ -36,10 +40,18 @@
 - Per-GPU metrics: Core compute load %, VRAM allocation bar, operating temperatures (°C), and live power draw in Watts.
 - Host system overview: CPU utilization % and system RAM metrics.
 
+<p align="center">
+  <img src="docs/screenshots/lumina-telemetry.png" alt="Lumina Hardware Telemetry Drawer" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
+</p>
+
 ### 4. Gemini Live Fullscreen Voice Mode
 - Immersive audio-reactive conversational loop with continuous Speech-to-Text (STT) and dynamic Text-to-Speech (TTS).
 - Theme-synchronized canvas visualizer displaying radiant glowing speech orbs, harmonic waveform animations, and live transcription subtitles.
 - In 8-bit mode, transitions to stepped arcade diamond waveform geometry and CRT scanline styling.
+
+<p align="center">
+  <img src="docs/screenshots/lumina-voice-mode.png" alt="Lumina Live Voice Mode" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
+</p>
 
 ### 5. 12 Curated System Themes
 Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, voice overlay, and particle animations):
@@ -55,6 +67,11 @@ Comprehensive theme re-skinning across the entire interface (chat, sidebar, draw
 - **Matrix**: High-contrast phosphor terminal green code rain.
 - **Synthwave**: 80s neon magenta, sunset violet, and animated perspective gridlines.
 - **Aurora**: Arctic emerald, cyan, and northern lights gradients.
+
+<p align="center">
+  <img src="docs/screenshots/lumina-themes-modal.png" alt="Lumina Theme Collection & Settings" width="49%" style="border-radius: 12px;" />
+  <img src="docs/screenshots/lumina-glacier.png" alt="Lumina Glacial Ice Theme with Blizzard Snow" width="49%" style="border-radius: 12px;" />
+</p>
 
 ### 6. Multimodal Vision & Document Ingestion
 - Drag-and-drop or file-picker upload for images (PNG, JPG, WebP) and documents (TXT, MD, CSV, JSON, PDF).
