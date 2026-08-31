@@ -101,33 +101,59 @@ class PullJobManager:
                     return
 
                 job.status = "downloading"
+                saw_success = False
+
                 async for line in resp.aiter_lines():
                     if not line.strip():
                         continue
                     try:
                         data = json.loads(line)
+
+                        # Check for Ollama error field (e.g. digest mismatch, verification failed, not found)
+                        if "error" in data and data["error"]:
+                            job.error = str(data["error"])
+                            job.status = "failed"
+                            job.done = True
+                            job.completed_at = time.time()
+                            await job.broadcast(job.to_dict())
+                            return
+
                         status = data.get("status", "")
                         if status:
                             job.status = status
+                            lower_status = status.lower()
+                            if "fail" in lower_status or "error" in lower_status or "mismatch" in lower_status:
+                                job.error = status
+
                         if "completed" in data and "total" in data and data["total"] > 0:
                             job.completed = data["completed"]
                             job.total = data["total"]
                             job.percent = round((job.completed / job.total) * 100)
                         elif status.lower() == "success":
                             job.percent = 100
+                            saw_success = True
 
                         await job.broadcast(job.to_dict())
                     except Exception:
                         pass
 
             job.done = True
-            job.status = "success"
-            job.percent = 100
             job.completed_at = time.time()
+
+            # Verify that the pull actually succeeded
+            if job.error or not saw_success:
+                job.status = "failed"
+                if not job.error:
+                    job.error = f"Download ended without successful completion ({job.status})"
+            else:
+                job.status = "success"
+                job.percent = 100
+
             await job.broadcast(job.to_dict())
         except asyncio.CancelledError:
             job.done = True
             job.status = "cancelled"
+            job.error = "Download cancelled by user"
             job.completed_at = time.time()
             await job.broadcast(job.to_dict())
         except Exception as e:

@@ -27,7 +27,7 @@ services:
       - "127.0.0.1:11434:11434"
     environment:
       - OLLAMA_KEEP_ALIVE=-1
-      - OLLAMA_MAX_LOADED_MODELS=3
+      - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_FLASH_ATTENTION=1
     volumes:
       - ollama-data:/root/.ollama

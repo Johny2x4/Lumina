@@ -375,12 +375,34 @@ class ModelManager {
                 }
                 if (btnPull) btnPull.disabled = false;
 
-                if (data.error) {
-                    if (statusText) statusText.textContent = `Error: ${data.error}`;
+                const isFailed = data.error || data.status === "failed" || data.status === "cancelled";
+                if (isFailed) {
+                    const errorReason = data.error || data.status || "Verification or download failed (corrupted layer deleted).";
+                    if (statusText) {
+                        statusText.textContent = `❌ ${errorReason}`;
+                        statusText.className = "text-[11px] text-rose-400 font-medium break-words";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = "100%";
+                        progressBar.className = "h-full bg-rose-500 transition-all duration-300";
+                    }
+                    if (percentText) {
+                        percentText.textContent = "Failed";
+                        percentText.className = "text-[10px] text-rose-400 font-mono font-bold";
+                    }
                 } else {
-                    if (statusText) statusText.textContent = "Pull complete!";
-                    if (progressBar) progressBar.style.width = "100%";
-                    if (percentText) percentText.textContent = "100%";
+                    if (statusText) {
+                        statusText.textContent = "✓ Pull complete!";
+                        statusText.className = "text-[11px] text-emerald-400 font-medium";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = "100%";
+                        progressBar.className = "h-full bg-brand-500 transition-all duration-300";
+                    }
+                    if (percentText) {
+                        percentText.textContent = "100%";
+                        percentText.className = "text-[10px] text-brand-400 font-mono";
+                    }
                     await this.refreshModels();
                     this.setSelectedModel(modelName);
                     this.renderModalInstalledList();
@@ -424,10 +446,23 @@ class ModelManager {
     async pullModel(modelName) {
         const btnPull = document.getElementById("btn-pull-model");
         const progressBox = document.getElementById("pull-progress-box");
+        const progressBar = document.getElementById("pull-progress-bar");
+        const percentText = document.getElementById("pull-percent-text");
         const statusText = document.getElementById("pull-status-text");
 
         if (progressBox) progressBox.classList.remove("hidden");
-        if (statusText) statusText.textContent = "Initiating background pull...";
+        if (statusText) {
+            statusText.textContent = "Initiating background pull...";
+            statusText.className = "text-[11px] text-slate-300 font-medium";
+        }
+        if (progressBar) {
+            progressBar.style.width = "0%";
+            progressBar.className = "h-full bg-brand-500 transition-all duration-300";
+        }
+        if (percentText) {
+            percentText.textContent = "0%";
+            percentText.className = "text-[10px] text-slate-400 font-mono";
+        }
         if (btnPull) btnPull.disabled = true;
 
         try {
@@ -441,7 +476,13 @@ class ModelManager {
             this.attachToPullStream(modelName);
         } catch (e) {
             console.error("Error starting model pull:", e);
-            if (statusText) statusText.textContent = `Error: ${e.message}`;
+            if (statusText) {
+                statusText.textContent = `❌ Error: ${e.message}`;
+                statusText.className = "text-[11px] text-rose-400 font-medium";
+            }
+            if (progressBar) {
+                progressBar.className = "h-full bg-rose-500 transition-all duration-300";
+            }
             if (btnPull) btnPull.disabled = false;
         }
     }
