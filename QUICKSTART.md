@@ -199,7 +199,7 @@ Caddy obtains and renews certificates automatically.
 2. Create a `/etc/caddy/Caddyfile`:
    ```caddy
    # For a local LAN hostname or domain:
-   lumina.local, 192.168.68.69.nip.io {
+   lumina.local, 192.168.1.100.nip.io {
        reverse_proxy localhost:3000
        tls internal
    }
@@ -232,18 +232,18 @@ If terminating SSL using Nginx:
    mkcert -install
 
    # Generate cert for your host IP or LAN name
-   mkcert 192.168.68.69 lumina.local localhost 127.0.0.1
-   # Creates: 192.168.68.69+3.pem and 192.168.68.69+3-key.pem
+   mkcert 192.168.1.100 lumina.local localhost 127.0.0.1
+   # Creates: 192.168.1.100+3.pem and 192.168.1.100+3-key.pem
    ```
 
 2. **Configure Nginx SSL Block**:
    ```nginx
    server {
        listen 443 ssl http2;
-       server_name 192.168.68.69 lumina.local;
+       server_name 192.168.1.100 lumina.local;
 
-       ssl_certificate     /etc/nginx/certs/192.168.68.69+3.pem;
-       ssl_certificate_key /etc/nginx/certs/192.168.68.69+3-key.pem;
+       ssl_certificate     /etc/nginx/certs/192.168.1.100+3.pem;
+       ssl_certificate_key /etc/nginx/certs/192.168.1.100+3-key.pem;
        ssl_protocols       TLSv1.2 TLSv1.3;
        ssl_ciphers         HIGH:!aNULL:!MD5;
 
@@ -267,7 +267,7 @@ If terminating SSL using Nginx:
    # Redirect HTTP to HTTPS
    server {
        listen 80;
-       server_name 192.168.68.69 lumina.local;
+       server_name 192.168.1.100 lumina.local;
        return 301 https://$host$request_uri;
    }
    ```
@@ -284,7 +284,7 @@ If you only want to test microphone access across your LAN without generating ce
    ```
 2. Enable the flag and enter your Lumina host address:
    ```text
-   http://192.168.68.69:80, http://192.168.68.69:3000
+   http://192.168.1.100:80, http://192.168.1.100:3000
    ```
 3. Relaunch the browser. The browser will now treat this origin as secure and allow microphone access.
 
