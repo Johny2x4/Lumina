@@ -229,8 +229,8 @@ body[data-theme="alpineday"] {
     --font-heading: 'Inter', sans-serif;
 }
 
-/* 11. PASTEL DREAM (Soft Lilac, Rose, Marshmallow & Mint) */
-body[data-theme="pastel"] {
+/* 11. PASTEL LILAC (Soft Rose & Lilac) */
+body[data-theme="pastel"], body[data-theme="pastellilac"] {
     --bg-main: #fbf7fb;
     --bg-header: rgba(253, 248, 253, 0.95);
     --bg-sidebar: #f5edf7;
@@ -248,10 +248,37 @@ body[data-theme="pastel"] {
     --font-family: 'Inter', sans-serif;
     --font-heading: 'Inter', sans-serif;
 }
-body[data-theme="pastel"] #ambient-layer {
+body[data-theme="pastel"] #ambient-layer, body[data-theme="pastellilac"] #ambient-layer {
     background: radial-gradient(circle at 15% 20%, rgba(244, 114, 182, 0.08) 0%, transparent 45%),
                 radial-gradient(circle at 85% 85%, rgba(192, 132, 252, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 50% 50%, rgba(110, 231, 183, 0.07) 0%, transparent 45%);
+    pointer-events: none;
+}
+
+/* 12. PASTEL PRISMA (High-Contrast Multi-Chroma: Mint, Sky, Buttercup, Lavender, Peach) */
+body[data-theme="pastelprisma"] {
+    --bg-main: #f8fafc;
+    --bg-header: rgba(248, 250, 252, 0.95);
+    --bg-sidebar: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-user-bubble: #0284c7;
+    --text-user-bubble: #ffffff;
+    --border-color: #cbd5e1;
+    --border-radius: 1.15rem;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --brand-primary: #0d9488;
+    --brand-hover: #0f766e;
+    --brand-glow: rgba(13, 148, 136, 0.25);
+    --input-bg: #ffffff;
+    --font-family: 'Inter', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+}
+body[data-theme="pastelprisma"] #ambient-layer {
+    background: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 15%, rgba(52, 211, 153, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 85%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 45%);
     pointer-events: none;
 }
 
@@ -346,28 +373,65 @@ body[data-theme="glacier"] #sidebar .session-tab.bg-slate-800 {
     background-color: rgba(255, 255, 255, 0.82) !important;
     border: 1px solid #7dd3fc !important;
     box-shadow: 0 2px 12px rgba(56, 189, 248, 0.25) !important;
+/* 14. BLACKBEARD'S VOYAGE (High Seas Pirate Theme) */
+body[data-theme="pirate"] {
+    --bg-main: #070c14;
+    --bg-header: rgba(10, 16, 28, 0.94);
+    --bg-sidebar: #090e18;
+    --bg-card: rgba(16, 24, 40, 0.7);
+    --bg-user-bubble: #854d0e;
+    --text-user-bubble: #fef08a;
+    --border-color: rgba(212, 175, 55, 0.35);
+    --border-radius: 0.875rem;
+    --text-main: #f5edd6;
+    --text-muted: #94a3b8;
+    --brand-primary: #d4af37;
+    --brand-hover: #b45309;
+    --brand-glow: rgba(212, 175, 55, 0.35);
+    --input-bg: rgba(12, 18, 30, 0.85);
+    --font-family: 'Inter', serif, sans-serif;
+    --font-heading: 'Inter', serif, sans-serif;
+}
+body[data-theme="pirate"] #ambient-layer {
+    background: radial-gradient(ellipse at 50% 100%, rgba(13, 148, 136, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(180, 83, 9, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+body[data-theme="pirate"] .message-bubble-wrapper > div,
+body[data-theme="pirate"] .hud-card {
+    border-color: rgba(212, 175, 55, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(212, 175, 55, 0.15) !important;
 }
 
-/* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, glacier) */
+/* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, pastellilac, pastelprisma, glacier) */
 body[data-theme="nordic"] .text-white,
 body[data-theme="paper"] .text-white,
 body[data-theme="alpineday"] .text-white,
 body[data-theme="pastel"] .text-white,
+body[data-theme="pastellilac"] .text-white,
+body[data-theme="pastelprisma"] .text-white,
 body[data-theme="glacier"] .text-white,
 body[data-theme="nordic"] .text-slate-100,
 body[data-theme="paper"] .text-slate-100,
 body[data-theme="alpineday"] .text-slate-100,
 body[data-theme="pastel"] .text-slate-100,
+body[data-theme="pastellilac"] .text-slate-100,
+body[data-theme="pastelprisma"] .text-slate-100,
 body[data-theme="glacier"] .text-slate-100,
 body[data-theme="nordic"] .text-slate-200,
 body[data-theme="paper"] .text-slate-200,
 body[data-theme="alpineday"] .text-slate-200,
 body[data-theme="pastel"] .text-slate-200,
+body[data-theme="pastellilac"] .text-slate-200,
+body[data-theme="pastelprisma"] .text-slate-200,
 body[data-theme="glacier"] .text-slate-200,
 body[data-theme="nordic"] .text-slate-300,
 body[data-theme="paper"] .text-slate-300,
 body[data-theme="alpineday"] .text-slate-300,
 body[data-theme="pastel"] .text-slate-300,
+body[data-theme="pastellilac"] .text-slate-300,
+body[data-theme="pastelprisma"] .text-slate-300,
 body[data-theme="glacier"] .text-slate-300 {
     color: var(--text-main) !important;
 }
@@ -376,11 +440,15 @@ body[data-theme="nordic"] .text-slate-400,
 body[data-theme="paper"] .text-slate-400,
 body[data-theme="alpineday"] .text-slate-400,
 body[data-theme="pastel"] .text-slate-400,
+body[data-theme="pastellilac"] .text-slate-400,
+body[data-theme="pastelprisma"] .text-slate-400,
 body[data-theme="glacier"] .text-slate-400,
 body[data-theme="nordic"] .text-slate-500,
 body[data-theme="paper"] .text-slate-500,
 body[data-theme="alpineday"] .text-slate-500,
 body[data-theme="pastel"] .text-slate-500,
+body[data-theme="pastellilac"] .text-slate-500,
+body[data-theme="pastelprisma"] .text-slate-500,
 body[data-theme="glacier"] .text-slate-500 {
     color: var(--text-muted) !important;
 }
@@ -389,11 +457,15 @@ body[data-theme="nordic"] .bg-slate-900,
 body[data-theme="paper"] .bg-slate-900,
 body[data-theme="alpineday"] .bg-slate-900,
 body[data-theme="pastel"] .bg-slate-900,
+body[data-theme="pastellilac"] .bg-slate-900,
+body[data-theme="pastelprisma"] .bg-slate-900,
 body[data-theme="glacier"] .bg-slate-900,
 body[data-theme="nordic"] .bg-slate-900\/70,
 body[data-theme="paper"] .bg-slate-900\/70,
 body[data-theme="alpineday"] .bg-slate-900\/70,
 body[data-theme="pastel"] .bg-slate-900\/70,
+body[data-theme="pastellilac"] .bg-slate-900\/70,
+body[data-theme="pastelprisma"] .bg-slate-900\/70,
 body[data-theme="glacier"] .bg-slate-900\/70 {
     background-color: var(--bg-card) !important;
     border-color: var(--border-color) !important;

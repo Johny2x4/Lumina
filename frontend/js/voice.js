@@ -37,6 +37,10 @@ class VoiceController {
         this.selectedVoiceURI = localStorage.getItem("lumina_tts_voice") || "";
         this.watchdogTimer = null;
 
+        // Diverse Visualizer State
+        this.visualizerParticles = [];
+        this.spectrumPeaks = new Array(24).fill(0);
+
         this.init();
     }
 
@@ -375,7 +379,7 @@ class VoiceController {
         const theme = document.body.getAttribute("data-theme") || "default";
         const configs = {
             default: {
-                is8Bit: false,
+                visualizerType: "radialAura",
                 glowColor: "#6366f1",
                 colors: {
                     listening: ["#818cf8", "#6366f1", "#38bdf8"],
@@ -391,7 +395,7 @@ class VoiceController {
                 }
             },
             amoled: {
-                is8Bit: false,
+                visualizerType: "radialAura",
                 glowColor: "#818cf8",
                 colors: {
                     listening: ["#ffffff", "#e4e4e7", "#818cf8"],
@@ -407,7 +411,7 @@ class VoiceController {
                 }
             },
             cyberpunk: {
-                is8Bit: false,
+                visualizerType: "spectrumAnalyzer",
                 glowColor: "#00f0ff",
                 colors: {
                     listening: ["#00f0ff", "#fcee0a", "#ff003c"],
@@ -423,7 +427,7 @@ class VoiceController {
                 }
             },
             matrix: {
-                is8Bit: false,
+                visualizerType: "spectrumAnalyzer",
                 glowColor: "#22c55e",
                 colors: {
                     listening: ["#86efac", "#22c55e", "#15803d"],
@@ -439,7 +443,7 @@ class VoiceController {
                 }
             },
             synthwave: {
-                is8Bit: false,
+                visualizerType: "particleField",
                 glowColor: "#ff2a85",
                 colors: {
                     listening: ["#ff2a85", "#b5179e", "#00fffb"],
@@ -455,7 +459,7 @@ class VoiceController {
                 }
             },
             aurora: {
-                is8Bit: false,
+                visualizerType: "sineRibbon",
                 glowColor: "#2dd4bf",
                 colors: {
                     listening: ["#2dd4bf", "#38bdf8", "#818cf8"],
@@ -471,7 +475,7 @@ class VoiceController {
                 }
             },
             snowforest: {
-                is8Bit: false,
+                visualizerType: "organicBlob",
                 glowColor: "#34d399",
                 colors: {
                     listening: ["#34d399", "#6ee7b7", "#a7f3d0"],
@@ -487,7 +491,7 @@ class VoiceController {
                 }
             },
             nordic: {
-                is8Bit: false,
+                visualizerType: "radialAura",
                 glowColor: "#2563eb",
                 colors: {
                     listening: ["#2563eb", "#3b82f6", "#60a5fa"],
@@ -503,7 +507,7 @@ class VoiceController {
                 }
             },
             paper: {
-                is8Bit: false,
+                visualizerType: "sineRibbon",
                 glowColor: "#c2410c",
                 colors: {
                     listening: ["#c2410c", "#ea580c", "#f97316"],
@@ -519,7 +523,7 @@ class VoiceController {
                 }
             },
             alpineday: {
-                is8Bit: false,
+                visualizerType: "organicBlob",
                 glowColor: "#2d6a4f",
                 colors: {
                     listening: ["#2d6a4f", "#40916c", "#52b788"],
@@ -535,7 +539,7 @@ class VoiceController {
                 }
             },
             pastel: {
-                is8Bit: false,
+                visualizerType: "sineRibbon",
                 glowColor: "#ec4899",
                 colors: {
                     listening: ["#ec4899", "#c084fc", "#818cf8"],
@@ -550,8 +554,40 @@ class VoiceController {
                     muted: "rgba(203, 213, 225, 0.25)"
                 }
             },
+            pastellilac: {
+                visualizerType: "sineRibbon",
+                glowColor: "#ec4899",
+                colors: {
+                    listening: ["#ec4899", "#c084fc", "#818cf8"],
+                    speaking: ["#f472b6", "#a78bfa", "#67e8f9"],
+                    thinking: ["#c084fc", "#f472b6", "#fed7aa"],
+                    muted: ["#cbd5e1", "#e2e8f0", "#f1f5f9"]
+                },
+                glow: {
+                    listening: "rgba(236, 72, 153, 0.5)",
+                    speaking: "rgba(244, 114, 182, 0.45)",
+                    thinking: "rgba(192, 132, 252, 0.5)",
+                    muted: "rgba(203, 213, 225, 0.25)"
+                }
+            },
+            pastelprisma: {
+                visualizerType: "sineRibbon",
+                glowColor: "#0d9488",
+                colors: {
+                    listening: ["#10b981", "#0284c7", "#f59e0b"],
+                    speaking: ["#0284c7", "#8b5cf6", "#10b981"],
+                    thinking: ["#f59e0b", "#f43f5e", "#8b5cf6"],
+                    muted: ["#94a3b8", "#cbd5e1", "#e2e8f0"]
+                },
+                glow: {
+                    listening: "rgba(16, 185, 129, 0.5)",
+                    speaking: "rgba(2, 132, 199, 0.5)",
+                    thinking: "rgba(245, 158, 11, 0.5)",
+                    muted: "rgba(148, 163, 184, 0.25)"
+                }
+            },
             glacier: {
-                is8Bit: false,
+                visualizerType: "organicBlob",
                 glowColor: "#0284c7",
                 colors: {
                     listening: ["#0284c7", "#38bdf8", "#7dd3fc"],
@@ -564,6 +600,22 @@ class VoiceController {
                     speaking: "rgba(3, 105, 161, 0.45)",
                     thinking: "rgba(56, 189, 248, 0.5)",
                     muted: "rgba(148, 163, 184, 0.25)"
+                }
+            },
+            pirate: {
+                visualizerType: "particleField",
+                glowColor: "#d4af37",
+                colors: {
+                    listening: ["#d4af37", "#f59e0b", "#0d9488"],
+                    speaking: ["#0d9488", "#d4af37", "#b45309"],
+                    thinking: ["#f59e0b", "#d4af37", "#ef4444"],
+                    muted: ["#78716c", "#57534e", "#292524"]
+                },
+                glow: {
+                    listening: "rgba(212, 175, 55, 0.55)",
+                    speaking: "rgba(13, 148, 136, 0.55)",
+                    thinking: "rgba(245, 158, 11, 0.55)",
+                    muted: "rgba(120, 113, 108, 0.25)"
                 }
             }
         };
@@ -617,70 +669,326 @@ class VoiceController {
         ctx.arc(centerX, centerY, glowRadius * 1.5, 0, Math.PI * 2);
         ctx.fill();
 
-        if (cfg.is8Bit) {
-            // Retro 8-bit Arcade concentric stepped waveform
-            const colorSet = cfg.colors[this.state] || cfg.colors.listening;
-            ctx.save();
-            const rings = 4;
-            for (let r = 1; r <= rings; r++) {
-                const baseR = r * 20 + this.currentVolume * 30;
-                const quantizedR = Math.floor(baseR / 4) * 4;
-                ctx.strokeStyle = colorSet[r % colorSet.length];
-                ctx.lineWidth = 3;
-                // Draw pixelated stepped diamond / square
-                ctx.strokeRect(centerX - quantizedR, centerY - quantizedR, quantizedR * 2, quantizedR * 2);
-            }
-            ctx.restore();
-            return;
+        // Dispatch to Bespoke Theme Visualizer Mode
+        const mode = cfg.visualizerType || "radialAura";
+        if (mode === "spectrumAnalyzer") {
+            this.drawSpectrumAnalyzer(ctx, width, height, centerX, centerY, this.currentVolume, cfg, this.dataArray);
+        } else if (mode === "particleField") {
+            this.drawParticleField(ctx, centerX, centerY, this.currentVolume, cfg);
+        } else if (mode === "sineRibbon") {
+            this.drawSineRibbon(ctx, width, height, centerX, centerY, this.currentVolume, cfg);
+        } else if (mode === "organicBlob") {
+            this.drawOrganicBlob(ctx, centerX, centerY, this.currentVolume, cfg);
+        } else {
+            // "radialAura"
+            this.drawRadialAura(ctx, centerX, centerY, this.currentVolume, cfg, this.dataArray);
         }
-
-        // Multi-Layer Organic Fluid Blobs (Gemini Live Shape)
-        this.drawFluidBlob(ctx, centerX, centerY, 62 + this.currentVolume * 35, 1.0, this.phase, cfg);
-        this.drawFluidBlob(ctx, centerX, centerY, 48 + this.currentVolume * 22, 0.8, this.phase + 1.2, cfg);
-        this.drawFluidBlob(ctx, centerX, centerY, 34 + this.currentVolume * 14, 0.6, this.phase + 2.5, cfg);
-
-        // Core Center Highlight
-        ctx.beginPath();
-        ctx.arc(centerX - 8, centerY - 8, 14 + this.currentVolume * 8, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-        ctx.fill();
     }
 
-    drawFluidBlob(ctx, cx, cy, radius, opacity, phaseOffset, cfg) {
-        const points = 8;
-        const angleStep = (Math.PI * 2) / points;
+    drawRadialAura(ctx, cx, cy, vol, cfg, freqs) {
+        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
+        const baseR = 52 + vol * 28;
 
         ctx.save();
-        ctx.beginPath();
+        const spikeCount = 36;
+        const angleStep = (Math.PI * 2) / spikeCount;
 
-        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
-        const grad = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = i * angleStep + this.phase * 0.4;
+            const freqNorm = (freqs && freqs.length > 0)
+                ? (freqs[i % freqs.length] / 255)
+                : (0.25 + Math.sin(this.phase * 2.5 + i * 0.5) * 0.2);
+            const spikeLen = 8 + (freqNorm * 45 + vol * 35);
+
+            const x1 = cx + Math.cos(angle) * (baseR + 4);
+            const y1 = cy + Math.sin(angle) * (baseR + 4);
+            const x2 = cx + Math.cos(angle) * (baseR + 4 + spikeLen);
+            const y2 = cy + Math.sin(angle) * (baseR + 4 + spikeLen);
+
+            ctx.strokeStyle = colorSet[i % colorSet.length];
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        // Concentric acoustic wave ring
+        const waveR = baseR + 24 + (Math.sin(this.phase * 3.2) * 0.5 + 0.5) * 16;
+        ctx.strokeStyle = colorSet[0];
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, waveR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Central Orb
+        const grad = ctx.createRadialGradient(cx - baseR * 0.25, cy - baseR * 0.25, baseR * 0.1, cx, cy, baseR);
         grad.addColorStop(0, colorSet[0]);
-        grad.addColorStop(0.5, colorSet[1]);
+        grad.addColorStop(0.65, colorSet[1]);
         grad.addColorStop(1, colorSet[2]);
 
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Core Specular Glint
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.beginPath();
+        ctx.arc(cx - baseR * 0.3, cy - baseR * 0.3, baseR * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    drawSpectrumAnalyzer(ctx, w, h, cx, cy, vol, cfg, freqs) {
+        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
+        const barCount = 24;
+        const barWidth = 7;
+        const gap = 4;
+        const totalW = barCount * (barWidth + gap) - gap;
+        const startX = cx - totalW / 2;
+        const baseY = cy + 45;
+        const maxH = 95;
+
+        ctx.save();
+
+        // Zero axis line
+        ctx.strokeStyle = colorSet[1];
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(startX - 10, baseY + 2);
+        ctx.lineTo(startX + totalW + 10, baseY + 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        for (let i = 0; i < barCount; i++) {
+            const freqNorm = (freqs && freqs.length > 0)
+                ? (freqs[i % freqs.length] / 255)
+                : (0.2 + Math.sin(this.phase * 3.0 + i * 0.45) * 0.25 + vol * 0.5);
+
+            const targetH = Math.min(maxH, Math.max(6, (freqNorm * 0.75 + vol * 0.5) * maxH));
+
+            if (targetH > this.spectrumPeaks[i]) {
+                this.spectrumPeaks[i] = targetH;
+            } else {
+                this.spectrumPeaks[i] = Math.max(0, this.spectrumPeaks[i] - 1.2);
+            }
+
+            const bx = startX + i * (barWidth + gap);
+
+            // LED Segmented Blocks
+            const segments = Math.floor(targetH / 8);
+            for (let s = 0; s <= segments; s++) {
+                const segY = baseY - s * 8;
+                const normH = s / (maxH / 8);
+                ctx.fillStyle = normH < 0.5 ? colorSet[0] : (normH < 0.8 ? colorSet[1] : colorSet[2]);
+                ctx.fillRect(bx, segY - 6, barWidth, 6);
+            }
+
+            // Floating Peak Hold Cap
+            const peakY = baseY - this.spectrumPeaks[i];
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(bx, peakY - 3, barWidth, 2);
+        }
+        ctx.restore();
+    }
+
+    drawParticleField(ctx, cx, cy, vol, cfg) {
+        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
+        const PARTICLE_COUNT = 65;
+
+        if (this.visualizerParticles.length === 0) {
+            for (let p = 0; p < PARTICLE_COUNT; p++) {
+                this.visualizerParticles.push({
+                    angle: Math.random() * Math.PI * 2,
+                    dist: 35 + Math.random() * 85,
+                    baseDist: 35 + Math.random() * 85,
+                    speed: 0.015 + Math.random() * 0.025,
+                    size: 1.5 + Math.random() * 2.5,
+                    colorIdx: p % colorSet.length
+                });
+            }
+        }
+
+        ctx.save();
+        const pts = [];
+        const isSurging = vol > 0.12 || this.state === "speaking";
+
+        for (const p of this.visualizerParticles) {
+            p.angle += p.speed * (1 + vol * 4.5);
+
+            const targetDist = isSurging ? (25 + p.baseDist * 0.45) : p.baseDist;
+            p.dist += (targetDist - p.dist) * 0.1;
+
+            const px = cx + Math.cos(p.angle) * p.dist;
+            const py = cy + Math.sin(p.angle) * p.dist;
+            const curSize = p.size * (1 + vol * 1.5);
+            pts.push({ x: px, y: py, size: curSize, color: colorSet[p.colorIdx] });
+        }
+
+        // Draw connective constellation web lines
+        ctx.lineWidth = 0.9;
+        for (let i = 0; i < pts.length; i++) {
+            for (let j = i + 1; j < pts.length; j++) {
+                const dx = pts[i].x - pts[j].x;
+                const dy = pts[i].y - pts[j].y;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                if (d < 38) {
+                    ctx.strokeStyle = pts[i].color;
+                    ctx.globalAlpha = (1 - d / 38) * 0.55;
+                    ctx.beginPath();
+                    ctx.moveTo(pts[i].x, pts[i].y);
+                    ctx.lineTo(pts[j].x, pts[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Draw particle nodes
+        for (const pt of pts) {
+            ctx.globalAlpha = 0.9;
+            ctx.fillStyle = pt.color;
+            ctx.shadowColor = pt.color;
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+
+        // Central Energetic Nucleus
+        const coreR = 18 + vol * 22;
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+        coreGrad.addColorStop(0, "#ffffff");
+        coreGrad.addColorStop(0.4, colorSet[0]);
+        coreGrad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    drawSineRibbon(ctx, w, h, cx, cy, vol, cfg) {
+        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
+        ctx.save();
+
+        const ribbonWidth = Math.min(w * 0.85, 340);
+        const startX = cx - ribbonWidth / 2;
+        const endX = cx + ribbonWidth / 2;
+
+        const ribbons = [
+            { freq: 0.015, phase: this.phase * 1.5, amp: 22 + vol * 65, color: colorSet[2], alpha: 0.35, height: 16 },
+            { freq: 0.022, phase: -this.phase * 1.8, amp: 30 + vol * 75, color: colorSet[1], alpha: 0.55, height: 18 },
+            { freq: 0.030, phase: this.phase * 2.2, amp: 38 + vol * 85, color: colorSet[0], alpha: 0.85, height: 22 }
+        ];
+
+        for (const rb of ribbons) {
+            ctx.beginPath();
+            for (let x = startX; x <= endX; x += 6) {
+                const norm = (x - startX) / ribbonWidth;
+                const windowEnvelope = Math.sin(norm * Math.PI);
+                const y = cy + Math.sin(x * rb.freq + rb.phase) * (rb.amp * windowEnvelope)
+                             + Math.cos(x * 0.009 - rb.phase * 0.5) * (rb.amp * 0.35 * windowEnvelope);
+                if (x === startX) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (let x = endX; x >= startX; x -= 6) {
+                const norm = (x - startX) / ribbonWidth;
+                const windowEnvelope = Math.sin(norm * Math.PI);
+                const y = cy + Math.sin(x * rb.freq + rb.phase) * (rb.amp * windowEnvelope)
+                             + Math.cos(x * 0.009 - rb.phase * 0.5) * (rb.amp * 0.35 * windowEnvelope)
+                             + rb.height * (1 + vol * 0.8) * windowEnvelope;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+
+            ctx.fillStyle = rb.color;
+            ctx.globalAlpha = rb.alpha;
+            ctx.fill();
+
+            ctx.strokeStyle = rb.color;
+            ctx.lineWidth = 1.8;
+            ctx.globalAlpha = Math.min(1.0, rb.alpha + 0.3);
+            ctx.stroke();
+        }
+
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6 + vol * 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    drawOrganicBlob(ctx, cx, cy, vol, cfg) {
+        const colorSet = cfg.colors[this.state] || cfg.colors.listening;
+        const points = 12;
+        const angleStep = (Math.PI * 2) / points;
+        const baseR = 56 + vol * 34;
+
+        ctx.save();
+
+        // Outer Liquid Halo
+        ctx.beginPath();
+        const outerCoords = [];
+        for (let i = 0; i < points; i++) {
+            const angle = i * angleStep;
+            const wave = Math.sin(this.phase * 2.2 + i * 1.4) * (vol * 22 + 8)
+                       + Math.cos(this.phase * 1.6 - i * 2.0) * (vol * 14 + 6);
+            const r = baseR + 18 + wave;
+            outerCoords.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+        }
+        ctx.moveTo((outerCoords[0].x + outerCoords[points - 1].x) / 2, (outerCoords[0].y + outerCoords[points - 1].y) / 2);
+        for (let i = 0; i < points; i++) {
+            const curr = outerCoords[i];
+            const next = outerCoords[(i + 1) % points];
+            ctx.quadraticCurveTo(curr.x, curr.y, (curr.x + next.x) / 2, (curr.y + next.y) / 2);
+        }
+        ctx.closePath();
+        ctx.fillStyle = colorSet[1];
+        ctx.globalAlpha = 0.28;
+        ctx.fill();
+
+        // Main Liquid Body
+        ctx.beginPath();
         const coords = [];
         for (let i = 0; i < points; i++) {
             const angle = i * angleStep;
-            const wave = Math.sin(phaseOffset * 2.0 + i * 1.5) * (this.currentVolume * 24 + 5);
-            const r = radius + wave;
-            const x = cx + Math.cos(angle) * r;
-            const y = cy + Math.sin(angle) * r;
-            coords.push({ x, y });
+            const wave = Math.sin(this.phase * 3.0 + i * 1.6) * (vol * 28 + 10)
+                       + Math.cos(-this.phase * 2.4 + i * 2.2) * (vol * 18 + 7);
+            const r = baseR + wave;
+            coords.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
         }
-
         ctx.moveTo((coords[0].x + coords[points - 1].x) / 2, (coords[0].y + coords[points - 1].y) / 2);
         for (let i = 0; i < points; i++) {
             const curr = coords[i];
             const next = coords[(i + 1) % points];
-            const midX = (curr.x + next.x) / 2;
-            const midY = (curr.y + next.y) / 2;
-            ctx.quadraticCurveTo(curr.x, curr.y, midX, midY);
+            ctx.quadraticCurveTo(curr.x, curr.y, (curr.x + next.x) / 2, (curr.y + next.y) / 2);
         }
-
         ctx.closePath();
+
+        const grad = ctx.createRadialGradient(cx - baseR * 0.25, cy - baseR * 0.25, 10, cx, cy, baseR * 1.2);
+        grad.addColorStop(0, colorSet[0]);
+        grad.addColorStop(0.6, colorSet[1]);
+        grad.addColorStop(1, colorSet[2]);
+
         ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.95;
         ctx.fill();
+
+        // Specular highlight
+        ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+        ctx.beginPath();
+        ctx.arc(cx - baseR * 0.32, cy - baseR * 0.32, 12 + vol * 8, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.restore();
     }
 

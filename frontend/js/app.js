@@ -350,6 +350,10 @@ class App {
             cancelAnimationFrame(this.snowAnimFrame);
             this.snowAnimFrame = null;
         }
+        if (this.ambientAnimFrame) {
+            cancelAnimationFrame(this.ambientAnimFrame);
+            this.ambientAnimFrame = null;
+        }
         if (this._resizeHandler) {
             window.removeEventListener("resize", this._resizeHandler);
             this._resizeHandler = null;
@@ -566,6 +570,342 @@ class App {
             };
 
             this.snowAnimFrame = requestAnimationFrame(animateSnow);
+        } else if (themeName === "cyberpunk") {
+            const canvas = document.createElement("canvas");
+            canvas.className = "w-full h-full pointer-events-none opacity-40";
+            layer.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
+
+            // Generate skyline buildings
+            const buildings = [];
+            let bx = 0;
+            while (bx < 2560) {
+                const bw = 35 + Math.random() * 65;
+                const bh = 50 + Math.random() * 140;
+                const windows = [];
+                for (let wy = 15; wy < bh - 10; wy += 12) {
+                    for (let wx = 6; wx < bw - 6; wx += 9) {
+                        if (Math.random() < 0.4) {
+                            windows.push({
+                                x: wx,
+                                y: wy,
+                                color: Math.random() < 0.5 ? "#00f0ff" : (Math.random() < 0.8 ? "#fcee0a" : "#ff003c"),
+                                lit: Math.random() < 0.75
+                            });
+                        }
+                    }
+                }
+                buildings.push({ x: bx, width: bw, height: bh, windows });
+                bx += bw + (Math.random() * 12 - 4);
+            }
+
+            let roadOffset = 0;
+            const animateCyberpunk = () => {
+                const w = canvas.width;
+                const h = canvas.height;
+                const horizon = h * 0.52;
+                const vanishingX = w * 0.5;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // 1. Digital Sun at Horizon
+                const sunRadius = Math.min(w, h) * 0.18;
+                const sunY = horizon - sunRadius * 0.25;
+
+                const sunGrad = ctx.createLinearGradient(0, sunY - sunRadius, 0, sunY + sunRadius);
+                sunGrad.addColorStop(0, "#ffe600");
+                sunGrad.addColorStop(0.5, "#ff0055");
+                sunGrad.addColorStop(1, "#7900ff");
+
+                ctx.save();
+                ctx.fillStyle = sunGrad;
+                ctx.beginPath();
+                ctx.arc(vanishingX, sunY, sunRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sun horizontal digital scanline blind bars
+                ctx.fillStyle = "#07050e";
+                for (let sy = sunY - sunRadius * 0.1; sy < sunY + sunRadius; sy += 7) {
+                    const barHeight = 2.5 + ((sy - (sunY - sunRadius * 0.1)) / (sunRadius * 1.1)) * 3;
+                    ctx.fillRect(vanishingX - sunRadius - 10, sy, (sunRadius + 10) * 2, barHeight);
+                }
+                ctx.restore();
+
+                // 2. City Skyline Silhouettes
+                ctx.save();
+                const skylineShift = (w > 2000) ? 0 : (vanishingX - 800);
+                for (const b of buildings) {
+                    const screenX = b.x + skylineShift;
+                    if (screenX + b.width < -100 || screenX > w + 100) continue;
+                    const screenY = horizon - b.height;
+
+                    ctx.fillStyle = "#090514";
+                    ctx.fillRect(screenX, screenY, b.width, b.height);
+                    ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(screenX, screenY, b.width, b.height);
+
+                    for (const win of b.windows) {
+                        if (win.lit) {
+                            ctx.fillStyle = win.color;
+                            ctx.shadowColor = win.color;
+                            ctx.shadowBlur = 4;
+                            ctx.fillRect(screenX + win.x, screenY + win.y, 4, 6);
+                        }
+                    }
+                    ctx.shadowBlur = 0;
+                }
+                ctx.restore();
+
+                // 3. Perspective Highway Ground Grid
+                ctx.save();
+                roadOffset = (roadOffset + 0.007) % 1;
+
+                ctx.lineWidth = 1.2;
+                for (let i = 1; i <= 22; i++) {
+                    const norm = (i + roadOffset) / 22;
+                    const y = horizon + Math.pow(norm, 2.2) * (h - horizon);
+                    const alpha = Math.min(0.85, Math.pow(norm, 1.5));
+                    ctx.strokeStyle = `rgba(0, 240, 255, ${alpha * 0.65})`;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                const lanes = 18;
+                for (let j = -lanes; j <= lanes; j++) {
+                    const spread = (w * 1.8) / lanes;
+                    const bottomX = vanishingX + j * spread;
+                    const isHighwayCenter = Math.abs(j) <= 2;
+
+                    ctx.strokeStyle = isHighwayCenter ? "rgba(252, 238, 10, 0.7)" : "rgba(255, 0, 60, 0.45)";
+                    ctx.lineWidth = isHighwayCenter ? 1.8 : 1.1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(vanishingX + (j * 4), horizon);
+                    ctx.lineTo(bottomX, h);
+                    ctx.stroke();
+                }
+
+                // Horizon neon glow
+                const horizGrad = ctx.createLinearGradient(0, horizon - 8, 0, horizon + 8);
+                horizGrad.addColorStop(0, "rgba(0, 240, 255, 0)");
+                horizGrad.addColorStop(0.5, "rgba(0, 240, 255, 0.85)");
+                horizGrad.addColorStop(1, "rgba(255, 0, 60, 0)");
+                ctx.fillStyle = horizGrad;
+                ctx.fillRect(0, horizon - 8, w, 16);
+
+                ctx.restore();
+
+                this.ambientAnimFrame = requestAnimationFrame(animateCyberpunk);
+            };
+
+            this.ambientAnimFrame = requestAnimationFrame(animateCyberpunk);
+        } else if (themeName === "synthwave") {
+            const canvas = document.createElement("canvas");
+            canvas.className = "w-full h-full pointer-events-none opacity-40";
+            layer.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
+
+            // Tron Lightcycle Grid Runners
+            const RUNNER_COUNT = 10;
+            const horizCount = 18;
+
+            const initRunner = () => ({
+                gridY: Math.floor(Math.random() * 14) + 2,
+                lane: (Math.random() - 0.5) * 16,
+                dir: Math.random() < 0.5 ? "forward" : (Math.random() < 0.5 ? "left" : "right"),
+                speed: 0.04 + Math.random() * 0.05,
+                color: Math.random() < 0.55 ? "#00fffb" : "#ff007f",
+                trail: [],
+                maxTrail: 18 + Math.floor(Math.random() * 14)
+            });
+
+            const runners = [];
+            for (let r = 0; r < RUNNER_COUNT; r++) {
+                runners.push(initRunner());
+            }
+
+            let gridScroll = 0;
+            const animateSynthwave = () => {
+                const w = canvas.width;
+                const h = canvas.height;
+                const horizon = h * 0.48;
+                const vanishingX = w * 0.5;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // Horizon Sunset Glow
+                const sunsetGrad = ctx.createRadialGradient(vanishingX, horizon, 10, vanishingX, horizon, w * 0.45);
+                sunsetGrad.addColorStop(0, "rgba(255, 42, 133, 0.4)");
+                sunsetGrad.addColorStop(0.5, "rgba(114, 9, 183, 0.2)");
+                sunsetGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                ctx.fillStyle = sunsetGrad;
+                ctx.fillRect(0, 0, w, horizon + 50);
+
+                gridScroll = (gridScroll + 0.005) % 1;
+
+                const getScreenPos = (lane, normY) => {
+                    const y = horizon + Math.pow(normY, 2.0) * (h - horizon);
+                    const spread = (w * 1.5) / 16;
+                    const x = vanishingX + (lane * spread * normY);
+                    return { x, y };
+                };
+
+                // Horizontal lines
+                ctx.lineWidth = 1.2;
+                for (let i = 1; i <= horizCount; i++) {
+                    const norm = (i + gridScroll) / horizCount;
+                    const y = horizon + Math.pow(norm, 2.0) * (h - horizon);
+                    const alpha = Math.min(0.8, Math.pow(norm, 1.3));
+                    ctx.strokeStyle = `rgba(255, 42, 133, ${alpha * 0.65})`;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                // Longitudinal radiating lanes
+                for (let l = -12; l <= 12; l++) {
+                    const p1 = getScreenPos(l, 0.05);
+                    const p2 = getScreenPos(l, 1.0);
+                    ctx.strokeStyle = "rgba(0, 255, 251, 0.35)";
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+
+                // Tron Lightcycle Runners
+                ctx.save();
+                for (let i = 0; i < runners.length; i++) {
+                    const r = runners[i];
+
+                    if (r.dir === "forward") {
+                        r.gridY += r.speed;
+                        if (Math.random() < 0.06 && r.gridY > 2 && r.gridY < horizCount - 2) {
+                            r.dir = Math.random() < 0.5 ? "left" : "right";
+                        }
+                    } else if (r.dir === "left") {
+                        r.lane -= r.speed * 1.8;
+                        if (Math.random() < 0.07) r.dir = "forward";
+                    } else if (r.dir === "right") {
+                        r.lane += r.speed * 1.8;
+                        if (Math.random() < 0.07) r.dir = "forward";
+                    }
+
+                    if (r.gridY >= horizCount || Math.abs(r.lane) > 12 || r.gridY <= 0) {
+                        runners[i] = initRunner();
+                        continue;
+                    }
+
+                    const pos = getScreenPos(r.lane, r.gridY / horizCount);
+                    r.trail.push(pos);
+                    if (r.trail.length > r.maxTrail) r.trail.shift();
+
+                    if (r.trail.length > 1) {
+                        for (let t = 1; t < r.trail.length; t++) {
+                            const alpha = (t / r.trail.length) * 0.9;
+                            ctx.strokeStyle = r.color;
+                            ctx.globalAlpha = alpha;
+                            ctx.lineWidth = 2.2;
+                            ctx.shadowColor = r.color;
+                            ctx.shadowBlur = 6;
+                            ctx.beginPath();
+                            ctx.moveTo(r.trail[t - 1].x, r.trail[t - 1].y);
+                            ctx.lineTo(r.trail[t].x, r.trail[t].y);
+                            ctx.stroke();
+                        }
+                        ctx.fillStyle = "#ffffff";
+                        ctx.globalAlpha = 1.0;
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+
+                this.ambientAnimFrame = requestAnimationFrame(animateSynthwave);
+            };
+
+            this.ambientAnimFrame = requestAnimationFrame(animateSynthwave);
+        } else if (themeName === "pirate") {
+            const canvas = document.createElement("canvas");
+            canvas.className = "w-full h-full pointer-events-none opacity-50";
+            layer.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            this._resizeHandler = resizeCanvas;
+            window.addEventListener("resize", resizeCanvas);
+
+            // Rising warm sea-lantern embers & drifting sea mist
+            const EMBER_COUNT = 45;
+            const embers = [];
+            for (let i = 0; i < EMBER_COUNT; i++) {
+                embers.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: 1.0 + Math.random() * 2.2,
+                    speedY: 0.35 + Math.random() * 0.85,
+                    sway: Math.random() * Math.PI * 2,
+                    swaySpeed: 0.01 + Math.random() * 0.02,
+                    color: Math.random() < 0.65 ? "#d4af37" : (Math.random() < 0.85 ? "#f59e0b" : "#0d9488"),
+                    opacity: 0.3 + Math.random() * 0.5
+                });
+            }
+
+            const animatePirate = () => {
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                ctx.save();
+                for (const em of embers) {
+                    em.y -= em.speedY;
+                    em.sway += em.swaySpeed;
+                    em.x += Math.sin(em.sway) * 1.2;
+
+                    if (em.y < -10) {
+                        em.y = h + 10;
+                        em.x = Math.random() * w;
+                    }
+
+                    ctx.fillStyle = em.color;
+                    ctx.globalAlpha = em.opacity;
+                    ctx.shadowColor = em.color;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(em.x, em.y, em.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                this.ambientAnimFrame = requestAnimationFrame(animatePirate);
+            };
+
+            this.ambientAnimFrame = requestAnimationFrame(animatePirate);
         }
     }
 

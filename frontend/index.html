@@ -246,7 +246,7 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden relative">
 
             <!-- Message Scroll Area (Only area that scrolls) -->
-            <div id="messages-container" class="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 space-y-4 max-w-3xl w-full mx-auto custom-scrollbar">
+            <div id="messages-container" class="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 space-y-4 max-w-5xl xl:max-w-6xl 2xl:max-w-7xl w-full mx-auto custom-scrollbar">
                 <!-- Welcome greeting if empty -->
                 <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center p-4 select-none opacity-90">
                     <div class="relative mb-4">
@@ -267,7 +267,7 @@
             </div>
 
             <!-- FLOATING PER-TURN TOKEN TELEMETRY BADGE -->
-            <div id="token-telemetry-badge" class="max-w-3xl w-full mx-auto px-4 pb-1.5 flex items-center justify-between text-[11px] text-[var(--text-muted)] font-mono hidden select-none">
+            <div id="token-telemetry-badge" class="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl w-full mx-auto px-4 pb-1.5 flex items-center justify-between text-[11px] text-[var(--text-muted)] font-mono hidden select-none">
                 <div class="flex items-center gap-2.5 truncate">
                     <span class="flex items-center gap-1"><span class="text-[var(--brand-primary)] font-semibold">Prompt:</span> <span id="tt-prompt-speed" class="text-[var(--text-main)]">-- t/s</span></span>
                     <span class="flex items-center gap-1"><span class="text-[var(--brand-primary)] font-semibold">Eval:</span> <span id="tt-eval-speed" class="text-[var(--text-main)]">-- t/s</span></span>
@@ -280,7 +280,7 @@
 
             <!-- PINNED BOTTOM INPUT BAR -->
             <div class="p-2 sm:p-4 bg-gradient-to-t from-[var(--bg-main)] via-[var(--bg-main)]/95 to-transparent shrink-0">
-                <div id="chat-box-container" class="max-w-3xl mx-auto rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] shadow-xl focus-within:border-[var(--brand-primary)] transition-all overflow-hidden">
+                <div id="chat-box-container" class="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] shadow-xl focus-within:border-[var(--brand-primary)] transition-all overflow-hidden">
                     <!-- Staged File / Image Previews -->
                     <div id="attachment-previews" class="px-3 pt-2.5 flex flex-wrap gap-2 hidden border-b border-[var(--border-color)] pb-2">
                         <!-- Populated dynamically by chat.js -->
@@ -445,22 +445,40 @@
                             <span class="text-[9px] text-[#52796f]">Sage Meadow 🌿</span>
                         </button>
 
-                        <!-- 11. Pastel Dream (Pastel Color Theme) -->
-                        <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastel">
+                        <!-- 11. Pastel Lilac (Rose & Lilac Theme) -->
+                        <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastellilac">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2.5 h-2.5 rounded-full bg-[#ec4899] animate-pulse"></span>
-                                <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Dream</span>
+                                <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Lilac</span>
                             </div>
-                            <span class="text-[9px] text-[#ec4899] font-medium">Sweet Lilac 🌸</span>
+                            <span class="text-[9px] text-[#ec4899] font-medium">Sweet Rose 🌸</span>
                         </button>
 
-                        <!-- 12. Glacial Ice (Frozen Tundra & Falling Snow - Light Mode) -->
+                        <!-- 12. Pastel Prisma (Multi-Chroma High-Contrast Pastel) -->
+                        <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#f8fafc] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastelprisma">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-400 via-sky-400 to-amber-400"></span>
+                                <span class="font-medium text-slate-800 text-[11px] truncate">Pastel Prisma</span>
+                            </div>
+                            <span class="text-[9px] text-teal-600 font-medium">Multi-Pastel 🎨</span>
+                        </button>
+
+                        <!-- 13. Glacial Ice (Frozen Tundra & Falling Snow) -->
                         <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#edf5fa] text-left transition hover:border-sky-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="glacier">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
                                 <span class="font-medium text-[#0c2340] text-[11px] truncate">Glacial Ice</span>
                             </div>
                             <span class="text-[9px] text-sky-600 font-medium">Frozen Snow ❄️</span>
+                        </button>
+
+                        <!-- 14. Blackbeard's Voyage (Pirate Theme) -->
+                        <button class="theme-btn p-2 rounded-xl border border-amber-900/50 bg-[#090e17] text-left transition hover:border-amber-500 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pirate">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></span>
+                                <span class="font-medium text-[#f5edd6] text-[11px] truncate">Pirate Voyage</span>
+                            </div>
+                            <span class="text-[9px] text-[#d4af37] font-medium">Blackbeard 🏴‍☠️</span>
                         </button>
                     </div>
                 </div>
@@ -694,11 +712,11 @@
     </div>
 
     <!-- Application Scripts -->
-    <script src="js/utils.js?v=2.2"></script>
-    <script src="js/telemetry.js?v=2.2"></script>
-    <script src="js/models.js?v=2.2"></script>
-    <script src="js/voice.js?v=2.2"></script>
-    <script src="js/chat.js?v=2.2"></script>
-    <script src="js/app.js?v=2.2"></script>
+    <script src="js/utils.js?v=2.3"></script>
+    <script src="js/telemetry.js?v=2.3"></script>
+    <script src="js/models.js?v=2.3"></script>
+    <script src="js/voice.js?v=2.3"></script>
+    <script src="js/chat.js?v=2.3"></script>
+    <script src="js/app.js?v=2.3"></script>
 </body>
 </html>
