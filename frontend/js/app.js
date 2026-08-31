@@ -298,11 +298,14 @@ class App {
         if (sidebar) {
             sidebar.classList.add("open");
             sidebar.classList.remove("collapsed");
+            sidebar.style.setProperty("z-index", "9999", "important");
             sidebar.style.setProperty("transform", "translateX(0)", "important");
             sidebar.style.setProperty("visibility", "visible", "important");
+            sidebar.style.setProperty("pointer-events", "auto", "important");
         }
         if (backdrop) {
             backdrop.classList.remove("hidden");
+            backdrop.style.setProperty("z-index", "9998", "important");
         }
     }
 
@@ -314,6 +317,7 @@ class App {
             sidebar.classList.remove("open");
             sidebar.classList.add("collapsed");
             sidebar.style.setProperty("transform", "translateX(-100%)", "important");
+            sidebar.style.setProperty("pointer-events", "none", "important");
         }
         if (backdrop) {
             backdrop.classList.add("hidden");
