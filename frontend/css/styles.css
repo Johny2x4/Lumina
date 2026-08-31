@@ -180,7 +180,7 @@ body[data-theme="snowforest"] #ambient-layer {
     pointer-events: none;
 }
 /* Snowy Accumulation Caps on Top of Tiles in Snowy Forest Theme */
-body[data-theme="snowforest"] .message-bubble-wrapper > div,
+body[data-theme="snowforest"] .message-bubble-wrapper > div:not(.msg-actions-bar),
 body[data-theme="snowforest"] .bg-slate-900\/70,
 body[data-theme="snowforest"] .hud-card {
     border-top: 2px solid rgba(255, 255, 255, 0.85) !important;
@@ -342,7 +342,7 @@ body[data-theme="glacier"] header {
     -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
     border-bottom: 1px solid rgba(186, 230, 253, 0.6) !important;
 }
-body[data-theme="glacier"] .message-bubble-wrapper > div,
+body[data-theme="glacier"] .message-bubble-wrapper > div:not(.msg-actions-bar),
 body[data-theme="glacier"] .bg-slate-900\/70,
 body[data-theme="glacier"] .hud-card,
 body[data-theme="glacier"] .example-card,
@@ -416,7 +416,7 @@ body[data-theme="pirate"] #ambient-layer {
                 radial-gradient(circle at 85% 30%, rgba(180, 83, 9, 0.1) 0%, transparent 50%);
     pointer-events: none;
 }
-body[data-theme="pirate"] .message-bubble-wrapper > div,
+body[data-theme="pirate"] .message-bubble-wrapper > div:not(.msg-actions-bar),
 body[data-theme="pirate"] .hud-card {
     border-color: rgba(212, 175, 55, 0.25) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(212, 175, 55, 0.15) !important;
@@ -1069,12 +1069,20 @@ body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
     position: relative;
 }
 
-.msg-actions-bar {
+.msg-actions-bar,
+body[data-theme] .msg-actions-bar {
     opacity: 0;
     pointer-events: none;
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
     box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 0 !important;
     transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     transform: translateY(3px);
@@ -1088,14 +1096,16 @@ body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
 }
 
 @media (max-width: 768px) {
-    .msg-actions-bar {
+    .msg-actions-bar,
+    body[data-theme] .msg-actions-bar {
         opacity: 0.8;
         pointer-events: auto;
         transform: translateY(0);
     }
 }
 
-.msg-action-btn {
+.msg-action-btn,
+body[data-theme] .msg-action-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
@@ -1104,8 +1114,15 @@ body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
     font-weight: 500;
     color: var(--text-muted);
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
     box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     border-radius: 0.375rem;
     transition: all 0.15s ease;
     cursor: pointer;
@@ -1113,12 +1130,15 @@ body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
     line-height: 1;
 }
 
-.msg-action-btn:hover {
+.msg-action-btn:hover,
+body[data-theme] .msg-action-btn:hover {
     color: var(--text-main);
-    background: rgba(125, 125, 125, 0.12) !important;
+    background: rgba(125, 125, 125, 0.15) !important;
+    background-color: rgba(125, 125, 125, 0.15) !important;
 }
 
-.msg-action-btn:active {
+.msg-action-btn:active,
+body[data-theme] .msg-action-btn:active {
     transform: scale(0.92);
 }
 
