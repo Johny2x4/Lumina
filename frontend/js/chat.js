@@ -413,7 +413,7 @@ class ChatManager {
                         if (chunk.message?.content) {
                             assistantContent += chunk.message.content;
                             try {
-                                contentEl.innerHTML = marked.parse(assistantContent);
+                                contentEl.innerHTML = renderMarkdown(assistantContent);
                             } catch (parseErr) {
                                 // Fallback to escaped plaintext if Markdown parsing fails
                                 contentEl.textContent = assistantContent;
@@ -539,7 +539,7 @@ class ChatManager {
                         if (chunk.message?.content) {
                             assistantContent += chunk.message.content;
                             try {
-                                contentEl.innerHTML = marked.parse(assistantContent);
+                                contentEl.innerHTML = renderMarkdown(assistantContent);
                             } catch (parseErr) {
                                 contentEl.textContent = assistantContent;
                             }
@@ -680,7 +680,7 @@ class ChatManager {
                 }">
                     ${imagesHtml}
                     <div class="message-content prose-lumina ${isUser ? 'text-[var(--text-user-bubble)]' : ''}">
-                        ${isUser ? escapeHtml(content) : (content ? (() => { try { return marked.parse(content); } catch(e) { return escapeHtml(content); } })() : `
+                        ${isUser ? escapeHtml(content) : (content ? (() => { try { return renderMarkdown(content); } catch(e) { return escapeHtml(content); } })() : `
                             <div class="thinking-indicator flex items-center gap-2 py-1 select-none">
                                 <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] animate-bounce" style="animation-delay: 0ms"></span>
@@ -921,6 +921,23 @@ class ChatManager {
                 }
             }
         });
+        this.renderMath(el);
+    }
+
+    renderMath(el) {
+        if (typeof renderMathInElement === "function") {
+            try {
+                renderMathInElement(el, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "\\[", right: "\\]", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false }
+                    ],
+                    throwOnError: false
+                });
+            } catch (e) {}
+        }
     }
 
     scrollToBottom() {

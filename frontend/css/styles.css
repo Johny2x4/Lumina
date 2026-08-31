@@ -1038,3 +1038,35 @@ body[data-theme="glacier"] #live-voice-overlay #live-voice-user-sub {
     transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   KaTeX Math & Chemical Formula Typography
+   ========================================================================== */
+.katex {
+    font-size: 1.05em;
+    text-rendering: auto;
+    color: inherit;
+}
+.katex-display {
+    margin: 0.85em 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.35em 0;
+    text-align: center;
+}
+.katex-display > .katex {
+    display: inline-block;
+    text-align: initial;
+}
+.katex-error {
+    color: #f43f5e;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9em;
+    background: rgba(244, 63, 94, 0.1);
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+}
+.prose-lumina .katex {
+    color: inherit;
+}
+
+
