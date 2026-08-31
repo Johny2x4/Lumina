@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import re
 import time
@@ -369,6 +370,27 @@ async def cancel_model_pull(request: Request):
     return JSONResponse({"cancelled": success})
 
 
+@app.post("/api/models/preload")
+async def preload_model(request: Request):
+    """Pre-warms and pins the model in VRAM immediately upon selection."""
+    data = await request.json()
+    model_name = data.get("model", "").strip()
+    keep_alive = data.get("keep_alive", -1)
+    if not model_name:
+        raise HTTPException(status_code=400, detail="Missing model name")
+
+    client: httpx.AsyncClient = request.app.state.http_client
+    try:
+        resp = await client.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            json={"model": model_name, "prompt": "", "keep_alive": keep_alive},
+            timeout=300.0,
+        )
+        return JSONResponse({"status": "loaded", "model": model_name, "keep_alive": keep_alive, "ollama": resp.json()})
+    except Exception as e:
+        return JSONResponse({"status": "error", "error": str(e)}, status_code=500)
+
+
 # ---------------------------------------------------------------------------
 # Resilient Background Chat Inference (generates to completion even if window closes)
 # ---------------------------------------------------------------------------
@@ -380,6 +402,7 @@ async def start_chat_generation(request: Request):
     messages = data.get("messages", [])
     sources = data.get("sources", [])
     options = data.get("options", {})
+    keep_alive = data.get("keep_alive", -1)
 
     if not session_id or not model:
         raise HTTPException(status_code=400, detail="Missing session_id or model")
@@ -388,7 +411,7 @@ async def start_chat_generation(request: Request):
         "model": model,
         "messages": messages,
         "stream": True,
-        "keep_alive": -1,
+        "keep_alive": keep_alive,
         "options": options,
     }
 

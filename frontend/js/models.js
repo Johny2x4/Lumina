@@ -3,11 +3,15 @@ class ModelManager {
     constructor() {
         this.models = [];
         this.selectedModel = localStorage.getItem("lumina_selected_model") || localStorage.getItem("lumina_default_model") || "";
+        this.isPersistenceEnabled = localStorage.getItem("lumina_model_persistence") !== "false";
+        this.currentEventSource = null;
+        this.pullPollTimer = null;
         this.init();
     }
 
     async init() {
         this.bindEvents();
+        this.initPersistenceToggle();
         await this.refreshModels();
         await this.checkBackgroundPulls();
     }
@@ -132,6 +136,76 @@ class ModelManager {
         }
     }
 
+    initPersistenceToggle() {
+        this.syncPersistenceUI();
+
+        const btnSidebar = document.getElementById("toggle-model-persistence");
+        const btnSettings = document.getElementById("settings-toggle-persistence");
+
+        const handleToggle = () => {
+            this.isPersistenceEnabled = !this.isPersistenceEnabled;
+            localStorage.setItem("lumina_model_persistence", this.isPersistenceEnabled ? "true" : "false");
+            this.syncPersistenceUI();
+
+            if (this.isPersistenceEnabled && this.selectedModel) {
+                this.preloadModel(this.selectedModel);
+            }
+        };
+
+        if (btnSidebar) btnSidebar.addEventListener("click", handleToggle);
+        if (btnSettings) btnSettings.addEventListener("click", handleToggle);
+    }
+
+    syncPersistenceUI() {
+        const btnSidebar = document.getElementById("toggle-model-persistence");
+        const knobSidebar = document.getElementById("toggle-persist-knob");
+        const btnSettings = document.getElementById("settings-toggle-persistence");
+        const knobSettings = document.getElementById("settings-persist-knob");
+
+        [btnSidebar, btnSettings].forEach(btn => {
+            if (btn) {
+                btn.setAttribute("aria-checked", this.isPersistenceEnabled ? "true" : "false");
+                btn.className = `relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    this.isPersistenceEnabled ? 'bg-indigo-600' : 'bg-slate-700'
+                } focus:outline-none`;
+            }
+        });
+
+        [knobSidebar, knobSettings].forEach(knob => {
+            if (knob) {
+                knob.className = `pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    this.isPersistenceEnabled ? 'translate-x-4' : 'translate-x-0'
+                }`;
+            }
+        });
+    }
+
+    async preloadModel(modelName) {
+        const status = document.getElementById("vram-purge-status");
+        if (status) {
+            status.textContent = "Pre-warming...";
+            status.className = "text-[11px] text-indigo-400 font-mono font-medium";
+            status.classList.remove("hidden");
+        }
+
+        try {
+            await fetch("/api/models/preload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ model: modelName, keep_alive: -1 })
+            });
+
+            if (status) {
+                status.textContent = "VRAM Ready";
+                status.className = "text-[11px] text-emerald-400 font-mono font-medium";
+                setTimeout(() => status.classList.add("hidden"), 3000);
+            }
+        } catch (e) {
+            console.warn("Model preload error:", e);
+            if (status) status.classList.add("hidden");
+        }
+    }
+
     setSelectedModel(modelName) {
         this.selectedModel = modelName;
         localStorage.setItem("lumina_selected_model", modelName);
@@ -144,6 +218,11 @@ class ModelManager {
         const headerName = document.getElementById("header-model-name");
         if (headerName) {
             headerName.textContent = modelName || "Select model";
+        }
+
+        // If Memory Persistence is enabled, immediately preload and pin in VRAM
+        if (this.isPersistenceEnabled && modelName) {
+            this.preloadModel(modelName);
         }
     }
 
@@ -266,45 +345,80 @@ class ModelManager {
             this.currentEventSource.close();
             this.currentEventSource = null;
         }
+        if (this.pullPollTimer) {
+            clearInterval(this.pullPollTimer);
+            this.pullPollTimer = null;
+        }
 
-        const es = new EventSource(`/api/models/pull/stream?name=${encodeURIComponent(modelName)}`);
-        this.currentEventSource = es;
+        const updateUI = async (data) => {
+            if (!data) return;
+            const percent = Math.min(100, Math.max(0, data.percent || 0));
+            if (progressBar) progressBar.style.width = `${percent}%`;
+            if (percentText) percentText.textContent = `${percent}%`;
 
-        es.onmessage = async (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (statusText) statusText.textContent = data.status || "Downloading...";
-                const percent = Math.min(100, Math.max(0, data.percent || 0));
-                if (progressBar) progressBar.style.width = `${percent}%`;
-                if (percentText) percentText.textContent = `${percent}%`;
+            let displayStatus = data.status || "Downloading layers...";
+            if (data.completed && data.total && data.total > 0) {
+                const doneMb = (data.completed / (1024 * 1024)).toFixed(1);
+                const totalMb = (data.total / (1024 * 1024)).toFixed(1);
+                displayStatus = `${data.status} • ${doneMb} / ${totalMb} MB (${percent}%)`;
+            }
+            if (statusText) statusText.textContent = displayStatus;
 
-                if (data.done) {
-                    es.close();
+            if (data.done) {
+                if (this.currentEventSource) {
+                    this.currentEventSource.close();
                     this.currentEventSource = null;
-                    if (btnPull) btnPull.disabled = false;
-
-                    if (data.error) {
-                        if (statusText) statusText.textContent = `Error: ${data.error}`;
-                    } else {
-                        if (statusText) statusText.textContent = "Pull complete!";
-                        if (progressBar) progressBar.style.width = "100%";
-                        if (percentText) percentText.textContent = "100%";
-                        await this.refreshModels();
-                        this.setSelectedModel(modelName);
-                        this.renderModalInstalledList();
-                    }
                 }
-            } catch (err) {
-                console.error("Error parsing pull stream event:", err);
+                if (this.pullPollTimer) {
+                    clearInterval(this.pullPollTimer);
+                    this.pullPollTimer = null;
+                }
+                if (btnPull) btnPull.disabled = false;
+
+                if (data.error) {
+                    if (statusText) statusText.textContent = `Error: ${data.error}`;
+                } else {
+                    if (statusText) statusText.textContent = "Pull complete!";
+                    if (progressBar) progressBar.style.width = "100%";
+                    if (percentText) percentText.textContent = "100%";
+                    await this.refreshModels();
+                    this.setSelectedModel(modelName);
+                    this.renderModalInstalledList();
+                }
             }
         };
 
-        es.onerror = (err) => {
-            console.warn("Pull EventSource closed/error:", err);
-            es.close();
-            this.currentEventSource = null;
-            if (btnPull) btnPull.disabled = false;
-        };
+        // 1. Dual Engine: SSE Stream
+        try {
+            const es = new EventSource(`/api/models/pull/stream?name=${encodeURIComponent(modelName)}`);
+            this.currentEventSource = es;
+
+            es.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    updateUI(data);
+                } catch (err) {
+                    console.error("Error parsing pull stream event:", err);
+                }
+            };
+
+            es.onerror = () => {
+                // If SSE drops, polling will continue seamlessly
+            };
+        } catch (e) {}
+
+        // 2. Dual Engine: Polling Fallback (guarantees updates every 800ms even if SSE is buffered)
+        this.pullPollTimer = setInterval(async () => {
+            try {
+                const res = await fetch("/api/models/pull/status");
+                if (!res.ok) return;
+                const data = await res.json();
+                const job = (data.pulls || []).find(p => p.model === modelName);
+                if (job) {
+                    updateUI(job);
+                }
+            } catch (e) {}
+        }, 800);
     }
 
     async pullModel(modelName) {

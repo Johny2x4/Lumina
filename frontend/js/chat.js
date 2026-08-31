@@ -375,6 +375,7 @@ class ChatManager {
             };
 
             const sessionId = window.app?.activeSessionId || ("sess_" + Date.now());
+            const isPersist = window.modelManager?.isPersistenceEnabled !== false;
             const response = await fetch("/api/chat/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -383,7 +384,8 @@ class ChatManager {
                     model: model,
                     messages: apiMessages,
                     sources: searchSources && searchSources.length > 0 ? searchSources : [],
-                    options: inferenceOptions
+                    options: inferenceOptions,
+                    keep_alive: isPersist ? -1 : "5m"
                 }),
                 signal: this.abortController.signal
             });
