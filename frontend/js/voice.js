@@ -9,8 +9,11 @@ class VoiceController {
         this.synth = window.speechSynthesis;
         this.currentUtterance = null;
 
-        // Web Audio API for Speech Visualizer
+        // Web Audio API for Speech Visualizer & iOS Autoplay Unlocking
         this.audioCtx = null;
+        this.playbackAudioCtx = null;
+        this.currentAudioSource = null;
+        this.unlockedAudio = null;
         this.analyser = null;
         this.audioStream = null;
         this.dataArray = null;
@@ -197,10 +200,16 @@ class VoiceController {
         const btnHeaderVoice = document.getElementById("btn-header-live-voice");
 
         if (btnVoiceToggle) {
-            btnVoiceToggle.addEventListener("click", () => this.enterLiveVoiceMode());
+            btnVoiceToggle.addEventListener("click", () => {
+                this.unlockAudioPipeline();
+                this.enterLiveVoiceMode();
+            });
         }
         if (btnHeaderVoice) {
-            btnHeaderVoice.addEventListener("click", () => this.enterLiveVoiceMode());
+            btnHeaderVoice.addEventListener("click", () => {
+                this.unlockAudioPipeline();
+                this.enterLiveVoiceMode();
+            });
         }
 
         // Live Voice Overlay Controls
@@ -213,7 +222,10 @@ class VoiceController {
         if (btnEnd) btnEnd.addEventListener("click", () => this.exitLiveVoiceMode());
 
         if (btnMicToggle) {
-            btnMicToggle.addEventListener("click", () => this.toggleMute());
+            btnMicToggle.addEventListener("click", () => {
+                this.unlockAudioPipeline();
+                this.toggleMute();
+            });
         }
 
         if (btnInterrupt) {
@@ -237,13 +249,46 @@ class VoiceController {
         const btnTest = document.getElementById("btn-test-voice");
         if (btnTest) {
             btnTest.addEventListener("click", () => {
+                this.unlockAudioPipeline();
                 this.speakTest("Hello! This is Lumina AI speaking with natural neural voice.");
             });
         }
     }
 
+    unlockAudioPipeline() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!this.playbackAudioCtx) {
+                this.playbackAudioCtx = new AudioContext();
+            }
+            if (this.playbackAudioCtx.state === "suspended") {
+                this.playbackAudioCtx.resume();
+            }
+            const buffer = this.playbackAudioCtx.createBuffer(1, 1, 22050);
+            const source = this.playbackAudioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(this.playbackAudioCtx.destination);
+            source.start(0);
+        } catch (e) {
+            console.warn("Could not unlock Web Audio:", e);
+        }
+
+        try {
+            if (!this.unlockedAudio) {
+                this.unlockedAudio = new Audio();
+            }
+            this.unlockedAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+            this.unlockedAudio.play().then(() => {
+                this.unlockedAudio.pause();
+            }).catch(() => {});
+        } catch (e) {
+            console.warn("Could not unlock HTML5 Audio:", e);
+        }
+    }
+
     async enterLiveVoiceMode() {
         this.isActive = true;
+        this.unlockAudioPipeline();
         await this.detectTtsEngine();
         const overlay = document.getElementById("live-voice-overlay");
         const modelPill = document.getElementById("live-voice-model-pill");
@@ -277,6 +322,11 @@ class VoiceController {
         const overlay = document.getElementById("live-voice-overlay");
         if (overlay) overlay.classList.add("hidden");
 
+        if (this.currentAudioSource) {
+            try { this.currentAudioSource.stop(); } catch (e) {}
+            this.currentAudioSource = null;
+        }
+
         // Stop Web Audio Stream & Animation
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
@@ -286,11 +336,6 @@ class VoiceController {
         if (this.audioStream) {
             this.audioStream.getTracks().forEach(track => track.stop());
             this.audioStream = null;
-        }
-
-        if (this.audioCtx && this.audioCtx.state !== "closed") {
-            try { this.audioCtx.close(); } catch (e) {}
-            this.audioCtx = null;
         }
 
         this.setState("idle");
@@ -904,28 +949,77 @@ class VoiceController {
 
                 if (!res.ok) throw new Error(`Kokoro HTTP ${res.status}`);
 
-                const blob = await res.blob();
-                const audioUrl = URL.createObjectURL(blob);
-                const audio = new Audio(audioUrl);
-                this.activeAudio = audio;
+                // Web Audio API playback (iOS Safari Unlocked & Reacts with Orb Visualizer)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!this.playbackAudioCtx) {
+                    this.playbackAudioCtx = new AudioContext();
+                }
+                if (this.playbackAudioCtx.state === "suspended") {
+                    await this.playbackAudioCtx.resume();
+                }
 
-                audio.onended = () => {
-                    URL.revokeObjectURL(audioUrl);
-                    this.activeAudio = null;
+                const arrayBuffer = await res.arrayBuffer();
+                const audioBuffer = await new Promise((resolve, reject) => {
+                    this.playbackAudioCtx.decodeAudioData(arrayBuffer, resolve, (err) => {
+                        this.playbackAudioCtx.decodeAudioData(arrayBuffer.slice(0), resolve, reject);
+                    });
+                });
+
+                if (this.currentAudioSource) {
+                    try { this.currentAudioSource.stop(); } catch (e) {}
+                    this.currentAudioSource = null;
+                }
+
+                const source = this.playbackAudioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+
+                if (this.analyser) {
+                    try { source.connect(this.analyser); } catch (e) {}
+                }
+                source.connect(this.playbackAudioCtx.destination);
+                this.currentAudioSource = source;
+
+                source.onended = () => {
+                    this.currentAudioSource = null;
                     this.releaseToListening();
                 };
 
-                audio.onerror = (e) => {
-                    console.warn("Kokoro audio playback error:", e);
-                    URL.revokeObjectURL(audioUrl);
-                    this.activeAudio = null;
-                    this.releaseToListening();
-                };
-
-                await audio.play();
+                source.start(0);
                 return;
             } catch (err) {
-                console.warn("Kokoro neural TTS playback failed, falling back to browser synthesis:", err);
+                console.warn("Kokoro neural TTS Web Audio playback failed, trying HTML5 Audio fallback:", err);
+                try {
+                    const res = await fetch("/api/voice/tts", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            text: cleanText,
+                            voice: this.selectedKokoroVoice || "af_heart",
+                            speed: 1.0
+                        })
+                    });
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const audioUrl = URL.createObjectURL(blob);
+                        const audio = this.unlockedAudio || new Audio();
+                        this.activeAudio = audio;
+                        audio.src = audioUrl;
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            this.activeAudio = null;
+                            this.releaseToListening();
+                        };
+                        audio.onerror = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            this.activeAudio = null;
+                            this.releaseToListening();
+                        };
+                        await audio.play();
+                        return;
+                    }
+                } catch (e2) {
+                    console.warn("HTML5 audio fallback failed too:", e2);
+                }
             }
         }
 
@@ -1003,6 +1097,10 @@ class VoiceController {
 
     releaseToListening() {
         this.clearWatchdog();
+        if (this.currentAudioSource) {
+            try { this.currentAudioSource.stop(); } catch (e) {}
+            this.currentAudioSource = null;
+        }
         if (this.activeAudio) {
             try { this.activeAudio.pause(); } catch (e) {}
             this.activeAudio = null;
@@ -1028,12 +1126,14 @@ class VoiceController {
     }
 
     async speakTest(text) {
+        this.unlockAudioPipeline();
+
         // Test Kokoro if online
         if (this.ttsEngine === "kokoro") {
             try {
-                if (this.activeAudio) {
-                    try { this.activeAudio.pause(); } catch (e) {}
-                    this.activeAudio = null;
+                if (this.currentAudioSource) {
+                    try { this.currentAudioSource.stop(); } catch (e) {}
+                    this.currentAudioSource = null;
                 }
                 const res = await fetch("/api/voice/tts", {
                     method: "POST",
@@ -1045,12 +1145,25 @@ class VoiceController {
                     })
                 });
                 if (res.ok) {
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const audio = new Audio(url);
-                    this.activeAudio = audio;
-                    audio.onended = () => { URL.revokeObjectURL(url); this.activeAudio = null; };
-                    await audio.play();
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!this.playbackAudioCtx) {
+                        this.playbackAudioCtx = new AudioContext();
+                    }
+                    if (this.playbackAudioCtx.state === "suspended") {
+                        await this.playbackAudioCtx.resume();
+                    }
+                    const arrayBuffer = await res.arrayBuffer();
+                    const audioBuffer = await new Promise((resolve, reject) => {
+                        this.playbackAudioCtx.decodeAudioData(arrayBuffer, resolve, (err) => {
+                            this.playbackAudioCtx.decodeAudioData(arrayBuffer.slice(0), resolve, reject);
+                        });
+                    });
+                    const source = this.playbackAudioCtx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(this.playbackAudioCtx.destination);
+                    this.currentAudioSource = source;
+                    source.onended = () => { this.currentAudioSource = null; };
+                    source.start(0);
                     return;
                 }
             } catch (err) {
@@ -1078,6 +1191,10 @@ class VoiceController {
     }
 
     interruptAI() {
+        if (this.currentAudioSource) {
+            try { this.currentAudioSource.stop(); } catch (e) {}
+            this.currentAudioSource = null;
+        }
         if (this.activeAudio) {
             try { this.activeAudio.pause(); } catch (e) {}
             this.activeAudio = null;
