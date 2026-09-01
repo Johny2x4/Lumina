@@ -1206,6 +1206,7 @@ class VoiceController {
         let fullThinking = "";
         const thinkStartTime = Date.now();
         let thinkTimer = null;
+        let receivedDone = false;
 
         if (aiSub) {
             aiSub.textContent = "Thinking...";
@@ -1218,21 +1219,26 @@ class VoiceController {
         }
 
         try {
-            const payload = {
-                model: model,
-                messages: apiMessages,
-                stream: true,
-                keep_alive: -1,
-                options: {
-                    num_predict: 1024, // Generous token headroom so reasoning/thinking models don't exhaust budget inside <think>
-                    temperature: 0.6
-                }
+            // Use resilient /api/chat/generate endpoint (same as regular chat) so
+            // inference runs as a server-side background task and completes fully
+            // even if the browser connection hiccups.
+            const voiceSessionId = "voice_" + (window.app?.activeSessionId || Date.now());
+            const inferenceOptions = {
+                num_predict: 4096, // Reasoning models need ample headroom — 1024 was exhausted entirely inside <think>
+                temperature: 0.6
             };
 
-            const res = await fetch("/api/ollama/chat", {
+            const res = await fetch("/api/chat/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    session_id: voiceSessionId,
+                    model: model,
+                    messages: apiMessages,
+                    sources: [],
+                    options: inferenceOptions,
+                    keep_alive: -1
+                })
             });
 
             if (!res.ok) throw new Error("Inference failed");
@@ -1253,6 +1259,12 @@ class VoiceController {
                     if (!line.trim()) continue;
                     try {
                         const chunk = JSON.parse(line);
+
+                        // Track Ollama's done signal to detect complete vs truncated responses
+                        if (chunk.done === true) {
+                            receivedDone = true;
+                        }
+
                         const msg = chunk.message || {};
                         const thinkingChunk = msg.thinking || chunk.thinking || "";
                         const contentChunk = msg.content || "";
@@ -1276,21 +1288,52 @@ class VoiceController {
                 }
             }
 
+            // Process any remaining data in the buffer
+            if (buffer.trim()) {
+                try {
+                    const chunk = JSON.parse(buffer);
+                    if (chunk.done === true) receivedDone = true;
+                    const msg = chunk.message || {};
+                    if (msg.thinking || chunk.thinking) fullThinking += (msg.thinking || chunk.thinking);
+                    if (msg.content) fullAiText += msg.content;
+                } catch (e) {}
+            }
+
             if (thinkTimer) {
                 clearInterval(thinkTimer);
                 thinkTimer = null;
             }
 
+            // Warn if the stream ended without Ollama's done signal (truncated response)
+            if (!receivedDone) {
+                console.warn("Voice inference: stream ended without Ollama done signal — response may be incomplete.");
+            }
+
             // Clean reasoning blocks from text
             let spokenText = this.cleanSpokenText(fullAiText);
 
-            // Fallback: If model placed conclusion inside thinking block and didn't generate content
+            // Fallback: If model produced only thinking and no content (e.g. token budget
+            // was exhausted inside <think>, or model placed its answer in the thinking block)
             if (!spokenText && fullThinking) {
                 const cleanThoughts = this.cleanSpokenText(fullThinking);
-                const thoughtSentences = this.splitIntoSentences(cleanThoughts);
+                // Extract complete sentences only — avoid partial/mid-sentence fragments
+                const thoughtSentences = this.splitIntoSentences(cleanThoughts)
+                    .filter(s => /[.!?]$/.test(s.trim()));
                 if (thoughtSentences.length > 0) {
+                    // Take the last 2 complete sentences as they're most likely the conclusion
                     spokenText = thoughtSentences.slice(-2).join(" ");
+                } else {
+                    // Last resort: use whatever we have, even if incomplete
+                    const allSentences = this.splitIntoSentences(cleanThoughts);
+                    if (allSentences.length > 0) {
+                        spokenText = allSentences.slice(-2).join(" ");
+                    }
                 }
+            }
+
+            // Final safety: if we still have nothing to speak, provide a graceful fallback
+            if (!spokenText) {
+                spokenText = "I'm sorry, I wasn't able to generate a response. Could you try again?";
             }
 
             // Save to chat manager history
@@ -1304,7 +1347,7 @@ class VoiceController {
                 window.app?.onMessagesUpdated();
             }
 
-            // Speak response via TTS
+            // Speak response via TTS — speak() handles releaseToListening() on completion
             this.speak(spokenText);
         } catch (err) {
             if (thinkTimer) {
