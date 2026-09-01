@@ -1,31 +1,32 @@
 # Lumina ✦
-### Sovereign Web Frontend for Ollama & SearXNG
+### Sovereign Web Frontend for Ollama with Optional Extensions
 
-> **Lumina** is a lightweight, zero-latency, private **web-based frontend client** designed to interface directly with your existing **[Ollama](https://ollama.com/)** inference engine and optional **[SearXNG](https://searx.github.io/searxng/)** metasearch service.
+> **Lumina** is an ultra-low overhead, purely self-hosted **web frontend for [Ollama](https://ollama.com/)**.
 > 
-> Rather than replacing Ollama, Lumina provides an ultra-responsive, sovereign web interface on top of it—delivering instant VRAM pinning controls, real-time NVIDIA GPU hardware telemetry, multimodal vision chat, Lumina Live (an immersive fullscreen voice mode inspired by Gemini Live), real-time web citations, and 15 bespoke themes.
+> It provides a fast, distraction-free chat canvas without enterprise bloat or cloud dependencies, while seamlessly integrating with optional homelab power-ups: real-time web search (**[SearXNG](https://searx.github.io/searxng/)**), local neural voice (**[Kokoro TTS](https://github.com/remsky/Kokoro-FastAPI)**), and secure gateway routing (**[Nginx](https://nginx.org/)**).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Ollama Frontend](https://img.shields.io/badge/Ollama-Frontend%20Client-black.svg)](https://ollama.com/)
-[![SearXNG Compatible](https://img.shields.io/badge/SearXNG-Search%20Ready-blue.svg)](https://searx.github.io/searxng/)
+[![SearXNG Compatible](https://img.shields.io/badge/SearXNG-Optional%20Search-blue.svg)](https://searx.github.io/searxng/)
+[![Kokoro TTS Compatible](https://img.shields.io/badge/Kokoro%20TTS-Optional%20Voice-purple.svg)](https://github.com/remsky/Kokoro-FastAPI)
 [![NVIDIA CUDA](https://img.shields.io/badge/NVIDIA-NVML%20Supported-76B900.svg)](https://developer.nvidia.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose%20Ready-2496ED.svg)](https://www.docker.com/)
 
 > [!NOTE]
 > **What Lumina Is (and Isn't):**
-> - ✅ **It IS a web frontend & interface:** Lumina provides a modern browser UI, streaming chat interface, WebSocket telemetry monitor, and voice interaction canvas.
-> - ❌ **It is NOT an LLM runtime:** Lumina does not run model weights or execute tensor math itself. It connects to and streams responses from an **Ollama** backend running locally or over your network.
-> - 🔍 **SearXNG Web Search Integration:** Seamlessly pairs with a **SearXNG** instance to automatically reformulate questions and inject real-time web sources and citations into your models.
+> - ✅ **A Dedicated Web Interface:** Lumina provides a modern browser UI, streaming chat client, hardware telemetry dashboard, and live voice canvas.
+> - ❌ **Not an LLM Runtime:** Lumina does not execute tensor math or model weights itself. It connects to and orchestrates your **Ollama** engine.
+> - 🧩 **Modular & Optional Stack:** Deploy Lumina standalone on top of your existing Ollama instance, or add SearXNG for web search, Kokoro for speech, and Nginx for TLS with zero configuration friction.
 
 <p align="center">
   <img src="docs/screenshots/lumina-chat-hero.png" alt="Lumina Chat Interface" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
-### 📱 Responsive Mobile & PWA Experience (iPhone Aspect Ratio)
+### 📱 Responsive Desktop & Mobile/PWA Ergonomics
 
-Lumina adapts fluidly to smartphones and tablets with touch-first ergonomics, slide-out drawer management, and full viewport voice interaction:
+Lumina is engineered dynamically for both multi-monitor desktop setups and mobile/PWA environments (calibrated for iPhone & modern smartphone viewports):
 
 <p align="center">
   <img src="docs/screenshots/lumina-mobile-chat.png" alt="Lumina Mobile Chat (gemma4:12b)" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
@@ -34,148 +35,79 @@ Lumina adapts fluidly to smartphones and tablets with touch-first ergonomics, sl
   <img src="docs/screenshots/lumina-mobile-themes.png" alt="Lumina 15 Curated Themes" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
 </p>
 
+- **Mobile Slide-Out Drawer**: All telemetry, model selection, memory toggles, and chat histories tuck neatly into an overlay drawer that sweeps out of sight during conversation.
+- **PWA Ready**: Installable directly to your home screen with offline asset caching and mobile touch ergonomics.
+
 ---
 
 ## ⚡ Core Features
 
-### 1. Minimalist, Clutter-Free Canvas
-- **Distraction-Free Workspace**: The main chat viewport contains only essential controls: model selector pill, voice launcher, hamburger drawer trigger, settings gear, and the clean input bar.
-- **Collapsible Slide-Out Drawer**: All configuration, telemetry, history search, and power-user utilities tuck neatly away on desktop and mobile.
+### 1. Purely Self-Hosted, Lightweight Chat
+- **Distraction-Free Canvas**: Clean viewport prioritizing the conversation, with streaming token-by-token rendering.
+- **Rich Document & Vision Attachments**: Drag-and-drop or upload images (PNG, JPG, WebP) and documents (TXT, MD, CSV, JSON, PDF, code files) with preview chips.
+- **Markdown, Code & Math Support**: Syntax-highlighted code blocks with 1-click clipboard copy, plus native KaTeX math and chemical formulas.
+- **In-Chat Controls**: Abort running generation instantly via `AbortController`, edit and resubmit prior user turns, toggle raw monospace source, or adjust sampling options (temperature, top_p, repetition penalty).
 
-### 2. Zero Cold-Start VRAM Pinning & Instant Flush
-- **Persistent GPU Residency**: Ollama models remain pinned in GPU memory (`keep_alive: -1`) for instantaneous sub-100ms first-token generation.
-- **One-Click VRAM Purge**: Free gigabytes of VRAM on demand with the "Free VRAM" trigger (`keep_alive: 0`) without restarting containers or disrupting other services.
+### 2. Optional Real-Time Web Search (SearXNG)
+- **Zero Cloud API Reliance**: Connects to private, self-hosted SearXNG instances without Google, Bing, or paid API keys.
+- **Smart Intent & Entity Distillation**: Automatically extracts intent from questions (e.g. *"what will the weather be like tomorrow in zip code 68046"* ➔ `"weather 68046"`), fetching accurate local forecasts, prices, and events.
+- **Clean Turn-Scoped Context**: Search results and clickable source chips are scoped strictly to the current turn payload, preventing search instructions from contaminating subsequent conversation turns.
+- **Visual On-Demand Toggle**: Web search defaults to OFF to preserve local-first privacy, featuring an illuminated cyan active button and non-blocking toast status indicators.
 
-### 3. Dynamic Multi-GPU Hardware Telemetry
-- Real-time NVML hardware metrics dynamically sampled for all detected NVIDIA GPUs.
-- Per-GPU metrics: Core compute load %, VRAM allocation bar, operating temperatures (°C), and live power draw in Watts.
-- Host system overview: CPU utilization % and system RAM metrics.
-
-<p align="center">
-  <img src="docs/screenshots/lumina-telemetry.png" alt="Lumina Hardware Telemetry Drawer" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
-</p>
-
-### 4. Lumina Live Fullscreen Voice Mode (Inspired by Gemini Live)
-- Immersive audio-reactive conversational loop with continuous Speech-to-Text (STT) and dynamic Text-to-Speech (TTS via local Kokoro).
-- Theme-synchronized canvas visualizer displaying radiant glowing speech orbs, harmonic waveform animations, and live transcription subtitles.
-- In 8-bit mode, transitions to stepped arcade diamond waveform geometry and CRT scanline styling.
+### 3. Lumina Live: Fullscreen Voice Mode (Inspired by Gemini Live)
+- **Continuous Conversational Loop**: Hands-free voice chat powered by your browser's Web Speech STT and a local Kokoro neural TTS backend.
+- **Reactive Canvas Visualizer**: Radiant glowing audio spheres and dynamic harmonic waveforms that morph and pulse in real time to input and speech frequencies.
+- **Retro 8-Bit Scanline Mode**: In arcade themes, transforms the audio orb into stepped diamond geometry with CRT phosphor scanlines.
 
 <p align="center">
   <img src="docs/screenshots/lumina-voice-mode.png" alt="Lumina Live Voice Mode" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
-### 5. 15 Curated System Themes
-Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, voice overlay, and ambient background layers):
+### 4. Direct Model & VRAM Residency Management
+- **In-App Model Pulls**: Search and pull models directly from Ollama's registry or any Hugging Face GGUF repository.
+- **VRAM Pinning ("Keep in VRAM")**: Models stay pinned in GPU memory (`keep_alive: -1`) to eliminate cold-start warmup latency on subsequent turns.
+- **One-Click VRAM Flush ("Free VRAM")**: Instantly evict the active model from GPU memory (`keep_alive: 0`) when you need to reclaim VRAM for gaming, ComfyUI, or other tasks.
 
-**Dark Atmosphere (9 Themes)**:
-- **Midnight (Default)**: Deep midnight slate with refined indigo glow.
-- **AMOLED**: True pure black `#000000` for OLED battery efficiency and maximum contrast.
-- **Cyberpunk**: Neon cyan, electric yellow, and pulsing magenta cyber grid.
-- **Matrix**: Phosphor terminal green code rain aesthetic.
-- **Synthwave**: 80s neon magenta, sunset violet, and animated perspective gridlines.
-- **Aurora**: Arctic emerald, cyan, and northern lights gradients.
-- **Snowy Forest**: Deep spruce evergreen with gentle animated snowflakes.
-- **Pirate Voyage**: Weathered parchment, warm bronze, and sea-captain charcoal.
-- **Rainbow Rave**: Chromatic reactive gradients and pulsing spectrum glow.
-
-**Light & Day (6 Themes)**:
-- **Nordic Frost**: Minimalist crisp Scandinavian daylight mode.
-- **Paper & Ink**: Warm literary editorial light mode with charcoal typography.
-- **Alpine Day**: Frosted sage, meadow green, and light pine tones.
-- **Pastel Lilac**: Sweet marshmallow lilac with high-contrast violet user cards.
-- **Pastel Prisma**: Chromatic pastel wash with high saturation and playful accents.
-- **Glacial Ice**: Translucent frosted ice crystal sheets with blizzard particle physics.
+### 5. Live Backend Hardware Telemetry
+- **Native NVML Streaming**: Real-time hardware stats dynamically sampled from NVIDIA GPUs over WebSockets.
+- **Comprehensive Gauges**: Per-GPU core compute load %, active VRAM allocation bar, operating temperatures (°C), and live wattage draw.
+- **Host Resource Tracking**: Real-time CPU core utilization % and system RAM allocation.
 
 <p align="center">
-  <img src="docs/screenshots/lumina-themes-modal.png" alt="Lumina Theme Collection & Settings" width="49%" style="border-radius: 12px;" />
-  <img src="docs/screenshots/lumina-glacier.png" alt="Lumina Glacial Ice Theme with Blizzard Snow" width="49%" style="border-radius: 12px;" />
+  <img src="docs/screenshots/lumina-telemetry.png" alt="Lumina Hardware Telemetry Drawer" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
-### 6. Smart Entity & Intent Web Search (SearXNG)
-- Zero-latency query intent extractor extracts weather queries (e.g. `"what will the weather be like tomorrow in zip code 68046"` -> `"weather 68046"`), stock/crypto prices, and events.
-- Injects real-time web citations directly into model reasoning with clickable source pills.
+### 6. 15 Bespoke Visual Themes
 
-### 7. Multimodal Vision & Document Ingestion
-- Drag-and-drop or file-picker upload for images (PNG, JPG, WebP) and documents (TXT, MD, CSV, JSON, PDF).
-- Multimodal preview chips with one-click dismiss before sending.
-- Seamless compatibility with vision-capable models (e.g., Llama 3.2 Vision, Moondream, Gemma 4).
+Lumina features 15 distinct, hand-crafted system themes spanning dark atmospheric moods and high-contrast daylight palettes:
 
-### 8. In-Chat Ergonomics & Sampling Controls
-- **Stop Generation**: Responsive abort button powered by `AbortController` cleanly halting inference while preserving all streamed tokens.
-- **Contextual Actions (Hover / Tap)**:
-  - *Assistant*: 1-click clipboard copy, toggle between rendered Markdown and raw monospace source, and turn regeneration.
-  - *User*: Edit prompt button to modify prior turns and re-execute.
-- **System Persona Presets**: Instantly toggle between *Default*, *Senior Engineer*, *Creative Writer*, *Data Extractor*, or define a *Custom System Instruction*.
-- **Granular Inference Sliders**: Adjust Context Window (`num_ctx`), Temperature (`temperature`), Top-P (`top_p`), and Repetition Penalty (`repeat_penalty`) with real-time numeric readouts and default reset.
-- **Data Portability**: 1-click export of active conversations to formatted Markdown (`.md`) or raw structured JSON (`.json`).
+<p align="center">
+  <img src="docs/screenshots/lumina-themes-showcase.gif" alt="Lumina 15 Themes Live Showcase" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
+</p>
 
----
-
-## 🚀 Quick Start
-
-> 📖 **Looking for full homelab, reverse proxy, or SSL setups?** Check out the step-by-step **[Getting Started Guide (docs/GETTING_STARTED.md)](docs/GETTING_STARTED.md)** for:
-> 1. **Deploying Just Lumina** (connecting to your existing Ollama/SearXNG/Kokoro services)
-> 2. **Lumina + Ollama Stack** (turnkey local LLM workstation)
-> 3. **Full Sovereign Homelab Stack** (Lumina + Ollama + Kokoro TTS + SearXNG + Nginx Gateway)
-
-### Option A: Docker Compose (Recommended)
-
-Run Lumina alongside Ollama with full NVIDIA GPU acceleration:
-
-```bash
-git clone https://github.com/Johny2x4/Lumina.git
-cd Lumina
-docker compose up -d
-```
-
-Open your browser to: **`http://localhost:3000`**
-
-### Option B: Local Python Development
-
-#### 1. Clone & Install Dependencies
-```bash
-git clone https://github.com/Johny2x4/Lumina.git
-cd Lumina
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-#### 2. Start Lumina
-```bash
-# Point to your running Ollama instance (defaults to http://localhost:11434)
-export OLLAMA_BASE_URL=http://localhost:11434
-
-# Run with Uvicorn
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 3000
-```
-
-Access the UI at: **`http://localhost:3000`**
+- **Dark Atmosphere (9 Themes)**:
+  - **Midnight (Default)**: Deep midnight slate with refined indigo ambient glow.
+  - **AMOLED**: True pure black `#000000` for OLED power efficiency and maximum contrast.
+  - **Cyberpunk**: Neon cyan, electric yellow, and pulsing magenta gridlines.
+  - **Matrix**: Phosphor terminal green code rain aesthetic.
+  - **Synthwave**: 80s neon magenta, sunset violet, and animated perspective grid.
+  - **Aurora**: Arctic emerald, cyan, and northern lights gradients.
+  - **Snowy Forest**: Deep spruce evergreen with gentle animated snowflakes.
+  - **Pirate Voyage**: Weathered parchment, warm bronze, and sea-captain charcoal.
+  - **Rainbow Rave**: Chromatic reactive gradients and pulsing spectrum glow.
+- **Light & Day (6 Themes)**:
+  - **Nordic Frost**: Minimalist crisp Scandinavian daylight mode.
+  - **Paper & Ink**: Warm literary editorial light mode with charcoal typography.
+  - **Alpine Day**: Frosted sage, meadow green, and light pine tones.
+  - **Pastel Lilac**: Sweet marshmallow lilac with high-contrast violet user cards.
+  - **Pastel Prisma**: Saturated chromatic pastel wash with playful accents.
+  - **Glacial Ice**: Translucent frosted ice crystal sheets with blizzard particle physics.
 
 ---
 
-## ⚠️ Important: TLS / HTTPS Required for Voice Mode
+## 🏛️ System Architecture & Optional Extensions
 
-Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUserMedia` & `webkitSpeechRecognition`) to **Secure Contexts** (`localhost`, `127.0.0.1`, or **HTTPS / TLS**).
-
-* **On Localhost:** Works immediately without any setup.
-* **On LAN IP / Remote Host (e.g. `http://192.168.x.x:3000`):** The browser will block the microphone unless accessed over HTTPS.
-* **Solutions:** See the [QUICKSTART.md TLS Setup Guide](QUICKSTART.md#-critical-tls--https-requirement-for-voice-chat) for instant setup with **Tailscale Serve** (`tailscale serve --https=443 3000`), **Caddy**, **Nginx / mkcert**, or browser flag overrides.
-
----
-
-## ⚙️ Environment Variables
-
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `OLLAMA_BASE_URL` / `OLLAMA_HOST` | `http://localhost:11434` | Target Ollama API host (e.g. `http://ollama:11434` or remote IP) |
-| `SEARXNG_URL` | *(disabled)* | Optional SearXNG instance URL (e.g. `http://searxng:8080`) to enable live web search & citations |
-| `LUMINA_CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated, without credentials) |
-| `PORT` | `3000` | Port for the Lumina web server |
-
----
-
-## 🏛️ Architecture
+Lumina operates as a lean, single-container Python FastAPI + Vanilla JS service. It is designed to sit alongside optional companion services in a modular homelab topology:
 
 ```
                       ┌─────────────────────────────────────────┐
@@ -185,30 +117,86 @@ Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUse
                                            │ HTTP / WebSockets
                                            ▼
                       ┌─────────────────────────────────────────┐
-                      │         Lumina Web Frontend UI          │
+                      │            [Optional] Nginx             │
+                      │       Reverse Proxy & TLS Gateway       │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │           Lumina UI Frontend            │
                       │         (FastAPI + Vanilla JS)          │
                       │  - Single-Page Responsive Web Client    │
                       │  - Fullscreen Voice & Audio Engine      │
                       │  - Real-Time NVML Hardware Telemetry    │
-                      │  - Streaming Proxy & Query Reformulator │
+                      │  - Intent Extractor & Streaming Proxy   │
                       └───┬───────────────────┬───────────────┬─┘
                           │                   │               │
             NVML / psutil │     HTTP Streaming│               │ HTTP Metasearch
                           ▼                   ▼               ▼
              ┌─────────────────────────┐ ┌─────────┐     ┌─────────┐
              │ NVIDIA GPUs (RTX / Data)│ │ Ollama  │     │ SearXNG │
-             │ Core Load, VRAM, Power  │ │ Backend │     │ Backend │
+             │ Core Load, VRAM, Power  │ │ [Core]  │     │[Optional│
              │ Temperatures & Status   │ │ (LLMs)  │     │ (Search)│
-             └─────────────────────────┘ └─────────┘     └─────────┘
+             └─────────────────────────┘ └────┬────┘     └─────────┘
+                                              │ Audio TTS
+                                              ▼
+                                         ┌─────────┐
+                                         │ Kokoro  │
+                                         │[Optional│
+                                         │ (Voice) │
+                                         └─────────┘
 ```
+
+### What Each Package Adds to Lumina
+
+| Component | Role | What It Adds to Lumina |
+| :--- | :--- | :--- |
+| **Ollama** | **Core Engine** *(Required)* | Provides local GGUF/fp16 model loading, GPU acceleration (CUDA/ROCm/Metal), and streaming token inference. |
+| **SearXNG** | **Metasearch** *(Optional)* | Enables real-time web search without external API subscriptions. Automatically distills queries and injects citation cards with source links. |
+| **Kokoro-FastAPI** | **Neural Voice** *(Optional)* | Lightweight, high-quality 82M neural TTS container running on CPU or GPU. Powers voice replies in Lumina Live. |
+| **Nginx / Gateway** | **Proxy & TLS** *(Optional)* | Provides unified single-port routing and SSL/TLS certificate termination across your LAN. |
 
 ---
 
-## 🔒 Security & Privacy
+## 🎙️ Voice Chat & TLS / HTTPS Requirements
 
-- **Zero Cloud Leakage**: All inference occurs strictly on your local hardware.
-- **Zero Database Bloat**: Client-side storage uses **IndexedDB** for high-capacity multi-session conversation and image storage, paired with **localStorage** for instant preferences and UI states—with an Incognito mode toggle for 100% ephemeral, in-memory sessions.
-- **Tailscale & Reverse Proxy Compatible**: Ready for remote access over private mesh networks without public port forwarding.
+Modern web browsers (Chrome, Safari, Edge, Firefox) enforce a strict security rule: **microphone access (`getUserMedia` and Web Speech APIs) is only permitted in Secure Contexts (`localhost`, `127.0.0.1`, or over HTTPS / TLS)**.
+
+- **Running on Localhost:** Microphone access works immediately with zero configuration.
+- **Accessing over LAN (e.g. `http://192.168.x.x:3000`):** Browsers will block the microphone on plain HTTP with a `NotAllowedError`.
+- **Easy Homelab Solutions**:
+  1. **Tailscale Serve (Easiest)**: Run `tailscale serve --bg --https=443 3000` on the Lumina host for instant zero-config HTTPS with automated Let's Encrypt certificates.
+  2. **Nginx with TLS**: Deploy the Nginx gateway configuration provided in the [Getting Started Guide](docs/GETTING_STARTED.md#path-3-full-sovereign-homelab-stack).
+  3. **Browser Flags (Testing)**: Whitelist your IP under `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
+
+---
+
+## 🔒 Privacy & Sovereign Storage Architecture
+
+- **100% Sovereign Offline Operation**: All frontend vendor assets (Tailwind CSS, KaTeX math engines, 20 WOFF2 fonts, Marked.js, Highlight.js) are completely self-hosted locally within the container. Zero requests escape to external CDNs or analytics trackers.
+- **High-Capacity Client Storage (IndexedDB)**: Conversation sessions, images, and long contexts are persisted client-side in the browser via **IndexedDB** (`luminaStorage`), eliminating the traditional 5MB `localStorage` quota crash.
+- **Instant Client Preferences (localStorage)**: UI configurations (active theme, system persona, inference options, auth tokens) are persisted in `localStorage` for instant hydration without database dependencies.
+- **Incognito Mode**: Toggle Incognito at any time to enter 100% ephemeral in-memory sessions that leave zero trace in browser storage upon closing.
+
+---
+
+## 🚀 Installation & Deployment
+
+Detailed step-by-step guides for every deployment scenario are available in the **[Getting Started Guide](docs/GETTING_STARTED.md)**:
+
+- 📦 **[Path 1: Deploying Just Lumina](docs/GETTING_STARTED.md#path-1-deploying-just-lumina)** — Connect Lumina to your existing Ollama, SearXNG, or Kokoro servers.
+- 💻 **[Path 2: Lumina + Ollama Workstation](docs/GETTING_STARTED.md#path-2-lumina--ollama-workstation-stack)** — Turnkey single-machine setup with GPU acceleration and persistent model storage.
+- 🏰 **[Path 3: Full Sovereign Homelab Stack](docs/GETTING_STARTED.md#path-3-full-sovereign-homelab-stack)** — Complete homelab compose stack with Lumina, Ollama, Kokoro TTS, SearXNG, and Nginx with TLS.
+
+### Quick Start with Docker Compose
+
+```bash
+git clone https://github.com/Johny2x4/Lumina.git
+cd Lumina
+docker compose up -d
+```
+
+Open your browser to: **`http://localhost:3000`**
 
 ---
 

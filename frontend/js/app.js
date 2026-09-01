@@ -4,7 +4,8 @@ class App {
         this.isIncognito = false;
         this.sessions = [];
         this.activeSessionId = null;
-        this.currentTheme = localStorage.getItem("lumina_theme") || "default";
+        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        this.currentTheme = (urlParams && urlParams.get("theme")) || localStorage.getItem("lumina_theme") || "default";
         this._saveTimer = null;
         this.init();
     }
