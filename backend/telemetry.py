@@ -4,9 +4,13 @@ import psutil
 logger = logging.getLogger("lumina.telemetry")
 
 # Initialize NVML safely
+HAS_PYNVML = False
 nvml_initialized = False
+pynvml = None
+
 try:
     import pynvml
+    HAS_PYNVML = True
     pynvml.nvmlInit()
     nvml_initialized = True
     logger.info("NVML initialized successfully.")
@@ -29,15 +33,15 @@ def get_system_stats() -> dict:
 
     # 3. GPUs
     gpus = []
-    global nvml_initialized
-    if not nvml_initialized:
+    global nvml_initialized, HAS_PYNVML
+    if HAS_PYNVML and not nvml_initialized:
         try:
             pynvml.nvmlInit()
             nvml_initialized = True
         except Exception:
             pass
 
-    if nvml_initialized:
+    if HAS_PYNVML and nvml_initialized:
         try:
             device_count = pynvml.nvmlDeviceGetCount()
             for i in range(device_count):

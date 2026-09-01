@@ -253,15 +253,15 @@ body[data-theme="pastel"], body[data-theme="pastellilac"] {
     --bg-header: rgba(253, 248, 253, 0.95);
     --bg-sidebar: #f5edf7;
     --bg-card: #ffffff;
-    --bg-user-bubble: #c084fc;
+    --bg-user-bubble: #9333ea;
     --text-user-bubble: #ffffff;
     --border-color: #edd5f2;
     --border-radius: 1.15rem;
     --text-main: #2b1a37;
     --text-muted: #5a3b68;
-    --brand-primary: #ec4899;
-    --brand-hover: #db2777;
-    --brand-glow: rgba(236, 72, 153, 0.25);
+    --brand-primary: #be185d;
+    --brand-hover: #9d174d;
+    --brand-glow: rgba(190, 24, 93, 0.2);
     --input-bg: #ffffff;
     --font-family: 'Inter', sans-serif;
     --font-heading: 'Inter', sans-serif;
@@ -273,41 +273,94 @@ body[data-theme="pastel"] #ambient-layer, body[data-theme="pastellilac"] #ambien
     pointer-events: none;
 }
 
-/* 12. PASTEL PRISMA (High-Contrast Multi-Chroma: Mint, Sky, Buttercup, Lavender, Peach) */
+/* 12. PASTEL PRISMA (Saturated Multi-Chroma: Mint, Sky, Lavender, Peach, Gold) */
 body[data-theme="pastelprisma"] {
-    --bg-main: #f8fafc;
-    --bg-header: rgba(248, 250, 252, 0.95);
-    --bg-sidebar: #f1f5f9;
-    --bg-card: #ffffff;
-    --bg-user-bubble: #0284c7;
+    --bg-main: #f3f0ff;
+    --bg-header: rgba(245, 243, 255, 0.9);
+    --bg-sidebar: #ede9fe;
+    --bg-card: rgba(255, 255, 255, 0.92);
+    --bg-user-bubble: #7c3aed;
     --text-user-bubble: #ffffff;
-    --border-color: #cbd5e1;
+    --border-color: #c4b5fd;
     --border-radius: 1.15rem;
-    --text-main: #0f172a;
-    --text-muted: #475569;
-    --brand-primary: #0d9488;
-    --brand-hover: #0f766e;
-    --brand-glow: rgba(13, 148, 136, 0.25);
-    --input-bg: #ffffff;
+    --text-main: #1e1b4b;
+    --text-muted: #4b5563;
+    --brand-primary: #7c3aed;
+    --brand-hover: #6d28d9;
+    --brand-glow: rgba(124, 58, 237, 0.35);
+    --input-bg: rgba(255, 255, 255, 0.95);
     --font-family: 'Inter', sans-serif;
     --font-heading: 'Inter', sans-serif;
-}
-body[data-theme="pastelprisma"] #ambient-layer {
-    background: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
-                radial-gradient(circle at 90% 15%, rgba(52, 211, 153, 0.12) 0%, transparent 45%),
-                radial-gradient(circle at 50% 85%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 45%);
-    pointer-events: none;
+    background: radial-gradient(circle at 10% 20%, #ede9fe 0%, #f0fdf4 35%, #e0f2fe 70%, #fef3c7 100%) fixed !important;
 }
 
-/* 12. GLACIAL ICE (Frozen Arctic Tundra & Falling Snow - Light Mode) */
+body[data-theme="pastelprisma"] #ambient-layer {
+    background: radial-gradient(circle at 12% 18%, rgba(14, 165, 233, 0.38) 0%, transparent 48%),
+                radial-gradient(circle at 88% 15%, rgba(16, 185, 129, 0.35) 0%, transparent 48%),
+                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.28) 0%, transparent 52%),
+                radial-gradient(circle at 85% 82%, rgba(168, 85, 247, 0.38) 0%, transparent 48%),
+                radial-gradient(circle at 15% 82%, rgba(244, 63, 94, 0.32) 0%, transparent 48%);
+    pointer-events: none;
+    filter: saturate(160%);
+}
+
+/* Saturated Prismatic Surfaces for Pastel Prisma */
+body[data-theme="pastelprisma"] #sidebar {
+    background-color: rgba(237, 233, 254, 0.88) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border-right: 1.5px solid rgba(167, 139, 250, 0.45) !important;
+    box-shadow: 4px 0 24px rgba(167, 139, 250, 0.15) !important;
+}
+
+body[data-theme="pastelprisma"] header {
+    background-color: rgba(245, 243, 255, 0.88) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border-bottom: 1.5px solid rgba(167, 139, 250, 0.45) !important;
+}
+
+body[data-theme="pastelprisma"] .ai-message-bubble {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+    border: 1.5px solid rgba(196, 181, 253, 0.65) !important;
+    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.16) !important;
+}
+
+body[data-theme="pastelprisma"] .user-message-bubble {
+    background: linear-gradient(135deg, #0284c7 0%, #0d9488 45%, #7c3aed 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 6px 22px rgba(124, 58, 237, 0.32) !important;
+}
+
+body[data-theme="pastelprisma"] #chat-input-wrapper {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1.5px solid rgba(167, 139, 250, 0.55) !important;
+    box-shadow: 0 6px 28px rgba(167, 139, 250, 0.22) !important;
+}
+body[data-theme="pastelprisma"] #chat-input-wrapper:focus-within {
+    border-color: #7c3aed !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.22), 0 6px 28px rgba(124, 58, 237, 0.25) !important;
+}
+
+body[data-theme="pastelprisma"] #sidebar .session-tab.bg-slate-800 {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.9) 0%, rgba(243, 232, 255, 0.9) 100%) !important;
+    border: 1.5px solid #a78bfa !important;
+    box-shadow: 0 2px 12px rgba(167, 139, 250, 0.25) !important;
+    color: #312e81 !important;
+    font-weight: 600 !important;
+}
+
+/* 13. GLACIAL ICE (Frozen Arctic Tundra & Falling Snow - Light Mode) */
 body[data-theme="glacier"] {
     --bg-main: #edf5fa;
     --bg-header: rgba(235, 245, 253, 0.55);
     --bg-sidebar: rgba(224, 242, 254, 0.45);
     --bg-card: rgba(240, 249, 255, 0.52);
-    --bg-user-bubble: #0284c7;
-    --text-user-bubble: #ffffff;
+    --bg-user-bubble: rgba(219, 234, 254, 0.85);
+    --text-user-bubble: #081d33;
     --border-color: rgba(186, 230, 253, 0.7);
     --border-radius: 1.15rem;
     --text-main: #081d33;
@@ -342,7 +395,7 @@ body[data-theme="glacier"] header {
     -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
     border-bottom: 1px solid rgba(186, 230, 253, 0.6) !important;
 }
-body[data-theme="glacier"] .message-bubble-wrapper > div:not(.msg-actions-bar),
+body[data-theme="glacier"] .ai-message-bubble,
 body[data-theme="glacier"] .bg-slate-900\/70,
 body[data-theme="glacier"] .hud-card,
 body[data-theme="glacier"] .example-card,
@@ -355,11 +408,19 @@ body[data-theme="glacier"] #settings-modal > div {
     box-shadow: 0 10px 35px rgba(186, 230, 253, 0.35), inset 0 1px 3px rgba(255, 255, 255, 0.9) !important;
 }
 body[data-theme="glacier"] .user-message-bubble {
-    background-color: rgba(2, 132, 199, 0.88) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-top: 2px solid rgba(255, 255, 255, 0.8) !important;
-    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.3) !important;
+    background-color: rgba(219, 234, 254, 0.85) !important;
+    backdrop-filter: blur(14px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+    border: 1px solid rgba(147, 197, 253, 0.85) !important;
+    border-top: 2.5px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 18px rgba(186, 230, 253, 0.45) !important;
+    color: #081d33 !important;
+}
+body[data-theme="glacier"] .user-message-bubble,
+body[data-theme="glacier"] .user-message-bubble *,
+body[data-theme="glacier"] .user-message-bubble .message-content,
+body[data-theme="glacier"] .user-message-bubble .prose-lumina {
+    color: #081d33 !important;
 }
 body[data-theme="glacier"] #chat-input-wrapper {
     background-color: rgba(240, 249, 255, 0.65) !important;
@@ -391,6 +452,8 @@ body[data-theme="glacier"] #sidebar .session-tab.bg-slate-800 {
     background-color: rgba(255, 255, 255, 0.82) !important;
     border: 1px solid #7dd3fc !important;
     box-shadow: 0 2px 12px rgba(56, 189, 248, 0.25) !important;
+}
+
 /* 14. BLACKBEARD'S VOYAGE (High Seas Pirate Theme) */
 body[data-theme="pirate"] {
     --bg-main: #070c14;
@@ -484,114 +547,207 @@ body[data-theme="rainbowrave"].lumina-generating .message-bubble-wrapper:last-ch
     100% { border-color: #ff0055; }
 }
 
-/* Common Light & Pastel Class Overrides (nordic, paper, alpineday, pastel, pastellilac, pastelprisma, glacier) */
-body[data-theme="nordic"] .text-white,
-body[data-theme="paper"] .text-white,
-body[data-theme="alpineday"] .text-white,
-body[data-theme="pastel"] .text-white,
-body[data-theme="pastellilac"] .text-white,
-body[data-theme="pastelprisma"] .text-white,
-body[data-theme="glacier"] .text-white,
-body[data-theme="nordic"] .text-slate-100,
-body[data-theme="paper"] .text-slate-100,
-body[data-theme="alpineday"] .text-slate-100,
-body[data-theme="pastel"] .text-slate-100,
-body[data-theme="pastellilac"] .text-slate-100,
-body[data-theme="pastelprisma"] .text-slate-100,
-body[data-theme="glacier"] .text-slate-100,
-body[data-theme="nordic"] .text-slate-200,
-body[data-theme="paper"] .text-slate-200,
-body[data-theme="alpineday"] .text-slate-200,
-body[data-theme="pastel"] .text-slate-200,
-body[data-theme="pastellilac"] .text-slate-200,
-body[data-theme="pastelprisma"] .text-slate-200,
-body[data-theme="glacier"] .text-slate-200,
-body[data-theme="nordic"] .text-slate-300,
-body[data-theme="paper"] .text-slate-300,
-body[data-theme="alpineday"] .text-slate-300,
-body[data-theme="pastel"] .text-slate-300,
-body[data-theme="pastellilac"] .text-slate-300,
-body[data-theme="pastelprisma"] .text-slate-300,
-body[data-theme="glacier"] .text-slate-300 {
+/* ==========================================================================
+   COMPREHENSIVE LIGHT THEME ENGINE (NORDIC, PAPER, ALPINEDAY, PASTEL, PASTELPRISMA, GLACIER)
+   Strict WCAG Contrast Enforcement — Prevents Any Light Text on Light Backgrounds
+   ========================================================================== */
+
+/* Universal Light Theme Target Selector */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) {
     color: var(--text-main) !important;
 }
 
-body[data-theme="nordic"] .text-slate-400,
-body[data-theme="paper"] .text-slate-400,
-body[data-theme="alpineday"] .text-slate-400,
-body[data-theme="pastel"] .text-slate-400,
-body[data-theme="pastellilac"] .text-slate-400,
-body[data-theme="pastelprisma"] .text-slate-400,
-body[data-theme="glacier"] .text-slate-400,
-body[data-theme="nordic"] .text-slate-500,
-body[data-theme="paper"] .text-slate-500,
-body[data-theme="alpineday"] .text-slate-500,
-body[data-theme="pastel"] .text-slate-500,
-body[data-theme="pastellilac"] .text-slate-500,
-body[data-theme="pastelprisma"] .text-slate-500,
-body[data-theme="glacier"] .text-slate-500 {
+/* 1. Typography & Text Hierarchy in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    h1, h2, h3, h4, h5, h6,
+    label,
+    .text-white:not(.theme-btn *):not(.user-message-bubble):not(.user-message-bubble *):not(.badge-filled *),
+    .text-slate-100:not(.theme-btn *),
+    .text-slate-200:not(.theme-btn *),
+    .text-slate-300:not(.theme-btn *)
+) {
+    color: var(--text-main) !important;
+}
+
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    .text-slate-400:not(.theme-btn *),
+    .text-slate-500:not(.theme-btn *)
+) {
     color: var(--text-muted) !important;
 }
 
-body[data-theme="nordic"] .bg-slate-900,
-body[data-theme="paper"] .bg-slate-900,
-body[data-theme="alpineday"] .bg-slate-900,
-body[data-theme="pastel"] .bg-slate-900,
-body[data-theme="pastellilac"] .bg-slate-900,
-body[data-theme="pastelprisma"] .bg-slate-900,
-body[data-theme="glacier"] .bg-slate-900,
-body[data-theme="nordic"] .bg-slate-900\/70,
-body[data-theme="paper"] .bg-slate-900\/70,
-body[data-theme="alpineday"] .bg-slate-900\/70,
-body[data-theme="pastel"] .bg-slate-900\/70,
-body[data-theme="pastellilac"] .bg-slate-900\/70,
-body[data-theme="pastelprisma"] .bg-slate-900\/70,
-body[data-theme="glacier"] .bg-slate-900\/70 {
+/* 2. Light Theme Cards, Bubbles & Surfaces */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    .bg-slate-900:not(.theme-btn):not(pre),
+    .bg-slate-900\/70,
+    .bg-slate-900\/60,
+    .bg-slate-900\/40,
+    .bg-slate-950\/60,
+    .example-card,
+    .hud-card
+) {
     background-color: var(--bg-card) !important;
     border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
 }
 
-body[data-theme="nordic"] .bg-slate-800,
-body[data-theme="paper"] .bg-slate-800,
-body[data-theme="alpineday"] .bg-slate-800,
-body[data-theme="pastel"] .bg-slate-800,
-body[data-theme="glacier"] .bg-slate-800,
-body[data-theme="nordic"] .bg-slate-800\/70,
-body[data-theme="paper"] .bg-slate-800\/70,
-body[data-theme="alpineday"] .bg-slate-800\/70,
-body[data-theme="pastel"] .bg-slate-800\/70,
-body[data-theme="glacier"] .bg-slate-800\/70,
-body[data-theme="nordic"] .bg-slate-800\/80,
-body[data-theme="paper"] .bg-slate-800\/80,
-body[data-theme="alpineday"] .bg-slate-800\/80,
-body[data-theme="pastel"] .bg-slate-800\/80,
-body[data-theme="glacier"] .bg-slate-800\/80 {
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    .bg-slate-800:not(.theme-btn):not(pre),
+    .bg-slate-800\/80,
+    .bg-slate-800\/70,
+    .bg-slate-800\/60,
+    .bg-slate-800\/50,
+    .bg-slate-800\/40,
+    .bg-slate-800\/30
+) {
     background-color: var(--bg-sidebar) !important;
     border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
 }
 
-body[data-theme="nordic"] .border-slate-800,
-body[data-theme="paper"] .border-slate-800,
-body[data-theme="alpineday"] .border-slate-800,
-body[data-theme="pastel"] .border-slate-800,
-body[data-theme="glacier"] .border-slate-800,
-body[data-theme="nordic"] .border-slate-800\/80,
-body[data-theme="paper"] .border-slate-800\/80,
-body[data-theme="alpineday"] .border-slate-800\/80,
-body[data-theme="pastel"] .border-slate-800\/80,
-body[data-theme="glacier"] .border-slate-800\/80,
-body[data-theme="nordic"] .border-slate-700,
-body[data-theme="paper"] .border-slate-700,
-body[data-theme="alpineday"] .border-slate-700,
-body[data-theme="pastel"] .border-slate-700,
-body[data-theme="glacier"] .border-slate-700,
-body[data-theme="nordic"] .border-slate-700\/60,
-body[data-theme="paper"] .border-slate-700\/60,
-body[data-theme="alpineday"] .border-slate-700\/60,
-body[data-theme="pastel"] .border-slate-700\/60,
-body[data-theme="glacier"] .border-slate-700\/60 {
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    .border-slate-800,
+    .border-slate-800\/80,
+    .border-slate-800\/60,
+    .border-slate-700,
+    .border-slate-700\/70,
+    .border-slate-700\/60,
+    .border-slate-700\/50
+) {
     border-color: var(--border-color) !important;
 }
+
+/* 3. Inputs, Selects & Placeholders in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    input, select, textarea
+) {
+    background-color: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    input::placeholder,
+    textarea::placeholder
+) {
+    color: var(--text-muted) !important;
+    opacity: 0.8 !important;
+}
+
+/* 4. User Message Bubble High Contrast */
+.user-message-bubble,
+.user-message-bubble *,
+.user-message-bubble .message-content,
+.user-message-bubble .prose-lumina {
+    color: var(--text-user-bubble) !important;
+}
+
+/* 5. Reasoning / Thinking Accordion in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .thinking-accordion {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+    border: 1px solid var(--border-color) !important;
+}
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .thinking-accordion summary {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: var(--brand-primary) !important;
+    font-weight: 600 !important;
+}
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .thinking-content {
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* 6. Web Search Sources & Chips in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .source-chip {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-muted) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .source-chip:hover {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--brand-primary) !important;
+    border-color: var(--brand-primary) !important;
+}
+
+/* 7. Modal Windows (Model Pull & Settings) in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) :is(
+    #model-modal > div,
+    #settings-modal > div
+) {
+    background-color: var(--bg-sidebar) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15) !important;
+}
+
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) #model-modal [data-action="select-model"] {
+    background-color: var(--bg-card) !important;
+    border-color: var(--brand-primary) !important;
+    color: var(--brand-primary) !important;
+}
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) #model-modal [data-action="select-model"]:hover {
+    background-color: var(--brand-primary) !important;
+    color: var(--text-user-bubble) !important;
+}
+
+/* 8. User Avatar & Attachment Badges in Light Themes */
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) .w-7.h-7.rounded-xl.bg-slate-800 {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+:is(body[data-theme="nordic"], body[data-theme="paper"], body[data-theme="alpineday"], body[data-theme="pastel"], body[data-theme="pastellilac"], body[data-theme="pastelprisma"], body[data-theme="glacier"]) #attachment-previews > div {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+/* 9. Theme Grid Cards: Preserves Intrinsic Previews */
+.theme-btn[data-theme-val="default"],
+.theme-btn[data-theme-val="amoled"],
+.theme-btn[data-theme-val="cyberpunk"],
+.theme-btn[data-theme-val="matrix"],
+.theme-btn[data-theme-val="synthwave"],
+.theme-btn[data-theme-val="aurora"],
+.theme-btn[data-theme-val="snowforest"],
+.theme-btn[data-theme-val="pirate"],
+.theme-btn[data-theme-val="rainbowrave"] {
+    color: #f1f5f9 !important;
+}
+.theme-btn[data-theme-val="default"] .text-slate-200,
+.theme-btn[data-theme-val="amoled"] .text-slate-200,
+.theme-btn[data-theme-val="snowforest"] .text-emerald-200,
+.theme-btn[data-theme-val="pirate"] .text-[#f5edd6],
+.theme-btn[data-theme-val="rainbowrave"] .text-pink-300 {
+    color: #f1f5f9 !important;
+}
+.theme-btn[data-theme-val="default"] .text-slate-400,
+.theme-btn[data-theme-val="amoled"] .text-slate-400,
+.theme-btn[data-theme-val="aurora"] .text-teal-500,
+.theme-btn[data-theme-val="snowforest"] .text-emerald-400 {
+    color: #94a3b8 !important;
+}
+
+.theme-btn[data-theme-val="nordic"],
+.theme-btn[data-theme-val="paper"],
+.theme-btn[data-theme-val="alpineday"],
+.theme-btn[data-theme-val="pastellilac"],
+.theme-btn[data-theme-val="pastelprisma"],
+.theme-btn[data-theme-val="glacier"] {
+    color: #0f172a !important;
+}
+.theme-btn[data-theme-val="nordic"] .text-slate-800,
+.theme-btn[data-theme-val="paper"] .text-[#26231f],
+.theme-btn[data-theme-val="alpineday"] .text-[#132a1f],
+.theme-btn[data-theme-val="pastellilac"] .text-[#3b2847],
+.theme-btn[data-theme-val="pastelprisma"] .text-slate-800,
+.theme-btn[data-theme-val="glacier"] .text-[#0c2340] {
+    color: #0f172a !important;
+}
+
 
 /* ==========================================================================
    UNIVERSAL CHAT BAR & BOTTOM CONTRAST CONTROLS (ALL THEMES)

@@ -39,7 +39,9 @@ class TelemetryManager {
         }
 
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.host}/api/sys/ws`;
+        const token = localStorage.getItem("lumina_auth_token");
+        const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
+        const wsUrl = `${protocol}//${window.location.host}/api/sys/ws${tokenParam}`;
 
         try {
             this.ws = new WebSocket(wsUrl);

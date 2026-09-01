@@ -1,4 +1,20 @@
 // Lumina UI — Chat Inference, Multimodal Attachments & Streaming Engine
+function getAuthHeaders(extra = {}) {
+    if (typeof getLuminaAuthHeaders === "function") {
+        return getLuminaAuthHeaders(extra);
+    }
+    if (typeof window !== "undefined" && typeof window.getLuminaAuthHeaders === "function") {
+        return window.getLuminaAuthHeaders(extra);
+    }
+    const token = typeof localStorage !== "undefined" ? localStorage.getItem("lumina_auth_token") : null;
+    const headers = { ...extra };
+    if (token) {
+        headers["X-Lumina-Token"] = token;
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
 class ChatManager {
     constructor() {
         this.currentMessages = [];
@@ -7,6 +23,9 @@ class ChatManager {
         this.isGenerating = false;
         this.isWebSearchEnabled = false;
         this.isWebSearchActive = localStorage.getItem("lumina_web_search_active") === "true";
+        this._streamPending = false;
+        this._streamContentEl = null;
+        this._streamArgs = null;
         this.init();
     }
 
@@ -21,7 +40,7 @@ class ChatManager {
         if (!btnSearch) return;
 
         try {
-            const res = await fetch("/api/search/status");
+            const res = await fetch("/api/search/status", { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 this.isWebSearchEnabled = !!data.enabled;
@@ -199,6 +218,16 @@ class ChatManager {
             return;
         }
 
+        if (!container.dataset.bound) {
+            container.dataset.bound = "true";
+            container.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-action='remove-attachment']");
+                if (btn && btn.dataset.id) {
+                    this.removeAttachment(btn.dataset.id);
+                }
+            });
+        }
+
         container.classList.remove("hidden");
         container.innerHTML = this.stagedAttachments.map(att => {
             const sizeKb = Math.round(att.size / 1024);
@@ -212,7 +241,7 @@ class ChatManager {
                             <div class="text-slate-200 truncate">${safeName}</div>
                             <div class="text-slate-500 text-[9px]">${sizeKb} KB</div>
                         </div>
-                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${safeId}')" title="Remove attachment">
+                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" data-action="remove-attachment" data-id="${safeId}" title="Remove attachment">
                             &times;
                         </button>
                     </div>
@@ -225,7 +254,7 @@ class ChatManager {
                             <div class="text-slate-200 truncate">${safeName}</div>
                             <div class="text-slate-500 text-[9px]">${sizeKb} KB</div>
                         </div>
-                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" onclick="window.chatManager.removeAttachment('${safeId}')" title="Remove attachment">
+                        <button type="button" class="text-slate-400 hover:text-rose-400 p-1 text-xs" data-action="remove-attachment" data-id="${safeId}" title="Remove attachment">
                             &times;
                         </button>
                     </div>
@@ -249,7 +278,11 @@ class ChatManager {
 
         const model = window.modelManager?.selectedModel;
         if (!model) {
-            alert("Please select or pull a model first.");
+            if (typeof showToast === "function") {
+                showToast("Please select or pull a model first.", "warning");
+            } else {
+                alert("Please select or pull a model first.");
+            }
             return;
         }
 
@@ -285,7 +318,9 @@ class ChatManager {
         if (this.isWebSearchEnabled && this.isWebSearchActive && text) {
             try {
                 const modelParam = model ? `&model=${encodeURIComponent(model)}` : "";
-                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}${modelParam}`);
+                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}${modelParam}`, {
+                    headers: getAuthHeaders()
+                });
                 if (sRes.ok) {
                     const sData = await sRes.json();
                     if (sData.results && sData.results.length > 0) {
@@ -378,7 +413,7 @@ class ChatManager {
             const isPersist = window.modelManager?.isPersistenceEnabled !== false;
             const response = await fetch("/api/chat/generate", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({
                     session_id: sessionId,
                     model: model,
@@ -439,8 +474,7 @@ class ChatManager {
                                 document.body.classList.add("lumina-thinking");
                             }
                             assistantThinking += thinkingChunk;
-                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
-                            this.scrollToBottom();
+                            this.queueStreamRender(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                         }
 
                         if (contentChunk) {
@@ -449,8 +483,7 @@ class ChatManager {
                                 document.body.classList.remove("lumina-thinking");
                             }
                             assistantContent += contentChunk;
-                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
-                            this.scrollToBottom();
+                            this.queueStreamRender(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                         }
 
                         if (chunk.done) {
@@ -460,6 +493,10 @@ class ChatManager {
                 }
             }
             clearTimeout(loadTimer);
+
+            // Final render with full code highlighting and math rendering
+            this.renderStreamContent(contentEl, assistantContent, assistantThinking, false, thinkingStartTime, true);
+            this.scrollToBottom();
 
             // Save completed message
             this.currentMessages.push({
@@ -505,7 +542,9 @@ class ChatManager {
     async checkBackgroundChat(sessionId) {
         if (!sessionId) return;
         try {
-            const res = await fetch(`/api/chat/status/${sessionId}`);
+            const res = await fetch(`/api/chat/status/${sessionId}`, {
+                headers: getAuthHeaders()
+            });
             if (!res.ok) return;
             const data = await res.json();
             if (!data.job) return;
@@ -549,6 +588,7 @@ class ChatManager {
 
         try {
             const res = await fetch(`/api/chat/stream/${sessionId}`, {
+                headers: getAuthHeaders(),
                 signal: this.abortController.signal
             });
             if (!res.ok) throw new Error("Could not resume chat stream");
@@ -583,8 +623,7 @@ class ChatManager {
                                 document.body.classList.add("lumina-thinking");
                             }
                             assistantThinking += thinkingChunk;
-                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
-                            this.scrollToBottom();
+                            this.queueStreamRender(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                         }
 
                         if (contentChunk) {
@@ -593,8 +632,7 @@ class ChatManager {
                                 document.body.classList.remove("lumina-thinking");
                             }
                             assistantContent += contentChunk;
-                            this.renderStreamContent(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
-                            this.scrollToBottom();
+                            this.queueStreamRender(contentEl, assistantContent, assistantThinking, isThinkingPhase, thinkingStartTime);
                         }
 
                         if (chunk.done) {
@@ -603,6 +641,10 @@ class ChatManager {
                     } catch (e) {}
                 }
             }
+
+            // Final render with full code highlighting and math rendering
+            this.renderStreamContent(contentEl, assistantContent, assistantThinking, false, thinkingStartTime, true);
+            this.scrollToBottom();
 
             this.currentMessages.push({
                 role: "assistant",
@@ -661,7 +703,7 @@ class ChatManager {
     stopGeneration() {
         const sessionId = window.app?.activeSessionId;
         if (sessionId) {
-            fetch(`/api/chat/abort/${sessionId}`, { method: "POST" }).catch(() => {});
+            fetch(`/api/chat/abort/${sessionId}`, { method: "POST", headers: getAuthHeaders() }).catch(() => {});
         }
         if (this.abortController) {
             this.abortController.abort();
@@ -732,8 +774,8 @@ class ChatManager {
             <div class="message-bubble-wrapper relative group max-w-[88%] sm:max-w-2xl">
                 <div class="px-3.5 sm:px-4 py-2.5 ${
                     isUser
-                        ? 'bg-[var(--bg-user-bubble)] text-[var(--text-user-bubble)] rounded-2xl rounded-tr-sm shadow-md'
-                        : 'bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl rounded-tl-sm shadow-sm'
+                        ? 'user-message-bubble bg-[var(--bg-user-bubble)] text-[var(--text-user-bubble)] rounded-2xl rounded-tr-sm shadow-md'
+                        : 'ai-message-bubble bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl rounded-tl-sm shadow-sm'
                 }">
                     ${imagesHtml}
                     <div class="message-content prose-lumina ${isUser ? 'text-[var(--text-user-bubble)]' : ''}">
@@ -1046,7 +1088,29 @@ class ChatManager {
         return html;
     }
 
-    renderStreamContent(contentEl, content, thinking, isThinking, startTime) {
+    queueStreamRender(contentEl, content, thinking, isThinking, startTime) {
+        this._streamContentEl = contentEl;
+        this._streamArgs = { content, thinking, isThinking, startTime };
+        if (!this._streamPending) {
+            this._streamPending = true;
+            requestAnimationFrame(() => {
+                this._streamPending = false;
+                if (this._streamContentEl && this._streamArgs) {
+                    this.renderStreamContent(
+                        this._streamContentEl,
+                        this._streamArgs.content,
+                        this._streamArgs.thinking,
+                        this._streamArgs.isThinking,
+                        this._streamArgs.startTime,
+                        false
+                    );
+                    this.scrollToBottom();
+                }
+            });
+        }
+    }
+
+    renderStreamContent(contentEl, content, thinking, isThinking, startTime, isFinal = false) {
         let thoughts = thinking || "";
         let mainContent = content || "";
 
@@ -1090,7 +1154,9 @@ class ChatManager {
         }
 
         contentEl.innerHTML = html;
-        this.highlightCode(contentEl);
+        if (isFinal) {
+            this.highlightCode(contentEl);
+        }
     }
 
     // Use the global escapeHtml utility from utils.js

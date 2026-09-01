@@ -23,12 +23,23 @@
   <img src="docs/screenshots/lumina-chat-hero.png" alt="Lumina Chat Interface" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
+### 📱 Responsive Mobile & PWA Experience (iPhone Aspect Ratio)
+
+Lumina adapts fluidly to smartphones and tablets with touch-first ergonomics, slide-out drawer management, and full viewport voice interaction:
+
+<p align="center">
+  <img src="docs/screenshots/lumina-mobile-chat.png" alt="Lumina Mobile Chat (gemma4:12b)" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
+  <img src="docs/screenshots/lumina-mobile-drawer.png" alt="Lumina Hardware Telemetry Drawer" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
+  <img src="docs/screenshots/lumina-mobile-voice.png" alt="Lumina Live Voice Mode" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
+  <img src="docs/screenshots/lumina-mobile-themes.png" alt="Lumina 15 Curated Themes" width="23.5%" style="border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); margin: 0 1%;" />
+</p>
+
 ---
 
 ## ⚡ Core Features
 
 ### 1. Minimalist, Clutter-Free Canvas
-- **Distraction-Free Workspace**: The main chat viewport contains only the essential controls: model selector, voice launcher, hamburger drawer trigger, settings gear, the message feed, and the clean input box.
+- **Distraction-Free Workspace**: The main chat viewport contains only essential controls: model selector pill, voice launcher, hamburger drawer trigger, settings gear, and the clean input bar.
 - **Collapsible Slide-Out Drawer**: All configuration, telemetry, history search, and power-user utilities tuck neatly away on desktop and mobile.
 
 ### 2. Zero Cold-Start VRAM Pinning & Instant Flush
@@ -45,7 +56,7 @@
 </p>
 
 ### 4. Gemini Live Fullscreen Voice Mode
-- Immersive audio-reactive conversational loop with continuous Speech-to-Text (STT) and dynamic Text-to-Speech (TTS).
+- Immersive audio-reactive conversational loop with continuous Speech-to-Text (STT) and dynamic Text-to-Speech (TTS via local Kokoro).
 - Theme-synchronized canvas visualizer displaying radiant glowing speech orbs, harmonic waveform animations, and live transcription subtitles.
 - In 8-bit mode, transitions to stepped arcade diamond waveform geometry and CRT scanline styling.
 
@@ -53,45 +64,59 @@
   <img src="docs/screenshots/lumina-voice-mode.png" alt="Lumina Live Voice Mode" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
-### 5. 12 Curated System Themes
-Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, voice overlay, and particle animations):
-- **Midnight Slate (Default)**: Deep midnight slate and refined indigo glow.
-- **Glacial Ice**: Translucent frosted ice sheets, high-density blizzard particle physics, and pure white ledges.
-- **Pastel Dream**: Soft marshmallow lilac, rose accents, and orchid gradients.
-- **Snowy Forest**: Deep spruce evergreen with gentle animated snowflakes landing on message cards.
-- **Nordic Frost**: Minimalist crisp Scandinavian daylight mode.
-- **Paper & Ink**: Warm literary editorial light mode with warm charcoal typography.
-- **Alpine Day**: Frosted sage, meadow green, and light pine tones.
-- **AMOLED**: True pure black `#000000` for OLED efficiency.
-- **Cyberpunk**: Neon cyan, electric yellow, and pulsing magenta.
-- **Matrix**: High-contrast phosphor terminal green code rain.
+### 5. 15 Curated System Themes
+Comprehensive theme re-skinning across the entire interface (chat, sidebar, drawer, modals, code blocks, voice overlay, and ambient background layers):
+
+**Dark Atmosphere (9 Themes)**:
+- **Midnight (Default)**: Deep midnight slate with refined indigo glow.
+- **AMOLED**: True pure black `#000000` for OLED battery efficiency and maximum contrast.
+- **Cyberpunk**: Neon cyan, electric yellow, and pulsing magenta cyber grid.
+- **Matrix**: Phosphor terminal green code rain aesthetic.
 - **Synthwave**: 80s neon magenta, sunset violet, and animated perspective gridlines.
 - **Aurora**: Arctic emerald, cyan, and northern lights gradients.
+- **Snowy Forest**: Deep spruce evergreen with gentle animated snowflakes.
+- **Pirate Voyage**: Weathered parchment, warm bronze, and sea-captain charcoal.
+- **Rainbow Rave**: Chromatic reactive gradients and pulsing spectrum glow.
+
+**Light & Day (6 Themes)**:
+- **Nordic Frost**: Minimalist crisp Scandinavian daylight mode.
+- **Paper & Ink**: Warm literary editorial light mode with charcoal typography.
+- **Alpine Day**: Frosted sage, meadow green, and light pine tones.
+- **Pastel Lilac**: Sweet marshmallow lilac with high-contrast violet user cards.
+- **Pastel Prisma**: Chromatic pastel wash with high saturation and playful accents.
+- **Glacial Ice**: Translucent frosted ice crystal sheets with blizzard particle physics.
 
 <p align="center">
   <img src="docs/screenshots/lumina-themes-modal.png" alt="Lumina Theme Collection & Settings" width="49%" style="border-radius: 12px;" />
   <img src="docs/screenshots/lumina-glacier.png" alt="Lumina Glacial Ice Theme with Blizzard Snow" width="49%" style="border-radius: 12px;" />
 </p>
 
-### 6. Multimodal Vision & Document Ingestion
+### 6. Smart Entity & Intent Web Search (SearXNG)
+- Zero-latency query intent extractor extracts weather queries (e.g. `"what will the weather be like tomorrow in zip code 68046"` -> `"weather 68046"`), stock/crypto prices, and events.
+- Injects real-time web citations directly into model reasoning with clickable source pills.
+
+### 7. Multimodal Vision & Document Ingestion
 - Drag-and-drop or file-picker upload for images (PNG, JPG, WebP) and documents (TXT, MD, CSV, JSON, PDF).
 - Multimodal preview chips with one-click dismiss before sending.
-- Seamless compatibility with vision-capable models (e.g., Llama 3.2 Vision, Moondream, Gemma).
+- Seamless compatibility with vision-capable models (e.g., Llama 3.2 Vision, Moondream, Gemma 4).
 
-### 7. In-Chat Ergonomics & Sampling Controls
+### 8. In-Chat Ergonomics & Sampling Controls
 - **Stop Generation**: Responsive abort button powered by `AbortController` cleanly halting inference while preserving all streamed tokens.
 - **Contextual Actions (Hover / Tap)**:
   - *Assistant*: 1-click clipboard copy, toggle between rendered Markdown and raw monospace source, and turn regeneration.
   - *User*: Edit prompt button to modify prior turns and re-execute.
 - **System Persona Presets**: Instantly toggle between *Default*, *Senior Engineer*, *Creative Writer*, *Data Extractor*, or define a *Custom System Instruction*.
 - **Granular Inference Sliders**: Adjust Context Window (`num_ctx`), Temperature (`temperature`), Top-P (`top_p`), and Repetition Penalty (`repeat_penalty`) with real-time numeric readouts and default reset.
-- **Data Portability**: 1-click export of the active conversation to formatted Markdown (`.md`) or raw structured JSON (`.json`).
+- **Data Portability**: 1-click export of active conversations to formatted Markdown (`.md`) or raw structured JSON (`.json`).
 
 ---
 
 ## 🚀 Quick Start
 
-> 📖 **Looking for full homelab, reverse proxy, or SSL setups?** Check out the detailed **[Deployment & Quick Start Guide (QUICKSTART.md)](QUICKSTART.md)**.
+> 📖 **Looking for full homelab, reverse proxy, or SSL setups?** Check out the step-by-step **[Getting Started Guide (docs/GETTING_STARTED.md)](docs/GETTING_STARTED.md)** for:
+> 1. **Deploying Just Lumina** (connecting to your existing Ollama/SearXNG/Kokoro services)
+> 2. **Lumina + Ollama Stack** (turnkey local LLM workstation)
+> 3. **Full Sovereign Homelab Stack** (Lumina + Ollama + Kokoro TTS + SearXNG + Nginx Gateway)
 
 ### Option A: Docker Compose (Recommended)
 

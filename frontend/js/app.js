@@ -273,9 +273,24 @@ class App {
             btnClearAll.addEventListener("click", () => {
                 if (confirm("Are you sure you want to delete all saved conversations? This cannot be undone.")) {
                     localStorage.removeItem("lumina_sessions");
+                    window.luminaStorage?.delete("lumina_sessions");
                     this.sessions = [];
                     this.createNewSession();
                     document.getElementById("settings-modal")?.classList.add("hidden");
+                }
+            });
+        }
+
+        // 6. Optional Security Token Input
+        const tokenInput = document.getElementById("settings-auth-token");
+        if (tokenInput) {
+            tokenInput.value = localStorage.getItem("lumina_auth_token") || "";
+            tokenInput.addEventListener("input", (e) => {
+                const val = e.target.value.trim();
+                if (val) {
+                    localStorage.setItem("lumina_auth_token", val);
+                } else {
+                    localStorage.removeItem("lumina_auth_token");
                 }
             });
         }
@@ -1164,12 +1179,28 @@ class App {
     }
 
     // Session Management
-    loadSessions() {
+    async loadSessions() {
         if (this.isIncognito) return;
         try {
-            const stored = localStorage.getItem("lumina_sessions");
-            this.sessions = stored ? JSON.parse(stored) : [];
+            // 1. Check IndexedDB first
+            let stored = await window.luminaStorage?.get("lumina_sessions");
+
+            // 2. If nothing in IndexedDB, check localStorage for legacy sessions to migrate
+            if (!stored || (Array.isArray(stored) && stored.length === 0)) {
+                const legacy = localStorage.getItem("lumina_sessions");
+                if (legacy) {
+                    try {
+                        stored = JSON.parse(legacy);
+                        if (Array.isArray(stored) && stored.length > 0) {
+                            await window.luminaStorage?.set("lumina_sessions", stored);
+                            localStorage.removeItem("lumina_sessions");
+                        }
+                    } catch (e) {}
+                }
+            }
+            this.sessions = Array.isArray(stored) ? stored : [];
         } catch (e) {
+            console.warn("Failed to load sessions from IndexedDB:", e);
             this.sessions = [];
         }
 
@@ -1183,12 +1214,9 @@ class App {
 
     saveSessions() {
         if (this.isIncognito) return;
-        // Debounce: avoid excessive localStorage writes during streaming
         if (this._saveTimer) clearTimeout(this._saveTimer);
-        this._saveTimer = setTimeout(() => {
+        this._saveTimer = setTimeout(async () => {
             try {
-                // Strip base64 image data before persisting to avoid blowing
-                // through the ~5 MB localStorage quota
                 const stripped = this.sessions.map(s => ({
                     ...s,
                     messages: s.messages.map(m => {
@@ -1198,9 +1226,9 @@ class App {
                         return m;
                     }),
                 }));
-                localStorage.setItem("lumina_sessions", JSON.stringify(stripped));
+                await window.luminaStorage?.set("lumina_sessions", stripped);
             } catch (e) {
-                console.warn("Failed to save sessions to localStorage:", e);
+                console.warn("Failed to save sessions to IndexedDB:", e);
             }
         }, 500);
     }
@@ -1307,6 +1335,22 @@ class App {
             countBadge.textContent = this.searchQuery ? `${displaySessions.length}/${this.sessions.length}` : `${this.sessions.length}`;
         }
 
+        if (!listEl.dataset.bound) {
+            listEl.dataset.bound = "true";
+            listEl.addEventListener("click", (e) => {
+                const deleteBtn = e.target.closest("[data-action='delete-session']");
+                if (deleteBtn && deleteBtn.dataset.id) {
+                    e.stopPropagation();
+                    this.deleteSession(deleteBtn.dataset.id, e);
+                    return;
+                }
+                const tab = e.target.closest(".session-tab");
+                if (tab && tab.dataset.id) {
+                    this.switchSession(tab.dataset.id);
+                }
+            });
+        }
+
         if (displaySessions.length === 0) {
             listEl.innerHTML = `<div class="text-[11px] text-slate-500 p-2 italic">${this.searchQuery ? 'No matching conversations.' : 'No chats yet.'}</div>`;
             return;
@@ -1319,9 +1363,9 @@ class App {
             return `
                 <div class="session-tab group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs ${
                     isActive ? 'bg-slate-800 text-white font-medium shadow-sm' : 'hover:bg-slate-800/40 text-slate-400 hover:text-slate-200'
-                }" onclick="window.app.switchSession('${safeId}')">
+                }" data-id="${safeId}">
                     <span class="truncate max-w-[180px]">${safeTitle}</span>
-                    <button class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition p-1 text-sm leading-none" onclick="window.app.deleteSession('${safeId}', event)" title="Delete Chat">
+                    <button class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition p-1 text-sm leading-none" data-action="delete-session" data-id="${safeId}" title="Delete Chat">
                         &times;
                     </button>
                 </div>

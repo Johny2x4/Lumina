@@ -1,6 +1,11 @@
 # Lumina ✦ Deployment & Quick Start Guide
 
 > **Note:** **Lumina** is a modern **web-based frontend client & user interface**. It connects directly to an **[Ollama](https://ollama.com/)** backend (which runs the actual LLM models) and an optional **[SearXNG](https://searx.github.io/searxng/)** instance (which provides real-time web search results). It does not replace Ollama; it gives Ollama a sovereign, fast, and feature-rich UI.
+> 
+> 🧭 **Looking for a specific deployment topology?** See our **[Getting Started Guide (docs/GETTING_STARTED.md)](docs/GETTING_STARTED.md)** covering:
+> - **Path 1: Deploying Just Lumina** (connecting to your existing Ollama, SearXNG, or Kokoro services)
+> - **Path 2: Lumina + Ollama** (local workstation with GPU pass-through)
+> - **Path 3: Full Sovereign Homelab Stack** (Lumina + Ollama + Kokoro TTS + SearXNG + Nginx Gateway)
 
 This guide covers everything you need to deploy Lumina in production or homelab environments, including multi-container stacks, GPU hardware acceleration, and setting up **TLS / HTTPS** for browser microphone and voice chat support.
 

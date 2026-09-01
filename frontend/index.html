@@ -13,8 +13,8 @@
     <link rel="icon" type="image/png" href="assets/icon.png">
     <link rel="apple-touch-icon" href="assets/icon.png">
     <link rel="manifest" href="manifest.json">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <!-- Tailwind CSS (Local Vendored Standalone) -->
+    <script src="assets/vendor/tailwindcss.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -30,23 +30,23 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
                     }
                 }
             }
         }
     </script>
     <!-- Marked.js for Markdown & Highlight.js for Code Highlighting -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.4/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
-    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script src="assets/vendor/marked.min.js"></script>
+    <link rel="stylesheet" href="assets/vendor/atom-one-dark.min.css">
+    <script src="assets/vendor/highlight.min.js"></script>
     <!-- KaTeX for Native Math & Chemical Formulas ($...$, $$...$$, \text{...}) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/mhchem.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=3.2">
+    <link rel="stylesheet" href="assets/vendor/katex.min.css">
+    <script src="assets/vendor/katex.min.js"></script>
+    <script src="assets/vendor/auto-render.min.js"></script>
+    <script src="assets/vendor/mhchem.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css?v=3.4.1">
 </head>
 <body class="h-[100dvh] w-screen flex flex-col overflow-hidden selection:bg-indigo-500 selection:text-white select-none">
     <!-- Background Ambient & Retro Animation Layer -->
@@ -208,147 +208,164 @@
 
             <!-- TAB 1: APPEARANCE & VOICE -->
             <div id="settings-tab-appearance-voice" class="settings-tab-pane space-y-4">
-                <!-- Appearance Theme Selection (12 Curated Themes) -->
-                <div class="space-y-2">
+                <!-- Appearance Theme Selection (15 Curated Themes) -->
+                <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <label class="text-xs font-semibold text-slate-300">Theme Collection (12 Curated Themes)</label>
+                        <label class="text-xs font-semibold text-slate-300">Theme Collection (15 Curated Themes)</label>
                         <span class="text-[10px] text-indigo-400 font-mono">Full system retheme</span>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-60 overflow-y-auto custom-scrollbar p-0.5">
-                        <!-- 1. Midnight Slate -->
-                        <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-[#090d16] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="default">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                                <span class="font-medium text-slate-200 text-[11px] truncate">Midnight</span>
-                            </div>
-                            <span class="text-[9px] text-slate-400">Default Slate</span>
-                        </button>
 
-                        <!-- 2. AMOLED Black -->
-                        <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-black text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="amoled">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                                <span class="font-medium text-slate-200 text-[11px] truncate">AMOLED</span>
-                            </div>
-                            <span class="text-[9px] text-slate-400">Pure Black OLED</span>
-                        </button>
+                    <!-- Dark Atmosphere Themes -->
+                    <div class="space-y-1.5">
+                        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 px-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                            <span>Dark Atmosphere Themes</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs p-0.5">
+                            <!-- 1. Midnight Slate -->
+                            <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-[#090d16] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="default">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                    <span class="font-medium text-slate-200 text-[11px] truncate">Midnight</span>
+                                </div>
+                                <span class="text-[9px] text-slate-400">Default Slate</span>
+                            </button>
 
-                        <!-- 3. Cyberpunk 2077 (Animated) -->
-                        <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#07050e] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="cyberpunk">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                                <span class="font-medium text-cyan-300 text-[11px] truncate">Cyberpunk</span>
-                            </div>
-                            <span class="text-[9px] text-yellow-400">Static Cyber Grid</span>
-                        </button>
+                            <!-- 2. AMOLED Black -->
+                            <button class="theme-btn p-2 rounded-xl border border-slate-700 bg-black text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="amoled">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
+                                    <span class="font-medium text-slate-200 text-[11px] truncate">AMOLED</span>
+                                </div>
+                                <span class="text-[9px] text-slate-400">Pure Black OLED</span>
+                            </button>
 
-                        <!-- 4. Matrix Rain (Animated) -->
-                        <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#020603] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1" data-theme-val="matrix">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span class="font-medium text-emerald-400 text-[11px] truncate">Matrix</span>
-                            </div>
-                            <span class="text-[9px] text-emerald-600">Terminal Rain</span>
-                        </button>
+                            <!-- 3. Cyberpunk 2077 (Animated) -->
+                            <button class="theme-btn p-2 rounded-xl border border-cyan-500/40 bg-[#07050e] text-left transition hover:border-brand-500 flex flex-col justify-between gap-1" data-theme-val="cyberpunk">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                    <span class="font-medium text-cyan-300 text-[11px] truncate">Cyberpunk</span>
+                                </div>
+                                <span class="text-[9px] text-yellow-400">Static Cyber Grid</span>
+                            </button>
 
-                        <!-- 5. Synthwave Outrun (Animated) -->
-                        <button class="theme-btn p-2 rounded-xl border border-pink-500/50 bg-[#130722] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="synthwave">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
-                                <span class="font-medium text-pink-300 text-[11px] truncate">Synthwave</span>
-                            </div>
-                            <span class="text-[9px] text-pink-400">Sunset Highway</span>
-                        </button>
+                            <!-- 4. Matrix Rain (Animated) -->
+                            <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#020603] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1" data-theme-val="matrix">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span class="font-medium text-emerald-400 text-[11px] truncate">Matrix</span>
+                                </div>
+                                <span class="text-[9px] text-emerald-600">Terminal Rain</span>
+                            </button>
 
-                        <!-- 6. Aurora Borealis (Animated) -->
-                        <button class="theme-btn p-2 rounded-xl border border-teal-500/50 bg-[#05131a] text-left transition hover:border-teal-400 flex flex-col justify-between gap-1" data-theme-val="aurora">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
-                                <span class="font-medium text-teal-300 text-[11px] truncate">Aurora</span>
-                            </div>
-                            <span class="text-[9px] text-teal-500">Northern Glow</span>
-                        </button>
+                            <!-- 5. Synthwave Outrun (Animated) -->
+                            <button class="theme-btn p-2 rounded-xl border border-pink-500/50 bg-[#130722] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1" data-theme-val="synthwave">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                                    <span class="font-medium text-pink-300 text-[11px] truncate">Synthwave</span>
+                                </div>
+                                <span class="text-[9px] text-pink-400">Sunset Highway</span>
+                            </button>
 
-                        <!-- 7. Snowy Forest (Animated Falling Snow) -->
-                        <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#07130c] text-left transition hover:border-emerald-300 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="snowforest">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                <span class="font-medium text-emerald-200 text-[11px] truncate">Snowy Forest</span>
-                            </div>
-                            <span class="text-[9px] text-emerald-400">Alpine Snow ❄️</span>
-                        </button>
+                            <!-- 6. Aurora Borealis (Animated) -->
+                            <button class="theme-btn p-2 rounded-xl border border-teal-500/50 bg-[#05131a] text-left transition hover:border-teal-400 flex flex-col justify-between gap-1" data-theme-val="aurora">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                                    <span class="font-medium text-teal-300 text-[11px] truncate">Aurora</span>
+                                </div>
+                                <span class="text-[9px] text-teal-500">Northern Glow</span>
+                            </button>
 
-                        <!-- 8. Nordic Frost (Clean Light) -->
-                        <button class="theme-btn p-2 rounded-xl border border-blue-200 bg-[#f4f7fb] text-left transition hover:border-blue-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="nordic">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                                <span class="font-medium text-slate-800 text-[11px] truncate">Nordic Frost</span>
-                            </div>
-                            <span class="text-[9px] text-blue-600 font-medium">Clean Light ☀️</span>
-                        </button>
+                            <!-- 7. Snowy Forest (Animated Falling Snow) -->
+                            <button class="theme-btn p-2 rounded-xl border border-emerald-500/50 bg-[#07130c] text-left transition hover:border-emerald-300 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="snowforest">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span class="font-medium text-emerald-200 text-[11px] truncate">Snowy Forest</span>
+                                </div>
+                                <span class="text-[9px] text-emerald-400">Alpine Snow ❄️</span>
+                            </button>
 
-                        <!-- 9. Paper & Ink (Editorial Light) -->
-                        <button class="theme-btn p-2 rounded-xl border border-[#e7dfd1] bg-[#fcfbf7] text-left transition hover:border-amber-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="paper">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-[#c2410c]"></span>
-                                <span class="font-medium text-[#26231f] text-[11px] truncate">Paper & Ink</span>
-                            </div>
-                            <span class="text-[9px] text-[#78716c]">Warm Editorial 📜</span>
-                        </button>
+                            <!-- 8. Blackbeard's Voyage (Pirate Theme) -->
+                            <button class="theme-btn p-2 rounded-xl border border-amber-900/50 bg-[#090e17] text-left transition hover:border-amber-500 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pirate">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></span>
+                                    <span class="font-medium text-[#f5edd6] text-[11px] truncate">Pirate Voyage</span>
+                                </div>
+                                <span class="text-[9px] text-[#d4af37] font-medium">Blackbeard 🏴‍☠️</span>
+                            </button>
 
-                        <!-- 10. Alpine Day (Forest Light) -->
-                        <button class="theme-btn p-2 rounded-xl border border-[#c1d7cc] bg-[#f0f5f2] text-left transition hover:border-emerald-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="alpineday">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-[#2d6a4f]"></span>
-                                <span class="font-medium text-[#132a1f] text-[11px] truncate">Alpine Day</span>
-                            </div>
-                            <span class="text-[9px] text-[#52796f]">Sage Meadow 🌿</span>
-                        </button>
+                            <!-- 9. Rainbow Rave (Hyper-Color Explosion) -->
+                            <button class="theme-btn p-2 rounded-xl border border-pink-500/60 bg-[#0f051f] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="rainbowrave">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-400 to-cyan-400 animate-pulse"></span>
+                                    <span class="font-medium text-pink-300 text-[11px] truncate">Rainbow Rave</span>
+                                </div>
+                                <span class="text-[9px] text-yellow-300 font-medium">Color Explosion 🌈</span>
+                            </button>
+                        </div>
+                    </div>
 
-                        <!-- 11. Pastel Lilac (Rose & Lilac Theme) -->
-                        <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastellilac">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-[#ec4899] animate-pulse"></span>
-                                <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Lilac</span>
-                            </div>
-                            <span class="text-[9px] text-[#ec4899] font-medium">Sweet Rose 🌸</span>
-                        </button>
+                    <!-- Light & Day Themes -->
+                    <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 px-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            <span>Light &amp; Day Themes</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs p-0.5">
+                            <!-- 10. Nordic Frost (Clean Light) -->
+                            <button class="theme-btn p-2 rounded-xl border border-blue-200 bg-[#f4f7fb] text-left transition hover:border-blue-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="nordic">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                    <span class="font-medium text-slate-800 text-[11px] truncate">Nordic Frost</span>
+                                </div>
+                                <span class="text-[9px] text-blue-600 font-medium">Clean Light ☀️</span>
+                            </button>
 
-                        <!-- 12. Pastel Prisma (Multi-Chroma High-Contrast Pastel) -->
-                        <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#f8fafc] text-left transition hover:border-emerald-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastelprisma">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-400 via-sky-400 to-amber-400"></span>
-                                <span class="font-medium text-slate-800 text-[11px] truncate">Pastel Prisma</span>
-                            </div>
-                            <span class="text-[9px] text-teal-600 font-medium">Multi-Pastel 🎨</span>
-                        </button>
+                            <!-- 11. Paper & Ink (Editorial Light) -->
+                            <button class="theme-btn p-2 rounded-xl border border-[#e7dfd1] bg-[#fcfbf7] text-left transition hover:border-amber-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="paper">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-[#c2410c]"></span>
+                                    <span class="font-medium text-[#26231f] text-[11px] truncate">Paper &amp; Ink</span>
+                                </div>
+                                <span class="text-[9px] text-[#78716c]">Warm Editorial 📜</span>
+                            </button>
 
-                        <!-- 13. Glacial Ice (Frozen Tundra & Falling Snow) -->
-                        <button class="theme-btn p-2 rounded-xl border border-sky-200 bg-[#edf5fa] text-left transition hover:border-sky-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="glacier">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
-                                <span class="font-medium text-[#0c2340] text-[11px] truncate">Glacial Ice</span>
-                            </div>
-                            <span class="text-[9px] text-sky-600 font-medium">Frozen Snow ❄️</span>
-                        </button>
+                            <!-- 12. Alpine Day (Forest Light) -->
+                            <button class="theme-btn p-2 rounded-xl border border-[#c1d7cc] bg-[#f0f5f2] text-left transition hover:border-emerald-600 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="alpineday">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-[#2d6a4f]"></span>
+                                    <span class="font-medium text-[#132a1f] text-[11px] truncate">Alpine Day</span>
+                                </div>
+                                <span class="text-[9px] text-[#52796f]">Sage Meadow 🌿</span>
+                            </button>
 
-                        <!-- 14. Blackbeard's Voyage (Pirate Theme) -->
-                        <button class="theme-btn p-2 rounded-xl border border-amber-900/50 bg-[#090e17] text-left transition hover:border-amber-500 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pirate">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-[#d4af37]"></span>
-                                <span class="font-medium text-[#f5edd6] text-[11px] truncate">Pirate Voyage</span>
-                            </div>
-                            <span class="text-[9px] text-[#d4af37] font-medium">Blackbeard 🏴‍☠️</span>
-                        </button>
+                            <!-- 13. Pastel Lilac (Rose & Lilac Theme) -->
+                            <button class="theme-btn p-2 rounded-xl border border-[#edd5f2] bg-[#fbf7fb] text-left transition hover:border-pink-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastellilac">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-[#be185d] animate-pulse"></span>
+                                    <span class="font-medium text-[#3b2847] text-[11px] truncate">Pastel Lilac</span>
+                                </div>
+                                <span class="text-[9px] text-[#be185d] font-medium">Sweet Rose 🌸</span>
+                            </button>
 
-                        <!-- 15. Rainbow Rave (Hyper-Color Explosion) -->
-                        <button class="theme-btn p-2 rounded-xl border border-pink-500/60 bg-[#0f051f] text-left transition hover:border-cyan-400 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="rainbowrave">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-400 to-cyan-400 animate-pulse"></span>
-                                <span class="font-medium text-pink-300 text-[11px] truncate">Rainbow Rave</span>
-                            </div>
-                            <span class="text-[9px] text-yellow-300 font-medium">Color Explosion 🌈</span>
-                        </button>
+                            <!-- 14. Pastel Prisma (Saturated Multi-Chroma) -->
+                            <button class="theme-btn p-2 rounded-xl border border-purple-300 bg-gradient-to-br from-[#ede9fe] via-[#e0f2fe] to-[#fef3c7] text-left transition hover:border-purple-500 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="pastelprisma">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-400 via-sky-400 to-purple-500 shadow-sm"></span>
+                                    <span class="font-medium text-slate-900 text-[11px] truncate">Pastel Prisma</span>
+                                </div>
+                                <span class="text-[9px] text-purple-700 font-semibold">Chroma Prismatic 🎨</span>
+                            </button>
+
+                            <!-- 15. Glacial Ice (Frozen Tundra & Falling Snow) -->
+                            <button class="theme-btn p-2 rounded-xl border border-sky-300 bg-[#edf5fa] text-left transition hover:border-sky-500 flex flex-col justify-between gap-1 shadow-sm" data-theme-val="glacier">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
+                                    <span class="font-medium text-[#0c2340] text-[11px] truncate">Glacial Ice</span>
+                                </div>
+                                <span class="text-[9px] text-sky-700 font-medium">Frozen Snow ❄️</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -386,6 +403,13 @@
                     <button id="btn-clear-all-history" class="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-medium transition">
                         Clear All Chat History
                     </button>
+                </div>
+
+                <!-- Security & LAN Access Token -->
+                <div class="space-y-1.5 pt-3 border-t border-slate-800/80">
+                    <label class="text-xs font-semibold text-slate-300 block">API / Security Token</label>
+                    <p class="text-[11px] text-slate-400">Optional security token for authenticated LAN/Tailscale deployments (matches LUMINA_AUTH_TOKEN).</p>
+                    <input type="password" id="settings-auth-token" placeholder="Optional security token..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500">
                 </div>
             </div>
 
@@ -724,11 +748,12 @@
         </aside>
 
     <!-- Application Scripts -->
-    <script src="js/utils.js?v=3.3"></script>
-    <script src="js/telemetry.js?v=3.3"></script>
-    <script src="js/models.js?v=3.3"></script>
-    <script src="js/voice.js?v=3.3"></script>
-    <script src="js/chat.js?v=3.3"></script>
-    <script src="js/app.js?v=3.3"></script>
+    <script src="js/utils.js?v=3.4.0"></script>
+    <script src="js/telemetry.js?v=3.4.0"></script>
+    <script src="js/models.js?v=3.4.0"></script>
+    <script src="js/voice-visualizer.js?v=3.4.0"></script>
+    <script src="js/voice.js?v=3.4.0"></script>
+    <script src="js/chat.js?v=3.4.0"></script>
+    <script src="js/app.js?v=3.4.0"></script>
 </body>
 </html>

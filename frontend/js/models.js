@@ -1,4 +1,20 @@
 // Lumina UI — Model Management & Ingestion Controller
+function getAuthHeaders(extra = {}) {
+    if (typeof getLuminaAuthHeaders === "function") {
+        return getLuminaAuthHeaders(extra);
+    }
+    if (typeof window !== "undefined" && typeof window.getLuminaAuthHeaders === "function") {
+        return window.getLuminaAuthHeaders(extra);
+    }
+    const token = typeof localStorage !== "undefined" ? localStorage.getItem("lumina_auth_token") : null;
+    const headers = { ...extra };
+    if (token) {
+        headers["X-Lumina-Token"] = token;
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
 class ModelManager {
     constructor() {
         this.models = [];
@@ -87,7 +103,7 @@ class ModelManager {
         try {
             await fetch("/api/models/unload", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ model: model || "" })
             });
 
@@ -116,7 +132,7 @@ class ModelManager {
         try {
             const res = await fetch("/api/ollama/delete", {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ model: modelName })
             });
 
@@ -124,7 +140,11 @@ class ModelManager {
             await this.refreshModels();
             this.renderModalInstalledList();
         } catch (e) {
-            alert(`Failed to delete model: ${e.message}`);
+            if (typeof showToast === "function") {
+                showToast(`Failed to delete model: ${e.message}`, "error");
+            } else {
+                alert(`Failed to delete model: ${e.message}`);
+            }
         }
     }
 
@@ -183,7 +203,7 @@ class ModelManager {
         try {
             await fetch("/api/models/preload", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ model: modelName, keep_alive: -1 })
             });
 
@@ -248,7 +268,9 @@ class ModelManager {
         const settingsSelect = document.getElementById("settings-default-model-select");
 
         try {
-            const res = await fetch("/api/ollama/tags");
+            const res = await fetch("/api/ollama/tags", {
+                headers: getAuthHeaders()
+            });
             if (!res.ok) throw new Error("Failed to fetch models");
             const data = await res.json();
             this.models = data.models || [];
@@ -302,6 +324,23 @@ class ModelManager {
             return;
         }
 
+        if (!container.dataset.bound) {
+            container.dataset.bound = "true";
+            container.addEventListener("click", (e) => {
+                const selectBtn = e.target.closest("[data-action='select-model']");
+                if (selectBtn && selectBtn.dataset.model) {
+                    this.setSelectedModel(selectBtn.dataset.model);
+                    document.getElementById("model-modal")?.classList.add("hidden");
+                    return;
+                }
+                const deleteBtn = e.target.closest("[data-action='delete-model']");
+                if (deleteBtn && deleteBtn.dataset.model) {
+                    this.deleteModel(deleteBtn.dataset.model);
+                    return;
+                }
+            });
+        }
+
         container.innerHTML = this.models.map(m => {
             const sizeGb = Math.round((m.size / (1024 ** 3)) * 10) / 10;
             const paramSize = m.details?.parameter_size || "";
@@ -320,10 +359,10 @@ class ModelManager {
                         <div class="text-[10px] text-slate-400 mt-0.5">${sizeGb} GB ${paramSize ? '• ' + escapeHtml(paramSize) : ''} ${quant ? '• ' + escapeHtml(quant) : ''}</div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <button class="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white transition active:scale-95" onclick="window.modelManager.setSelectedModel('${safeNameAttr}'); document.getElementById('model-modal').classList.add('hidden');">
+                        <button class="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white transition active:scale-95" data-action="select-model" data-model="${safeNameAttr}">
                             Select
                         </button>
-                        <button class="text-[10px] p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/30 transition" onclick="window.modelManager.deleteModel('${safeNameAttr}')" title="Delete Model">
+                        <button class="text-[10px] p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/30 transition" data-action="delete-model" data-model="${safeNameAttr}" title="Delete Model">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
@@ -334,7 +373,9 @@ class ModelManager {
 
     async checkBackgroundPulls() {
         try {
-            const res = await fetch("/api/models/pull/status");
+            const res = await fetch("/api/models/pull/status", {
+                headers: getAuthHeaders()
+            });
             if (!res.ok) return;
             const data = await res.json();
             const activePull = (data.pulls || []).find(p => !p.done);
@@ -427,12 +468,35 @@ class ModelManager {
             }
         };
 
-        // 1. Dual Engine: SSE Stream
+        const startPolling = () => {
+            if (this.pullPollTimer) return;
+            this.pullPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch("/api/models/pull/status", {
+                        headers: getAuthHeaders()
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const job = (data.pulls || []).find(p => p.model === modelName);
+                    if (job) {
+                        updateUI(job);
+                    }
+                } catch (e) {}
+            }, 1000);
+        };
+
+        // 1. Primary Engine: SSE Stream
         try {
-            const es = new EventSource(`/api/models/pull/stream?name=${encodeURIComponent(modelName)}`);
+            const token = localStorage.getItem("lumina_auth_token");
+            const tokenParam = token ? `&token=${encodeURIComponent(token)}` : "";
+            const es = new EventSource(`/api/models/pull/stream?name=${encodeURIComponent(modelName)}${tokenParam}`);
             this.currentEventSource = es;
 
             es.onmessage = (event) => {
+                if (this.pullPollTimer) {
+                    clearInterval(this.pullPollTimer);
+                    this.pullPollTimer = null;
+                }
                 try {
                     const data = JSON.parse(event.data);
                     updateUI(data);
@@ -442,22 +506,12 @@ class ModelManager {
             };
 
             es.onerror = () => {
-                // If SSE drops, polling will continue seamlessly
+                // If SSE drops, activate fallback polling
+                startPolling();
             };
-        } catch (e) {}
-
-        // 2. Dual Engine: Polling Fallback (guarantees updates every 800ms even if SSE is buffered)
-        this.pullPollTimer = setInterval(async () => {
-            try {
-                const res = await fetch("/api/models/pull/status");
-                if (!res.ok) return;
-                const data = await res.json();
-                const job = (data.pulls || []).find(p => p.model === modelName);
-                if (job) {
-                    updateUI(job);
-                }
-            } catch (e) {}
-        }, 800);
+        } catch (e) {
+            startPolling();
+        }
     }
 
     async pullModel(modelName) {
@@ -485,7 +539,7 @@ class ModelManager {
         try {
             const res = await fetch("/api/models/pull", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ name: modelName })
             });
 

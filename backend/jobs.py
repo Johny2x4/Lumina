@@ -35,7 +35,7 @@ class PullJob:
         }
 
     def add_listener(self) -> asyncio.Queue:
-        q = asyncio.Queue()
+        q = asyncio.Queue(maxsize=100)
         self._listeners.append(q)
         return q
 
@@ -47,6 +47,11 @@ class PullJob:
         raw = json.dumps(data)
         for q in list(self._listeners):
             try:
+                if q.full():
+                    try:
+                        q.get_nowait()
+                    except Exception:
+                        pass
                 q.put_nowait(raw)
             except Exception:
                 pass
@@ -207,7 +212,7 @@ class ChatJob:
         }
 
     def add_listener(self) -> asyncio.Queue:
-        q = asyncio.Queue()
+        q = asyncio.Queue(maxsize=100)
         self._listeners.append(q)
         return q
 
@@ -219,6 +224,11 @@ class ChatJob:
         raw = json.dumps(data)
         for q in list(self._listeners):
             try:
+                if q.full():
+                    try:
+                        q.get_nowait()
+                    except Exception:
+                        pass
                 q.put_nowait(raw)
             except Exception:
                 pass
@@ -231,6 +241,7 @@ class ChatJobManager:
         self._jobs: Dict[str, ChatJob] = {}
 
     def get_job(self, session_id: str) -> Optional[ChatJob]:
+        self._cleanup_old_jobs()
         return self._jobs.get(session_id)
 
     def start_chat(
@@ -242,6 +253,7 @@ class ChatJobManager:
         ollama_base_url: str,
         client: httpx.AsyncClient,
     ) -> ChatJob:
+        self._cleanup_old_jobs()
         # Cancel any prior active generation on this session
         self.abort_chat(session_id)
 
@@ -256,6 +268,16 @@ class ChatJobManager:
             job.task.cancel()
             return True
         return False
+
+    def _cleanup_old_jobs(self):
+        """Purge chat jobs completed more than 30 minutes ago to prevent memory leaks."""
+        now = time.time()
+        expired = [
+            sid for sid, j in self._jobs.items()
+            if j.done and j.completed_at and (now - j.completed_at > 1800)
+        ]
+        for sid in expired:
+            del self._jobs[sid]
 
     async def _run_chat(self, job: ChatJob, payload: dict, ollama_base_url: str, client: httpx.AsyncClient):
         try:

@@ -1,0 +1,29 @@
+[project]
+name = "lumina"
+version = "1.1.0"
+description = "Zero-latency, private local AI client with GPU telemetry, voice mode, and 15 themes."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "psutil>=6.1.0",
+    "nvidia-ml-py>=12.560.30",
+    "websockets>=13.1",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = ["E501"]
