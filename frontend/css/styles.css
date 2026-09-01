@@ -1165,7 +1165,7 @@ body {
     transform: translateX(-100%) !important;
 }
 
-/* Gemini Live Voice Mode Theme Styling */
+/* Lumina Live Voice Mode Theme Styling (Inspired by Gemini Live) */
 #live-voice-overlay {
     background: radial-gradient(circle at 50% 45%, rgba(30, 27, 75, 0.6) 0%, rgba(10, 15, 29, 0.98) 75%);
     transition: background 0.3s ease, color 0.3s ease;

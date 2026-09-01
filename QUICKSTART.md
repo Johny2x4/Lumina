@@ -175,7 +175,7 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 3000
 > - **Works without HTTPS:** Only `http://localhost` and `http://127.0.0.1` are whitelisted by browsers.
 > - **Fails without HTTPS:** Any access across a LAN IP (e.g. `http://192.168.x.x:3000`) or remote domain (`http://lumina.myhome.net`) **will block microphone access** with a `NotAllowedError` or `SecurityError`.
 
-To use Gemini Live Fullscreen Voice Mode across your home network or internet, configure one of the solutions below:
+To use Lumina Live Fullscreen Voice Mode (inspired by Gemini Live) across your home network or internet, configure one of the solutions below:
 
 ---
 

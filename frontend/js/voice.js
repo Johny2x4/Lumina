@@ -1,4 +1,4 @@
-// Lumina UI — Gemini Live Voice Mode & Speech Visualizer
+// Lumina UI — Lumina Live Voice Mode & Speech Visualizer (Inspired by Gemini Live)
 function getAuthHeaders(extra = {}) {
     if (typeof getLuminaAuthHeaders === "function") {
         return getLuminaAuthHeaders(extra);

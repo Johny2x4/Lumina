@@ -3,7 +3,7 @@
 
 > **Lumina** is a lightweight, zero-latency, private **web-based frontend client** designed to interface directly with your existing **[Ollama](https://ollama.com/)** inference engine and optional **[SearXNG](https://searx.github.io/searxng/)** metasearch service.
 > 
-> Rather than replacing Ollama, Lumina provides an ultra-responsive, sovereign web interface on top of it—delivering instant VRAM pinning controls, real-time NVIDIA GPU hardware telemetry, multimodal vision chat, a Gemini Live-style fullscreen audio voice mode, real-time web citations, and 12 bespoke themes.
+> Rather than replacing Ollama, Lumina provides an ultra-responsive, sovereign web interface on top of it—delivering instant VRAM pinning controls, real-time NVIDIA GPU hardware telemetry, multimodal vision chat, Lumina Live (an immersive fullscreen voice mode inspired by Gemini Live), real-time web citations, and 15 bespoke themes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
@@ -55,7 +55,7 @@ Lumina adapts fluidly to smartphones and tablets with touch-first ergonomics, sl
   <img src="docs/screenshots/lumina-telemetry.png" alt="Lumina Hardware Telemetry Drawer" width="100%" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" />
 </p>
 
-### 4. Gemini Live Fullscreen Voice Mode
+### 4. Lumina Live Fullscreen Voice Mode (Inspired by Gemini Live)
 - Immersive audio-reactive conversational loop with continuous Speech-to-Text (STT) and dynamic Text-to-Speech (TTS via local Kokoro).
 - Theme-synchronized canvas visualizer displaying radiant glowing speech orbs, harmonic waveform animations, and live transcription subtitles.
 - In 8-bit mode, transitions to stepped arcade diamond waveform geometry and CRT scanline styling.
@@ -180,7 +180,7 @@ Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUse
 ```
                       ┌─────────────────────────────────────────┐
                       │       Client Browser / Mobile PWA       │
-                      │  (Chat UI, Audio Visualizer, 12 Themes) │
+                      │  (Chat UI, Audio Visualizer, 15 Themes) │
                       └────────────────────┬────────────────────┘
                                            │ HTTP / WebSockets
                                            ▼
@@ -207,7 +207,7 @@ Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUse
 ## 🔒 Security & Privacy
 
 - **Zero Cloud Leakage**: All inference occurs strictly on your local hardware.
-- **Zero Database Bloat**: Conversations and settings are stored locally in the browser (`localStorage`), with an Incognito toggle for ephemeral sessions.
+- **Zero Database Bloat**: Client-side storage uses **IndexedDB** for high-capacity multi-session conversation and image storage, paired with **localStorage** for instant preferences and UI states—with an Incognito mode toggle for 100% ephemeral, in-memory sessions.
 - **Tailscale & Reverse Proxy Compatible**: Ready for remote access over private mesh networks without public port forwarding.
 
 ---
@@ -216,4 +216,4 @@ Web browsers (Chrome, Edge, Safari, Firefox) restrict microphone access (`getUse
 
 Distributed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
-Developed with ✦ by **[Cody Eich (Johny2x4)](https://github.com/Johny2x4)**.
+Developed with ✦ by **[Johny2x4](https://github.com/Johny2x4)**.
