@@ -1425,4 +1425,22 @@ body[data-theme] .msg-action-btn:active {
     color: inherit;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Web Search Toggle Active State                                             */
+/* -------------------------------------------------------------------------- */
+#btn-web-search.search-active {
+    background: rgba(6, 182, 212, 0.18) !important;
+    border-color: rgba(6, 182, 212, 0.85) !important;
+    color: #22d3ee !important;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
+}
+#btn-web-search.search-active span {
+    color: #22d3ee !important;
+    font-weight: 700 !important;
+}
+#btn-web-search.search-active svg {
+    stroke: #22d3ee !important;
+    filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.7));
+}
+
 

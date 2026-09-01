@@ -1246,6 +1246,12 @@ class App {
         this.saveSessions();
         this.renderSessionList();
 
+        if (window.chatManager) {
+            window.chatManager.currentMessages = [];
+            window.chatManager.isWebSearchActive = false;
+            window.chatManager.updateWebSearchButtonUI();
+        }
+
         const container = document.getElementById("messages-container");
         if (container) {
             container.innerHTML = `

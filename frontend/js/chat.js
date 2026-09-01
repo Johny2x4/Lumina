@@ -22,7 +22,14 @@ class ChatManager {
         this.abortController = null;
         this.isGenerating = false;
         this.isWebSearchEnabled = false;
-        this.isWebSearchActive = localStorage.getItem("lumina_web_search_active") === "true";
+        // Default to OFF: web search is an intentional on-demand toggle per query/session
+        this.isWebSearchActive = false;
+        try {
+            // Clean up any legacy forced persistence from older versions
+            if (typeof localStorage !== "undefined") {
+                localStorage.removeItem("lumina_web_search_active");
+            }
+        } catch (e) {}
         this._streamPending = false;
         this._streamContentEl = null;
         this._streamArgs = null;
@@ -55,8 +62,15 @@ class ChatManager {
 
             btnSearch.addEventListener("click", () => {
                 this.isWebSearchActive = !this.isWebSearchActive;
-                localStorage.setItem("lumina_web_search_active", this.isWebSearchActive);
                 this.updateWebSearchButtonUI();
+                if (typeof showToast === "function") {
+                    showToast(
+                        this.isWebSearchActive
+                            ? "Web Search: ON (Live web search enabled)"
+                            : "Web Search: OFF (Local inference only)",
+                        this.isWebSearchActive ? "info" : "warning"
+                    );
+                }
             });
         } else {
             btnSearch.classList.add("hidden");
@@ -67,9 +81,13 @@ class ChatManager {
         const btnSearch = document.getElementById("btn-web-search");
         if (!btnSearch) return;
         btnSearch.classList.toggle("search-active", this.isWebSearchActive);
+        const textSpan = btnSearch.querySelector("span");
+        if (textSpan) {
+            textSpan.textContent = this.isWebSearchActive ? "Web ON" : "Web";
+        }
         btnSearch.title = this.isWebSearchActive
-            ? "Web Search: ON (Queries live web before answering)"
-            : "Web Search: OFF (Local inference only)";
+            ? "Web Search: ON (Click to disable live web search)"
+            : "Web Search: OFF (Click to enable live web search)";
     }
 
     bindEvents() {
@@ -313,12 +331,16 @@ class ChatManager {
         const emptyState = document.getElementById("empty-state");
         if (emptyState) emptyState.remove();
 
-        // Optional Web Search Pre-fetch
+        // Optional Web Search Pre-fetch (only when active, enabled, and for non-trivial queries)
         let searchSources = null;
-        if (this.isWebSearchEnabled && this.isWebSearchActive && text) {
+        let webContextPrompt = "";
+        const cleanQuery = (text || "").trim();
+        const isTrivialQuery = cleanQuery.length < 3 || /^(hi|hello|hey|yo|greetings|bye|test|ping)$/i.test(cleanQuery);
+
+        if (this.isWebSearchEnabled && this.isWebSearchActive && cleanQuery && !isTrivialQuery) {
             try {
                 const modelParam = model ? `&model=${encodeURIComponent(model)}` : "";
-                const sRes = await fetch(`/api/search?q=${encodeURIComponent(text)}${modelParam}`, {
+                const sRes = await fetch(`/api/search?q=${encodeURIComponent(cleanQuery)}${modelParam}`, {
                     headers: getAuthHeaders()
                 });
                 if (sRes.ok) {
@@ -329,8 +351,7 @@ class ChatManager {
                             return `[${i + 1}] "${s.title}" (${s.url})\n${s.snippet}`;
                         }).join("\n\n");
 
-                        const webContextPrompt = `\n\n--- Real-Time Web Search Results ---\n${contextLines}\n------------------------------------\nInstructions: Use the real-time web search results above to answer the user's prompt accurately. Cite references using [1], [2], etc., where appropriate.`;
-                        fullPromptContent = `${fullPromptContent}${webContextPrompt}`;
+                        webContextPrompt = `\n\n--- Real-Time Web Search Results ---\n${contextLines}\n------------------------------------\nInstructions: Use the real-time web search results above to answer the user's prompt accurately. Cite references using [1], [2], etc., where appropriate.`;
                     }
                 }
             } catch (searchErr) {
@@ -388,6 +409,12 @@ class ChatManager {
                 }
                 apiMessages.push(item);
             });
+
+            // Inject web search context strictly into the current outgoing prompt (prevents multi-turn context leakage)
+            if (webContextPrompt && apiMessages.length > 1) {
+                const lastIdx = apiMessages.length - 1;
+                apiMessages[lastIdx].content = `${apiMessages[lastIdx].content}${webContextPrompt}`;
+            }
 
             // Read Custom Inference & Sampling Options
             let inferenceOptions = {
