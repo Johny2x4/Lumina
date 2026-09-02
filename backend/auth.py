@@ -1,4 +1,5 @@
 import os
+import secrets
 from typing import Optional
 from fastapi import HTTPException, Request, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -23,17 +24,17 @@ async def verify_lumina_token(
         return None  # Open access mode
 
     # 1. Check Bearer token in Authorization header
-    if credentials and credentials.credentials == expected_token:
+    if credentials and secrets.compare_digest(credentials.credentials, expected_token):
         return expected_token
 
     # 2. Check X-Lumina-Token header
     header_token = request.headers.get("X-Lumina-Token", "").strip()
-    if header_token == expected_token:
+    if header_token and secrets.compare_digest(header_token, expected_token):
         return expected_token
 
     # 3. Check query param (for EventSource or WebSocket)
     query_token = request.query_params.get("token", "").strip()
-    if query_token == expected_token:
+    if query_token and secrets.compare_digest(query_token, expected_token):
         return expected_token
 
     raise HTTPException(

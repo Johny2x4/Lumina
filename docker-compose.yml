@@ -4,11 +4,17 @@ services:
     container_name: lumina
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Default: localhost (127.0.0.1) for secure standalone usage.
+      # For LAN, Tailscale, or Mobile PWA access, set LUMINA_HOST=0.0.0.0 in .env
+      # or uncomment the 0.0.0.0 line below:
+      - "${LUMINA_HOST:-127.0.0.1}:3000:3000"
+      # - "0.0.0.0:3000:3000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - KOKORO_BASE_URL=http://kokoro:8880
       # - SEARXNG_URL=http://searxng:8080  # Optional: enable real-time web search via SearXNG
+      # Recommended when exposing to 0.0.0.0 / LAN / Tailscale:
+      # - LUMINA_AUTH_TOKEN=your-secret-token-here
     depends_on:
       - ollama
     deploy:

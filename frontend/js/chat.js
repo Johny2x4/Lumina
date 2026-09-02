@@ -304,6 +304,8 @@ class ChatManager {
             return;
         }
 
+        this.setGenerating(true);
+
         // Process attachments
         const imageAttachments = this.stagedAttachments.filter(a => a.type === "image");
         const textAttachments = this.stagedAttachments.filter(a => a.type === "text");
@@ -375,7 +377,6 @@ class ChatManager {
         const contentEl = assistantMsgEl.querySelector(".message-content");
 
         // 3. Update UI state
-        this.setGenerating(true);
         this.abortController = new AbortController();
 
         let assistantContent = "";
@@ -436,7 +437,7 @@ class ChatManager {
                 options: inferenceOptions
             };
 
-            const sessionId = window.app?.activeSessionId || ("sess_" + Date.now());
+            const sessionId = window.app?.activeSessionId || ("sess_" + (window.crypto?.randomUUID ? window.crypto.randomUUID() : (Date.now() + "_" + Math.random().toString(36).substring(2))));
             const isPersist = window.modelManager?.isPersistenceEnabled !== false;
             const response = await fetch("/api/chat/generate", {
                 method: "POST",
@@ -459,7 +460,7 @@ class ChatManager {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = "";
-            let assistantContent = "";
+            assistantContent = "";
             let assistantThinking = "";
             let isThinkingPhase = false;
             let thinkingStartTime = Date.now();
@@ -1120,20 +1121,27 @@ class ChatManager {
         this._streamArgs = { content, thinking, isThinking, startTime };
         if (!this._streamPending) {
             this._streamPending = true;
-            requestAnimationFrame(() => {
-                this._streamPending = false;
-                if (this._streamContentEl && this._streamArgs) {
-                    this.renderStreamContent(
-                        this._streamContentEl,
-                        this._streamArgs.content,
-                        this._streamArgs.thinking,
-                        this._streamArgs.isThinking,
-                        this._streamArgs.startTime,
-                        false
-                    );
-                    this.scrollToBottom();
-                }
-            });
+            const now = performance.now();
+            const elapsed = now - (this._lastStreamRenderTime || 0);
+            const delay = elapsed < 60 ? (60 - elapsed) : 0;
+
+            setTimeout(() => {
+                requestAnimationFrame(() => {
+                    this._streamPending = false;
+                    this._lastStreamRenderTime = performance.now();
+                    if (this._streamContentEl && this._streamArgs) {
+                        this.renderStreamContent(
+                            this._streamContentEl,
+                            this._streamArgs.content,
+                            this._streamArgs.thinking,
+                            this._streamArgs.isThinking,
+                            this._streamArgs.startTime,
+                            false
+                        );
+                        this.scrollToBottom();
+                    }
+                });
+            }, delay);
         }
     }
 

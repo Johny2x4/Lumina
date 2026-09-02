@@ -1235,7 +1235,7 @@ class App {
     }
 
     createNewSession() {
-        const id = "sess_" + Date.now();
+        const id = "sess_" + (window.crypto?.randomUUID ? window.crypto.randomUUID() : (Date.now() + "_" + Math.random().toString(36).substring(2)));
         const newSess = {
             id: id,
             title: "New Conversation",

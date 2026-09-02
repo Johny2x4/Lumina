@@ -84,11 +84,12 @@ function renderMarkdown(text) {
         return id;
     });
 
-    // 3. Parse Markdown with marked.js
+    // 3. Parse Markdown with marked.js & sanitize with DOMPurify
     let html = "";
     try {
         if (typeof marked !== "undefined" && marked.parse) {
-            html = marked.parse(processed);
+            const rawHtml = marked.parse(processed);
+            html = typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(rawHtml) : rawHtml;
         } else {
             html = escapeHtml(processed);
         }

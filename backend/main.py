@@ -1,3 +1,5 @@
+import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request, Response
@@ -14,6 +16,8 @@ from .routers.voice import router as voice_router
 from .routers.search import router as search_router
 from .routers.ollama import router as ollama_router
 
+logger = logging.getLogger("lumina.server")
+
 
 # ---------------------------------------------------------------------------
 # Lifespan: shared httpx client with connection pooling
@@ -24,6 +28,11 @@ async def lifespan(app: FastAPI):
         timeout=httpx.Timeout(600.0, connect=10.0),
         limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
     )
+    auth_token = os.getenv("LUMINA_AUTH_TOKEN", "").strip()
+    if not auth_token:
+        logger.info("Lumina running in Open Access Mode (no token set). Set LUMINA_AUTH_TOKEN to require authentication.")
+    else:
+        logger.info("Lumina running in Authenticated Mode (token configured).")
     yield
     await app.state.http_client.aclose()
 
@@ -51,7 +60,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response: Response = await call_next(request)
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; "
             "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob:; "

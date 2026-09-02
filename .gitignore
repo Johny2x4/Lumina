@@ -44,3 +44,9 @@ logs/
 # Temporary data
 scratch/
 tmp/
+
+# TLS Certificates & Secrets
+certs/
+*.pem
+*.key
+gateway/

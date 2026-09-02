@@ -34,9 +34,9 @@ async def start_chat_generation(request: Request):
 
     client: httpx.AsyncClient = request.app.state.http_client
     job = chat_manager.start_chat(session_id, model, ollama_payload, sources, OLLAMA_BASE_URL, client)
+    q = job.add_listener()
 
     async def chat_stream_generator():
-        q = job.add_listener()
         try:
             while not job.done:
                 try:

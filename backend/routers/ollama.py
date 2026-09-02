@@ -82,7 +82,7 @@ async def proxy_ollama(path: str, request: Request):
     headers = {
         k: v
         for k, v in request.headers.items()
-        if k.lower() not in ("host", "content-length")
+        if k.lower() not in ("host", "content-length", "authorization", "x-lumina-token", "cookie")
     }
 
     req = client.build_request(

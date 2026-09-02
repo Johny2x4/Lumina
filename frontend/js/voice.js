@@ -357,11 +357,25 @@ class VoiceController {
             this.audioStream = null;
         }
 
+        if (this.audioCtx) {
+            try { this.audioCtx.close(); } catch (e) {}
+            this.audioCtx = null;
+        }
+
+        if (this.playbackAudioCtx) {
+            try { this.playbackAudioCtx.close(); } catch (e) {}
+            this.playbackAudioCtx = null;
+        }
+
         this.setState("idle");
     }
 
     async initAudioAnalyser() {
         try {
+            if (this.audioCtx) {
+                try { await this.audioCtx.close(); } catch (e) {}
+                this.audioCtx = null;
+            }
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioCtx = new AudioContext();
             this.analyser = this.audioCtx.createAnalyser();
@@ -505,7 +519,7 @@ class VoiceController {
             // Use resilient /api/chat/generate endpoint (same as regular chat) so
             // inference runs as a server-side background task and completes fully
             // even if the browser connection hiccups.
-            const voiceSessionId = "voice_" + (window.app?.activeSessionId || Date.now());
+            const voiceSessionId = "voice_" + (window.app?.activeSessionId || (window.crypto?.randomUUID ? window.crypto.randomUUID() : Date.now()));
             const inferenceOptions = {
                 num_predict: 4096, // Reasoning models need ample headroom — 1024 was exhausted entirely inside <think>
                 temperature: 0.6
@@ -513,7 +527,7 @@ class VoiceController {
 
             const res = await fetch("/api/chat/generate", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({
                     session_id: voiceSessionId,
                     model: model,
@@ -780,7 +794,7 @@ class VoiceController {
                 try {
                     const res = await fetch("/api/voice/tts", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: getAuthHeaders({ "Content-Type": "application/json" }),
                         body: JSON.stringify({
                             text: textToSpeak,
                             voice: this.selectedKokoroVoice || "af_heart",
@@ -951,7 +965,7 @@ class VoiceController {
                 }
                 const res = await fetch("/api/voice/tts", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify({
                         text: text,
                         voice: this.selectedKokoroVoice || "af_heart",

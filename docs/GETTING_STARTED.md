@@ -1,29 +1,120 @@
 # Lumina ✦ Getting Started & Deployment Guide
 
-Welcome to **Lumina**—a sovereign, lightweight, zero-cloud web interface designed for **[Ollama](https://ollama.com/)**, **[SearXNG](https://searx.github.io/searxng/)**, and **[Kokoro TTS](https://github.com/remsky/Kokoro-FastAPI)**. 
-
-Whether you want to drop Lumina on top of services already running on your network, spin up a dedicated local LLM workstation, or orchestrate the full sovereign homelab stack, this guide covers each path with turnkey configurations.
+Welcome to **Lumina**—a sovereign, lightweight, zero-cloud web frontend designed specifically for conversational, turn-based chat with **[Ollama](https://ollama.com/)**, with optional companion extensions for **[SearXNG](https://searx.github.io/searxng/)** (real-time web search), **[Kokoro TTS](https://github.com/remsky/Kokoro-FastAPI)** (neural voice), and **[Nginx](https://nginx.org/)** (gateway routing & TLS).
 
 ---
 
-## 🧭 Choose Your Deployment Path
+## 📋 Table of Contents
+1. [Prerequisites & GPU Acceleration](#-prerequisites--gpu-acceleration)
+2. [Choose Your Deployment Variant](#-choose-your-deployment-variant)
+3. [Network Exposure: LAN & Tailscale Access](#-network-exposure-lan--tailscale-access)
+4. [Enabling Authentication (`LUMINA_AUTH_TOKEN`)](#-enabling-authentication-lumina_auth_token)
+5. [Variant 1: Lumina on Top of Existing Services](#-variant-1-lumina-on-top-of-existing-services)
+6. [Variant 2: Lumina + Ollama Workstation Stack](#-variant-2-lumina--ollama-workstation-stack)
+7. [Variant 3: Full Sovereign Homelab Stack](#-variant-3-full-sovereign-homelab-stack)
+8. [Native Python & Systemd Service](#-native-python--systemd-service)
+9. [Model Management & VRAM Optimization](#-model-management--vram-optimization)
+10. [TLS / HTTPS & Live Voice Mode Requirements](#-tls--https--live-voice-mode-requirements)
+11. [Environment Variables Reference](#-environment-variables-reference)
+12. [Frequently Asked Questions](#-frequently-asked-questions)
 
-| Deployment Path | Best For | Included Services | Complexity |
+---
+
+## ⚡ Prerequisites & GPU Acceleration
+
+### 1. System Requirements
+* **Docker & Docker Compose**: Docker Engine v24.0+ / Compose v2.20+
+* **OS**: Linux (Ubuntu, Debian, Fedora, Arch, unRAID, TrueNAS), macOS (Apple Silicon), or Windows 10/11 (WSL2).
+
+### 2. NVIDIA GPU Acceleration (Optional but Recommended)
+To run local models with full GPU tensor acceleration and stream hardware metrics into Lumina's telemetry drawer:
+1. Ensure the NVIDIA proprietary driver (version 525+) is installed on your host:
+   ```bash
+   nvidia-smi
+   ```
+2. Install the **[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)** on Linux:
+   ```bash
+   # Ubuntu / Debian
+   sudo apt-get update
+   sudo apt-get install -y nvidia-container-toolkit
+   sudo nvidia-ctk runtime configure --runtime=docker
+   sudo systemctl restart docker
+   ```
+3. Verify GPU access inside Docker:
+   ```bash
+   docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+   ```
+   *If no GPU is present, Ollama will automatically fall back to multi-threaded CPU inference.*
+
+---
+
+## 🧭 Choose Your Deployment Variant
+
+| Variant | Best For | Included Services | Capabilities & Trade-offs |
 | :--- | :--- | :--- | :--- |
-| **[Path 1: Just Lumina](#path-1-deploying-just-lumina-on-top-of-existing-services)** | You already have Ollama, SearXNG, or Kokoro running elsewhere | Lumina UI only | ⭐ Quickest |
-| **[Path 2: Lumina + Ollama](#path-2-lumina--ollama-workstation-stack)** | Local LLM chat workstation with GPU acceleration | Lumina UI + Ollama | ⭐⭐ Easy |
-| **[Path 3: Full Sovereign Stack](#path-3-full-sovereign-homelab-stack)** | The complete all-in-one private AI cockpit (LLM + Search + Voice + TLS) | Lumina UI + Ollama + Kokoro TTS + SearXNG + Nginx Gateway | ⭐⭐⭐ Comprehensive |
+| **[Variant 1: Lumina on Existing Services](#-variant-1-lumina-on-top-of-existing-services)** | You already have Ollama, SearXNG, or Kokoro running on your network | Lumina UI only | Connects to your existing endpoints via environment variables. |
+| **[Variant 2: Lumina + Ollama Workstation](#-variant-2-lumina--ollama-workstation-stack)** | Standalone local LLM chat with GPU acceleration | Lumina UI + Ollama | Full turn-based chat & model management. **No web search, basic browser voice (no Kokoro neural TTS), no TLS gateway.** |
+| **[Variant 3: Full Sovereign Homelab Stack](#-variant-3-full-sovereign-homelab-stack)** | Complete private AI cockpit with all power-ups | Lumina + Ollama + Kokoro + SearXNG + Nginx Gateway | Full features: neural voice, web search citations, and TLS-ready gateway for Tailscale / LAN microphone access. |
+| **[Native Python](#-native-python--systemd-service)** | Bare-metal environments without Docker | Python 3.12+ / Systemd | Direct execution on host machine. |
 
 ---
 
-## Path 1: Deploying Just Lumina (On Top of Existing Services)
+## 🌐 Network Exposure: LAN & Tailscale Access
 
-Use this method if you already have an **Ollama** instance running on your host machine, an unRAID / TrueNAS server, or an external GPU box.
+By default, Lumina's `docker-compose.yml` binds to **`127.0.0.1:3000` (localhost only)**. This ensures that when spinning up Lumina on a shared Wi-Fi network, office, or dorm, your AI models and GPU are not exposed unauthenticated to the entire network.
+
+### Exposing Lumina to Your Network (`0.0.0.0`)
+If you are running Lumina on a home server, unRAID box, Proxmox VM, or dedicated GPU rig and want to access it from other PCs, smartphones (PWA), or over Tailscale:
+
+1. **Update Port Mapping**: In your `docker-compose.yml`, change the port binding from:
+   ```yaml
+   ports:
+     - "${LUMINA_HOST:-127.0.0.1}:3000:3000"
+   ```
+   to:
+   ```yaml
+   ports:
+     - "0.0.0.0:3000:3000"
+   ```
+   *(Or simply set `LUMINA_HOST=0.0.0.0` in your `.env` file).*
+2. **Restart the container**:
+   ```bash
+   docker compose up -d
+   ```
+3. You can now access Lumina at `http://<your-server-lan-ip>:3000` or via your Tailscale IP (`http://100.x.y.z:3000`).
+
+---
+
+## 🔑 Enabling Authentication (`LUMINA_AUTH_TOKEN`)
+
+When exposing Lumina beyond localhost (`0.0.0.0`), you should protect your instance with a secret token:
+
+### 1. Set the Token in `docker-compose.yml`
+```yaml
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LUMINA_AUTH_TOKEN=your-secure-password-here
+```
+
+### 2. How Authentication Works in Lumina
+* When you visit Lumina in your browser, an authentication modal prompts for your access token.
+* Once entered, the token is saved in browser storage (`lumina_auth_token`).
+* All API and WebSocket requests automatically include the token via:
+  - `Authorization: Bearer <token>`
+  - `X-Lumina-Token: <token>`
+  - `?token=<token>` (for native browser WebSocket and EventSource streams).
+* Comparisons on the backend use constant-time `secrets.compare_digest` to prevent timing attacks.
+
+---
+
+## 📦 Variant 1: Lumina on Top of Existing Services
+
+Use this method if you already have Ollama running on your host, another server, or an existing AI container stack.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      Lumina UI                          │
-│   (Runs in Docker or Python on port 3000)               │
+│         (Runs in Docker or Native Python)               │
 └───────────────┬─────────────────┬─────────────────┬─────┘
                 │                 │                 │
                 ▼                 ▼                 ▼
@@ -31,131 +122,60 @@ Use this method if you already have an **Ollama** instance running on your host 
      (Existing Ollama)       (Existing SearXNG) (Existing Kokoro)
 ```
 
-### Option 1A: Single Docker Container (Recommended)
-
-Run Lumina in a standalone container and pass the URLs of your existing services:
-
-```bash
-docker run -d \
-  --name lumina \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -e OLLAMA_BASE_URL="http://192.168.1.50:11434" \
-  -e SEARXNG_URL="http://192.168.1.50:8080" \
-  -e KOKORO_BASE_URL="http://192.168.1.50:8880" \
-  lumina:latest
-```
-
-> **Tip (Ollama on Host Machine):** If Ollama is running directly on the Docker host (e.g. `localhost:11434`), Docker containers cannot reach it via `localhost`. Use `http://host.docker.internal:11434` and add `--add-host=host.docker.internal:host-gateway`:
-> ```bash
-> docker run -d \
->   --name lumina \
->   --restart unless-stopped \
->   -p 3000:3000 \
->   --add-host=host.docker.internal:host-gateway \
->   -e OLLAMA_BASE_URL="http://host.docker.internal:11434" \
->   lumina:latest
-> ```
-
----
-
-### Option 1B: Docker Compose (Standalone)
-
-Create a `docker-compose.yml` file:
+### Docker Compose Configuration
+Create a `docker-compose.yml` and point the environment variables to your existing service endpoints:
 
 ```yaml
-version: "3.8"
-
 services:
   lumina:
     build: .
     container_name: lumina
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${LUMINA_HOST:-127.0.0.1}:3000:3000"
     extra_hosts:
+      # Allows the container to communicate with services running directly on the Docker host:
       - "host.docker.internal:host-gateway"
     environment:
-      # Replace with your actual service endpoints:
+      # Point to your existing Ollama instance:
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - SEARXNG_URL=http://192.168.1.50:8080
-      - KOKORO_BASE_URL=http://192.168.1.50:8880
-      # Optional: set an authentication token for API endpoints
-      # - LUMINA_AUTH_TOKEN=your-secret-token
+      # Optional: point to your existing SearXNG instance (if available):
+      # - SEARXNG_URL=http://192.168.1.50:8080
+      # Optional: point to your existing Kokoro TTS instance (if available):
+      # - KOKORO_BASE_URL=http://192.168.1.50:8880
+      # Optional: set password token
+      # - LUMINA_AUTH_TOKEN=your-secure-token
 ```
 
-Launch with:
+Start the container:
 ```bash
 docker compose up -d
 ```
 
 ---
 
-### Option 1C: Native Python (No Docker Required)
+## 💻 Variant 2: Lumina + Ollama Workstation Stack
 
-For local development or low-overhead environments:
+Use this turnkey setup for a single machine or GPU workstation where you want Lumina and Ollama running together.
 
-```bash
-# 1. Clone repo & navigate
-git clone https://github.com/Johny2x4/Lumina.git
-cd Lumina
-
-# 2. Set up virtual environment
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Point to your running Ollama / services
-export OLLAMA_BASE_URL="http://localhost:11434"
-export SEARXNG_URL="http://localhost:8080"
-export KOKORO_BASE_URL="http://localhost:8880"
-
-# 5. Start Lumina
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 3000
-```
-
-Access Lumina at: **`http://localhost:3000`**
-
----
-
-## Path 2: Lumina + Ollama (Workstation Stack)
-
-Use this method if you want a turnkey local LLM setup on a single computer or workstation with NVIDIA GPU acceleration.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Docker Compose                       │
-│                                                         │
-│   ┌───────────────┐               ┌─────────────────┐   │
-│   │   Lumina UI   │ ────────────> │  Ollama Engine  │   │
-│   │  (Port 3000)  │  Docker Net   │ (NVIDIA GPU)    │   │
-│   └───────────────┘               └─────────────────┘   │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 1. Prerequisites
-- Docker & Docker Compose installed.
-- NVIDIA GPU with drivers and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) (for GPU acceleration).
-
-### 2. The Compose File (`docker-compose.yml`)
+> [!NOTE]
+> **What this variant includes (and what it omits):**
+> - ✅ **Included:** Full conversational turn-based chat, in-app model manager, multi-GPU hardware telemetry, and 15 themes.
+> - ❌ **No Web Search:** SearXNG is omitted; web search toggle remains disabled.
+> - ⚠️ **Basic Voice Mode:** Kokoro neural TTS is omitted; Live Voice Mode uses browser-native speech synthesis instead of neural speech.
+> - ⚠️ **No TLS Gateway:** Served over plain HTTP; voice mode microphone access is limited to `localhost` unless routed through Tailscale or an external reverse proxy.
 
 ```yaml
-version: "3.8"
-
 services:
   lumina:
     build: .
     container_name: lumina
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${LUMINA_HOST:-127.0.0.1}:3000:3000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      # - LUMINA_AUTH_TOKEN=your-token-if-exposing-to-network
     depends_on:
       - ollama
     deploy:
@@ -169,15 +189,16 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: lumina-ollama
+    init: true
     restart: unless-stopped
     ports:
-      - "127.0.0.1:11434:11434" # Exposed to localhost for CLI debugging
+      - "127.0.0.1:11434:11434"
     environment:
-      - OLLAMA_KEEP_ALIVE=-1       # Keep models hot in VRAM by default
-      - OLLAMA_FLASH_ATTENTION=1    # Enable Flash Attention for speed
-      - OLLAMA_MAX_LOADED_MODELS=1  # Prevent multi-model VRAM contention
+      - OLLAMA_KEEP_ALIVE=-1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_FLASH_ATTENTION=1
     volumes:
-      - ollama-models:/root/.ollama
+      - ollama-data:/root/.ollama
     deploy:
       resources:
         reservations:
@@ -187,33 +208,25 @@ services:
               capabilities: [gpu]
 
 volumes:
-  ollama-models:
-    name: lumina_ollama_models
+  ollama-data:
+    name: lumina_ollama-data
 ```
 
-### 3. Launch & Pull a Model
+Start the workstation:
 ```bash
-# 1. Start the stack
 docker compose up -d
-
-# 2. Pull a recommended model directly via terminal (or use Lumina's UI model manager):
-docker exec -it lumina-ollama ollama pull gemma4:12b
-# Or lightweight fast models:
-docker exec -it lumina-ollama ollama pull qwen2.5:7b
 ```
-
-Open your browser to: **`http://localhost:3000`**
 
 ---
 
-## Path 3: Full Sovereign Homelab Stack
+## 🏰 Variant 3: Full Sovereign Homelab Stack
 
-The complete private AI operations center:
-1. **Lumina UI**: Sovereign web interface with 15 themes, VRAM pinning, and hardware telemetry.
+The complete private AI operations center including:
+1. **Lumina UI**: Turn-based web interface with 15 themes, VRAM residency management, and multi-GPU telemetry.
 2. **Ollama**: Local GPU-accelerated LLM runtime.
-3. **Kokoro TTS**: Lightning-fast neural speech synthesis for voice mode.
-4. **SearXNG**: Self-hosted metasearch engine delivering real-time web citations.
-5. **Nginx Gateway / TLS**: Terminating HTTPS so mobile phones and LAN clients have microphone access for Live Voice Mode.
+3. **Kokoro TTS**: Neural speech synthesis for studio-quality voice replies.
+4. **SearXNG**: Private metasearch engine providing citation sources without cloud API keys.
+5. **Nginx Gateway**: Unified reverse proxy terminating TLS so phones, tablets, and remote browsers have microphone permissions for voice mode.
 
 ```
                      ┌──────────────────────────────┐
@@ -240,13 +253,9 @@ The complete private AI operations center:
   └──────────────┘
 ```
 
-### 1. The Full Compose Stack (`docker-compose.full.yml`)
-
+### Full `docker-compose.full.yml`
 ```yaml
-version: "3.8"
-
 services:
-  # --- Reverse Proxy Gateway (Handles TLS for Microphone Access) ---
   gateway:
     image: nginx:alpine
     container_name: lumina-gateway
@@ -260,7 +269,6 @@ services:
     depends_on:
       - lumina-ui
 
-  # --- Lumina Sovereign Web Interface ---
   lumina-ui:
     build: .
     container_name: lumina-ui
@@ -271,8 +279,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - KOKORO_BASE_URL=http://kokoro:8880
       - SEARXNG_URL=http://searxng:8080
-      # Optional: set token to secure system & telemetry endpoints
-      # - LUMINA_AUTH_TOKEN=your-secret-key
+      # - LUMINA_AUTH_TOKEN=your-secure-password
     depends_on:
       - ollama
       - kokoro
@@ -285,7 +292,6 @@ services:
               count: all
               capabilities: [gpu]
 
-  # --- Ollama LLM Inference Engine ---
   ollama:
     image: ollama/ollama:latest
     container_name: lumina-ollama
@@ -295,7 +301,7 @@ services:
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_MAX_LOADED_MODELS=1
     volumes:
-      - ollama-models:/root/.ollama
+      - ollama-data:/root/.ollama
     deploy:
       resources:
         reservations:
@@ -304,7 +310,6 @@ services:
               count: all
               capabilities: [gpu]
 
-  # --- Kokoro Neural TTS ---
   kokoro:
     image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
     container_name: lumina-kokoro
@@ -312,7 +317,6 @@ services:
     expose:
       - "8880"
 
-  # --- SearXNG Private Metasearch Engine ---
   searxng:
     image: searxng/searxng:latest
     container_name: lumina-searxng
@@ -325,30 +329,23 @@ services:
       - SEARXNG_BASE_URL=http://searxng:8080
 
 volumes:
-  ollama-models:
-    name: lumina_ollama_models
+  ollama-data:
+    name: lumina_ollama-data
 ```
 
----
-
-### 2. SearXNG Configuration (`searxng/settings.yml`)
-
-Ensure SearXNG has `json` format enabled so Lumina can extract search results:
-
+### SearXNG Settings (`searxng/settings.yml`)
+Ensure SearXNG has `json` format enabled:
 ```yaml
 use_default_settings: true
-
 general:
   debug: false
   instance_name: "Lumina Search"
-
 search:
   safe_search: 0
   autocomplete: ""
   formats:
     - html
     - json
-
 server:
   secret_key: "generate-a-random-secret-key-here"
   limiter: false
@@ -357,110 +354,160 @@ server:
 
 ---
 
-### 3. Nginx Gateway Configuration (`gateway/nginx.conf`)
+## 🐍 Native Python & Systemd Service
 
-Nginx routes incoming requests and upgrades WebSockets for streaming chat and hardware telemetry:
+For bare-metal Linux environments or direct local development without Docker:
 
-```nginx
-events { worker_connections 1024; }
+```bash
+# 1. Clone repo & navigate
+git clone https://github.com/Johny2x4/Lumina.git
+cd Lumina
 
-http {
-    upstream lumina {
-        server lumina-ui:3000;
-    }
+# 2. Set up virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-    # Redirect HTTP to HTTPS (Required for browser microphone permissions)
-    server {
-        listen 80;
-        server_name _;
-        return 301 https://$host$request_uri;
-    }
+# 3. Install dependencies
+pip install -r requirements.txt
 
-    server {
-        listen 443 ssl;
-        server_name _;
+# 4. Configure environment variables
+export OLLAMA_BASE_URL="http://localhost:11434"
+# export SEARXNG_URL="http://localhost:8080"
+# export KOKORO_BASE_URL="http://localhost:8880"
+# export LUMINA_AUTH_TOKEN="your-secret-token"
 
-        ssl_certificate /etc/nginx/certs/fullchain.pem;
-        ssl_certificate_key /etc/nginx/certs/privkey.pem;
+# 5. Launch Lumina
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 3000
+```
 
-        # WebSocket & Streaming Chat Proxy
-        location / {
-            proxy_pass http://lumina;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+### Running as a Background Systemd Service
+Create `/etc/systemd/system/lumina.service`:
+```ini
+[Unit]
+Description=Lumina Web Frontend for Ollama
+After=network.target
 
-            # Disable buffering for real-time token streaming
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_read_timeout 86400s;
-        }
-    }
-}
+[Service]
+Type=simple
+User=your-user
+WorkingDirectory=/home/your-user/Lumina
+Environment="PATH=/home/your-user/Lumina/venv/bin"
+Environment="OLLAMA_BASE_URL=http://localhost:11434"
+ExecStart=/home/your-user/Lumina/venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 3000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now lumina.service
 ```
 
 ---
 
-## 🎙️ Critical: Enabling Microphone for Live Voice Mode
+## ⚙️ Model Management & VRAM Optimization
 
-Web browsers enforce strict security rules for microphone access (`getUserMedia`):
-- **Allowed on `localhost` & `127.0.0.1`**: Microphone works immediately without HTTPS.
-- **Blocked on LAN IPs (e.g. `http://192.168.1.x`)**: Browsers **block** the microphone on plain HTTP unless you connect over HTTPS or configure an exception.
+Lumina provides complete graphical model management directly inside the UI drawer without requiring command-line access.
 
-### Easy Solutions for Homelabs:
+### 1. Pulling Models
+* Open the left slide-out drawer.
+* In the **Model Management** section, enter any model tag from the [Ollama Library](https://ollama.com/library) (e.g., `gemma4:12b`, `qwen2.5:7b`, `llama3.2:3b`).
+* You can also pull any GGUF quantized model directly from Hugging Face by prefixing with `hf.co/` (e.g., `hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M`).
+* Click **Pull Model**. Real-time download progress, download speed, and layer verification stream directly into the UI.
 
-1. **Tailscale Serve (Zero Config, Easiest)**:
-   If you use Tailscale on your host machine:
-   ```bash
-   tailscale serve --https=443 3000
-   ```
-   Access Lumina via your magic DNS address (e.g. `https://my-gpu-node.tailscale.net`). Microphone works out of the box on iPhone, Android, and laptops!
+### 2. Activating & Switching Models
+* Use the model dropdown at the top of the chat canvas or inside the drawer to instantly switch active models.
+* Switching models takes effect on the very next conversation turn.
 
-2. **Caddy Reverse Proxy (Automatic Free SSL)**:
-   ```caddyfile
-   ai.yourdomain.com {
-       reverse_proxy lumina-ui:3000
-   }
-   ```
+### 3. Prewarming & VRAM Persistence ("Keep in VRAM")
+* By default, Lumina sends `keep_alive: -1` to Ollama.
+* **Why this matters:** When a model is pinned in GPU memory, subsequent conversation turns begin generating tokens **instantly** without a 3–8 second model reload delay.
+* If you prefer to release VRAM automatically after inactivity, toggle off VRAM persistence in settings to let models unload after 5 minutes.
 
-3. **Chrome / Edge Testing Flag (No SSL Required)**:
-   For quick testing on another computer or phone without SSL:
-   - Navigate to: `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
-   - Enter your LAN URL: `http://192.168.1.69:3000`
-   - Set to **Enabled** and restart the browser.
+### 4. Releasing VRAM ("Free VRAM")
+* When you need GPU memory back for gaming, 3D rendering, or ComfyUI, open the drawer and click **Free VRAM**.
+* Lumina immediately sends `keep_alive: 0` to Ollama, evicting the active model from GPU memory and restoring VRAM to 0 MB.
+
+### 5. Deleting Models
+* In the model drawer, locate any installed model and click the trash can icon to permanently remove the weights from disk and reclaim storage.
+
+### 6. Recommended Local Models
+
+| Model Tag | Size | VRAM Needed | Best For |
+| :--- | :--- | :--- | :--- |
+| **`gemma4:12b`** | 7.6 GB | ~8.5 GB | State-of-the-art reasoning, math, and code |
+| **`qwen2.5:7b`** | 4.7 GB | ~5.5 GB | Fast, lightweight instruction following, multilingual |
+| **`llama3.2-vision:11b`** | 7.9 GB | ~8.5 GB | Multimodal vision, chart analysis, document OCR |
+| **`qwen2.5-coder:7b`** | 4.7 GB | ~5.5 GB | Software engineering, code generation, debugging |
+| **`llama3.2:3b`** | 2.0 GB | ~2.5 GB | Ultra-fast responses on low-VRAM GPUs and laptops |
 
 ---
 
-## 🛠️ Recommended Local Models
+## 🎙️ TLS / HTTPS & Live Voice Mode Requirements
 
-Once Lumina is running, pull any of these battle-tested models via the Lumina UI (**Pull / Manage** in sidebar) or `docker exec -it lumina-ollama ollama pull <model>`:
+Modern web browsers enforce strict security standards around the Web Audio and Speech APIs:
+* **Allowed on `localhost` & `127.0.0.1`**: Microphone access (`getUserMedia`) works immediately without SSL.
+* **Blocked on Remote / LAN IPs (e.g., `http://192.168.1.x:3000`)**: Browsers automatically block microphone permissions on plain HTTP with a `NotAllowedError`.
 
-| Model | Size | VRAM Needed | Best For |
-| :--- | :--- | :--- | :--- |
-| **`gemma4:12b`** | 7.6 GB | ~8 GB | State-of-the-art general reasoning, math, and code |
-| **`qwen2.5:7b`** | 4.7 GB | ~5.5 GB | Ultra-fast token generation, reasoning, multilingual |
-| **`llama3.2-vision:11b`**| 7.9 GB | ~8.5 GB | Multimodal image inspection and document analysis |
-| **`qwen2.5-coder:7b`** | 4.7 GB | ~5.5 GB | Programming, debugging, and syntax accuracy |
+To enable **Lumina Live Voice Mode** on your iPhone, Android phone, or laptop over your network, choose one of these turnkey solutions:
+
+### Option A: Tailscale Serve (Easiest, Recommended)
+If your host is connected to Tailscale:
+```bash
+# Point Tailscale HTTPS directly to Lumina's port:
+tailscale serve --bg 3000
+```
+Access Lumina at `https://<your-device-name>.tailnet-name.ts.net`.
+Tailscale automatically manages valid Let's Encrypt TLS certificates. The microphone and PWA installation work immediately on all devices!
+
+### Option B: Caddy Reverse Proxy
+If using Caddy on your network or host:
+```caddyfile
+ai.yourdomain.home {
+    reverse_proxy 127.0.0.1:3000
+}
+```
+Caddy handles automatic internal or external HTTPS certificates.
+
+### Option C: Browser Flag Exception (Testing Only)
+If you just want to test voice mode quickly over LAN without configuring TLS:
+1. On your client browser (Chrome or Edge), open: `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+2. Enter your Lumina LAN address: `http://192.168.1.69:3000`
+3. Set the flag to **Enabled** and click **Relaunch**.
+
+---
+
+## 📋 Environment Variables Reference
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Endpoint for your Ollama engine (e.g., `http://ollama:11434` in Docker). |
+| `OLLAMA_HOST` | *(Fallback for Base URL)* | Alternative alias for `OLLAMA_BASE_URL`. |
+| `KOKORO_BASE_URL` | `http://kokoro:8880` | Endpoint for Kokoro-FastAPI neural TTS service. |
+| `SEARXNG_URL` | *(Empty / Disabled)* | Endpoint for SearXNG metasearch. Enables real-time web citations. |
+| `LUMINA_AUTH_TOKEN` | *(Empty / Open Access)* | Secret token required to access API and UI. |
+| `LUMINA_HOST` | `127.0.0.1` | Network interface binding. Set to `0.0.0.0` to allow LAN & Tailscale connections. |
+| `LUMINA_CORS_ORIGINS`| `*` | Comma-separated list of allowed CORS origins. |
+| `PORT` | `3000` | HTTP port for the Uvicorn web server. |
 
 ---
 
 ## ❓ Frequently Asked Questions
 
 <details>
-<summary><b>Can I run Lumina without a GPU?</b></summary>
-Yes! Ollama automatically falls back to CPU inference if no NVIDIA GPU is detected. The hardware telemetry widget in Lumina will display host CPU and RAM utilization.
-</details>
-
-<details>
-<summary><b>How do I free GPU memory when I'm done chatting?</b></summary>
-Open the slide-out drawer on the left and click <b>Free VRAM</b>. Lumina calls Ollama with <code>keep_alive: 0</code>, immediately releasing the model weights from GPU memory.
+<summary><b>Can I run Lumina without a dedicated NVIDIA GPU?</b></summary>
+Yes! If no NVIDIA GPU is detected, Ollama automatically falls back to multi-threaded CPU inference. Lumina's hardware telemetry bar will automatically adapt to track host CPU load and system RAM allocation.
 </details>
 
 <details>
 <summary><b>Where are chat histories stored?</b></summary>
-All conversation histories and settings are stored locally in your browser's <code>localStorage</code>. No external database or cloud storage is ever contacted.
+Conversations, document attachments, and user sessions are stored strictly client-side in your browser via <b>IndexedDB</b> (<code>luminaStorage</code>). No external databases (PostgreSQL/SQLite) or cloud backends are required, preserving 100% data sovereignty.
+</details>
+
+<details>
+<summary><b>Does Lumina work with third-party OpenAI-compatible APIs?</b></summary>
+Lumina is specifically purpose-built as an ultra-low-overhead frontend for <b>Ollama</b>. It communicates with Ollama's native API to support direct model pulls, VRAM keep-alive pinning, parameter sampling, and raw GGUF streaming.
 </details>
